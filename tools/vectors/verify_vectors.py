@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import verify_message_checks  # noqa: E402
 import verify_primitive_checks  # noqa: E402
 import verify_session_checks  # noqa: E402
+import verify_signature_checks  # noqa: E402
 from verify_common import Checker  # noqa: E402
 
 VEC_DIR = Path(__file__).resolve().parents[2] / "test-vectors"  # gốc kho shared/
@@ -22,7 +23,8 @@ REQUIRED_KEYS = {"description", "source", "vectors"}
 
 def main() -> int:
     docs = {p.name: json.loads(p.read_text(encoding="utf-8")) for p in sorted(VEC_DIR.glob("*.json"))}
-    checks = {**verify_primitive_checks.CHECKS, **verify_session_checks.CHECKS, **verify_message_checks.CHECKS}
+    checks = {**verify_primitive_checks.CHECKS, **verify_session_checks.CHECKS, **verify_message_checks.CHECKS,
+              **verify_signature_checks.CHECKS}
     c = Checker()
     for name in checks:
         c.true(f"{name} tồn tại", name in docs)
