@@ -569,7 +569,7 @@
     },
     {
       "key": "pairing.confirm_title",
-      "en": "Pair With {device_name}?",
+      "en": "Pair with {device_name}?",
       "vi": "Ghép nối với {device_name}?",
       "comment": "Android confirmation after scanning; {device_name} is the Mac/iPhone name from the QR code; buttons pairing.pair (default) and common.cancel",
       "platforms": ["android"],
