@@ -569,6 +569,14 @@
       "specs": ["PAIR-01", "SET-03"]
     },
     {
+      "key": "pairing.app_version",
+      "en": "App Version",
+      "vi": "Phiên bản ứng dụng",
+      "comment": "Row label in the Android device details; the value is the peer app version (PAIR-02 field 7). Proposed text",
+      "platforms": ["android"],
+      "specs": ["PAIR-02"]
+    },
+    {
       "key": "pairing.camera_denied",
       "en": "The camera isn't available. Use a PIN to pair.",
       "vi": "Không dùng được camera. Dùng mã PIN để ghép nối.",
@@ -599,6 +607,14 @@
       "vi": "Thiết bị",
       "comment": "Android tab and Mac Settings pane listing the paired devices",
       "platforms": ["android", "macos"],
+      "specs": ["PAIR-02"]
+    },
+    {
+      "key": "pairing.empty_body_android",
+      "en": "Pair a Mac, iPhone, or iPad to share the clipboard with this phone.",
+      "vi": "Ghép nối Mac, iPhone hoặc iPad để dùng chung bảng nhớ tạm với điện thoại này.",
+      "comment": "Sentence under pairing.empty_title_android on the empty Devices tab, above pairing.add_device. Proposed text",
+      "platforms": ["android"],
       "specs": ["PAIR-02"]
     },
     {
@@ -634,6 +650,14 @@
       "specs": ["PAIR-01", "SET-01"]
     },
     {
+      "key": "pairing.features",
+      "en": "Features",
+      "vi": "Tính năng",
+      "comment": "Section title in the Android device details listing the active features and their reasons (PAIR-02 field 8). Proposed text",
+      "platforms": ["android"],
+      "specs": ["PAIR-02"]
+    },
+    {
       "key": "pairing.in_progress",
       "en": "Pairing…",
       "vi": "Đang ghép nối…",
@@ -642,12 +666,28 @@
       "specs": ["PAIR-01"]
     },
     {
+      "key": "pairing.last_connected",
+      "en": "Last Connected",
+      "vi": "Kết nối gần nhất",
+      "comment": "Row label in the Android device details; the value is a relative time formatted by the system (PAIR-02 field 6). Proposed text",
+      "platforms": ["android"],
+      "specs": ["PAIR-02"]
+    },
+    {
       "key": "pairing.limit_reached",
       "en": "This phone is already paired with 8 devices. Unpair one and try again.",
       "vi": "Điện thoại đã ghép đủ 8 thiết bị. Hủy ghép nối một thiết bị rồi thử lại.",
       "comment": "PAIR-01 E6 on the phone after scanning: 8 active pairs already. Proposed text",
       "platforms": ["android"],
       "specs": ["PAIR-01"]
+    },
+    {
+      "key": "pairing.model",
+      "en": "Model",
+      "vi": "Kiểu máy",
+      "comment": "Row label in the Android device details; the value is the peer model (PAIR-02 field 3). Proposed text",
+      "platforms": ["android"],
+      "specs": ["PAIR-02"]
     },
     {
       "key": "pairing.options",
@@ -721,6 +761,14 @@
       "comment": "PAIR-01 field 7, under the PIN field after a wrong PIN. Proposed text",
       "platforms": ["android"],
       "args": [{"name": "count", "type": "int"}],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "pairing.pin_entry_hint",
+      "en": "Type the 6-digit PIN shown on your Mac or iPhone.",
+      "vi": "Nhập mã PIN 6 chữ số đang hiện trên Mac hoặc iPhone.",
+      "comment": "Instruction under the Enter PIN title on Android (PAIR-01 field 6). Proposed text",
+      "platforms": ["android"],
       "specs": ["PAIR-01"]
     },
     {
@@ -891,10 +939,26 @@
       "specs": ["SET-01"]
     },
     {
+      "key": "permission.background_primer_title",
+      "en": "Run in the Background",
+      "vi": "Chạy trong nền",
+      "comment": "Title of the Android PermissionPrimer before the battery optimization exemption dialog; body permission.background_primer (SET-01 step 5). Proposed text",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
       "key": "permission.camera_qr_primer",
       "en": "HandLive uses the camera to scan the QR code on your Mac, iPhone, or iPad.",
       "vi": "HandLive dùng camera để quét mã QR trên Mac, iPhone hoặc iPad.",
       "comment": "Android explanation before the CAMERA dialog of the QR scanner. Proposed in the design system (Asking for permission); not yet in SET-01 API 2",
+      "platforms": ["android"],
+      "specs": ["PAIR-01", "SET-01"]
+    },
+    {
+      "key": "permission.camera_qr_primer_title",
+      "en": "Scan the Pairing Code",
+      "vi": "Quét mã ghép nối",
+      "comment": "Title of the Android PermissionPrimer before the camera permission dialog; body permission.camera_qr_primer (PAIR-01 step 3). Proposed text",
       "platforms": ["android"],
       "specs": ["PAIR-01", "SET-01"]
     },
@@ -929,6 +993,14 @@
       "comment": "Mac/iPhone explanation before the notification dialog",
       "platforms": ["macos", "ios"],
       "specs": ["SET-03"]
+    },
+    {
+      "key": "permission.notifications_primer_title_android",
+      "en": "Get Notified About Connections and Requests",
+      "vi": "Nhận thông báo về kết nối và yêu cầu",
+      "comment": "Title of the Android PermissionPrimer before the notification permission dialog (Android 13+); body permission.notifications_primer_android (SET-01 step 3). Proposed text",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
     },
     {
       "key": "permission.notifications_primer_title_client",
@@ -1036,6 +1108,14 @@
       "specs": ["SET-02"]
     },
     {
+      "key": "settings.auto_send_description",
+      "en": "Sends what you copy right away, through an Accessibility service.",
+      "vi": "Gửi ngay nội dung vừa sao chép, qua một dịch vụ Hỗ trợ tiếp cận.",
+      "comment": "One-line description under Auto-Send on Copy (SET-02 field 2; every switch has a description). Proposed text",
+      "platforms": ["android"],
+      "specs": ["SET-02"]
+    },
+    {
       "key": "settings.auto_send_not_on",
       "en": "Auto-send isn't on yet",
       "vi": "Chưa bật tự gửi",
@@ -1050,6 +1130,14 @@
       "comment": "Switch or checkbox for clip.block_sensitive (Android, Mac; iPhone sends only on Paste)",
       "platforms": ["android", "macos"],
       "specs": ["SET-02", "CLIP-01"]
+    },
+    {
+      "key": "settings.block_sensitive_description",
+      "en": "Content that looks like a password or card number is sent only if you choose Send Anyway.",
+      "vi": "Nội dung có vẻ là mật khẩu hoặc số thẻ chỉ được gửi khi bạn chọn Vẫn gửi.",
+      "comment": "One-line description under Block Sensitive Content (SET-02 field 5). Proposed text",
+      "platforms": ["android"],
+      "specs": ["SET-02"]
     },
     {
       "key": "settings.calls",
@@ -1089,6 +1177,14 @@
       "vi": "Kết nối qua Internet",
       "comment": "Switch for relay.enabled (connect through the HandLive server when not on the same Wi-Fi)",
       "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.internet_connection_description",
+      "en": "Reaches paired devices that aren't on the same Wi-Fi network; content stays end-to-end encrypted.",
+      "vi": "Kết nối với thiết bị đã ghép nối khi không cùng mạng Wi-Fi; nội dung vẫn được mã hóa đầu cuối.",
+      "comment": "One-line description under Internet Connection (SET-02 field 21). Proposed text",
+      "platforms": ["android"],
       "specs": ["SET-02"]
     },
     {
@@ -1132,6 +1228,14 @@
       "specs": ["SET-02"]
     },
     {
+      "key": "settings.notifications",
+      "en": "Notifications",
+      "vi": "Thông báo",
+      "comment": "Row in Settings › Permissions & Background with the notification permission state (SET-01 field 3, SET-02 field 23). Proposed text",
+      "platforms": ["android"],
+      "specs": ["SET-01", "SET-02"]
+    },
+    {
       "key": "settings.open_at_login",
       "en": "Open HandLive at Login",
       "vi": "Mở HandLive khi đăng nhập",
@@ -1164,6 +1268,14 @@
       "specs": ["SET-02", "SET-01"]
     },
     {
+      "key": "settings.run_in_background",
+      "en": "Run in Background",
+      "vi": "Chạy trong nền",
+      "comment": "Row in Settings › Permissions & Background with the battery optimization exemption state (SET-01 field 6, SET-02 field 23). Proposed text",
+      "platforms": ["android"],
+      "specs": ["SET-01", "SET-02"]
+    },
+    {
       "key": "settings.show_in_menu_bar",
       "en": "Show HandLive in Menu Bar",
       "vi": "Hiện HandLive trên thanh menu",
@@ -1188,12 +1300,28 @@
       "specs": ["SET-02", "CLIP-02"]
     },
     {
+      "key": "settings.sync_clipboard_description",
+      "en": "Copy on one device and paste on the others.",
+      "vi": "Sao chép trên một thiết bị, dán trên các thiết bị khác.",
+      "comment": "One-line description under Sync Clipboard (SET-02 field 1). Proposed text",
+      "platforms": ["android"],
+      "specs": ["SET-02"]
+    },
+    {
       "key": "settings.sync_images",
       "en": "Sync Images",
       "vi": "Đồng bộ ảnh",
       "comment": "Switch or checkbox for clip.send_images under Sync Clipboard",
       "platforms": ["android", "macos", "ios"],
       "specs": ["SET-02", "CLIP-03"]
+    },
+    {
+      "key": "settings.sync_images_description",
+      "en": "Copied images up to 10 MB are sent too.",
+      "vi": "Gửi cả ảnh đã sao chép, tối đa 10 MB.",
+      "comment": "One-line description under Sync Images (SET-02 field 4). Proposed text",
+      "platforms": ["android"],
+      "specs": ["SET-02"]
     },
     {
       "key": "settings.title",
@@ -1256,6 +1384,14 @@
       "en": "Battery › Background usage limits › Never sleeping apps › add HandLive",
       "vi": "Pin › Giới hạn sử dụng nền › Ứng dụng không bao giờ ngủ › thêm HandLive",
       "comment": "Autostart guide for Samsung; menu names as One UI shows them",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.autostart_title",
+      "en": "Keep HandLive Running",
+      "vi": "Giữ HandLive luôn chạy",
+      "comment": "Title of the Android step with the manufacturer autostart instructions and Pause app activity if unused (SET-01 fields 7–9). Proposed text",
       "platforms": ["android"],
       "specs": ["SET-01"]
     },
