@@ -185,4 +185,4 @@ def build() -> tuple[dict, dict]:
     streams = stream_file(hs)
     files = {"device-id.json": device_id_file(), "pair-prk.json": pair_prk_file(pairs),
              "session-handshake.json": handshake_file(hs), "session-rekey.json": rekey, "stream-keys.json": streams}
-    return files, {"handshakes": hs, "streams": streams["vectors"]}
+    return files, {"pairs": pairs, "handshakes": hs, "streams": streams["vectors"]}
