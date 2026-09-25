@@ -99,3 +99,6 @@ jobs:
         run: |
           python shared/tools/strings/check_strings.py --self-test
           python shared/tools/strings/check_strings.py --docs
+
+      - name: Benchmark scripts on synthetic logs
+        run: python shared/tools/bench/self_test.py
