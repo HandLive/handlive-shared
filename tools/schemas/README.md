@@ -9,7 +9,7 @@ tools/.venv/bin/python tools/schemas/check_schemas.py
 
 Thoát 0 khi xanh. Các bước:
 
-1. Mọi `shared/schemas/*.schema.json` hợp lệ theo metaschema draft 2020-12, `$id` khớp tên file, mọi `$ref` phân giải được; enum mã lỗi khớp bảng 0.8.1 và enum `type` khớp bảng 0.7.1 (đọc thẳng từ `00-common-specs.md`).
+1. Mọi `shared/schemas/*.schema.json` hợp lệ theo metaschema draft 2020-12, `$id` khớp tên file, mọi `$ref` phân giải được; enum mã lỗi khớp bảng 0.8.1, enum mã đóng WebSocket khớp bảng 0.8.3 và enum `type` khớp bảng 0.7.1 (đọc thẳng từ `00-common-specs.md`).
 2. Ví dụ trong `docs/detailed-design/`:
    - `00-common-specs.md`: **mọi** khối ```json phải phân loại được và qua schema; `{op, data}` ngoài mục session/capability kiểm bằng `payload.schema.json`.
    - `01`–`08`: kiểm mọi envelope (`v` + `type`), mọi ack (`re` + `ok`) và mọi `{op, data}` nằm dưới tiêu đề `WS session/<op>` hoặc `WS capability/<op>`. Envelope `session` có payload giải base64 ra JSON thì kiểm cả plaintext bắt tay. Đối tượng khác (op của clipboard, sms…, REST, push) ngoài phạm vi, chỉ đếm.

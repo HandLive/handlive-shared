@@ -8,7 +8,7 @@ Nguồn: `../docs/detailed-design/00-common-specs.md` và `../docs/design-system
 
 | Thư mục | Nội dung | Tài liệu |
 |---------|----------|----------|
-| `test-vectors/` | 14 file vector (RFC + tự sinh) và `envelope-roundtrip{,-apple}.json` liên nền tảng | `test-vectors/README.md` |
+| `test-vectors/` | 16 file vector (RFC + tự sinh) và `envelope-roundtrip{,-apple}.json` liên nền tảng | `test-vectors/README.md` |
 | `schemas/` | JSON Schema 2020-12: envelope, payload, ack, error, `session-*`, `capability-*` | `schemas/README.md` |
 | `design-tokens/` | `tokens.json` (giống byte với `../docs/design-system/tokens.json`), `type-extras.json` | `design-tokens/README.md` |
 | `strings/` | `ui-strings.json`: mọi chuỗi hiển thị bằng tiếng Anh và tiếng Việt, kèm JSON Schema | `strings/README.vi.md` |

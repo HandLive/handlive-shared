@@ -5,7 +5,7 @@ Nguồn đặc tả: `docs/detailed-design/00-common-specs.md` (0.2, 0.3, 0.5, 0
 ## Quy ước chung
 
 - Mỗi file: `{"description", "source", "vectors": [...], "invalid_vectors": [...]?}`. Mỗi vector có `name` (duy nhất trong file). Mọi file có ≥ 2 vector.
-- `vectors`: phải tính ra đúng từng trường. `invalid_vectors` (vector âm): thao tác AEAD/MAC **phải thất bại**; trường `reason` ∈ `tag_mismatch`, `aad_mismatch`, `ciphertext_mismatch`, `payload_too_short`, `mac_mismatch`, `message_tampered`.
+- `vectors`: phải tính ra đúng từng trường. `invalid_vectors` (vector âm): thao tác AEAD/MAC/kiểm chữ ký **phải thất bại**; trường `reason` ∈ `tag_mismatch`, `aad_mismatch`, `ciphertext_mismatch`, `payload_too_short`, `mac_mismatch`, `message_tampered`, `signature_mismatch`, `wrong_key`, `wrong_label`, `device_id_mismatch`, `signature_length`, `signature_not_canonical`.
 - Byte: hex chữ thường, không tiền tố. Số nguyên: số JSON. Chuỗi hiển thị/UTF-8: chuỗi JSON.
 - Chuỗi wire giữ đúng dạng spec (0.3): `payload` của envelope là **b64** (RFC 4648 §4, có padding); `eph`, `nonce`, `mac` bên trong JSON là **b64u** (RFC 4648 §5, không padding); uuid 36 ký tự thường.
 - Chuỗi JSON (plaintext, envelope) là dạng gọn (không khoảng trắng), giữ thứ tự khóa, UTF-8 không escape. Mã hóa phải dùng **đúng byte** của chuỗi trong vector; khi nhận, parse JSON chứ không so chuỗi.
@@ -43,6 +43,12 @@ AEAD_ChaCha20_Poly1305 nonce 12 byte (CryptoKit `ChaChaPoly`). RFC 8439 §2.8.2 
 
 ### `device-id.json`
 `ik_sig_seed` (khóa bí mật Ed25519 32 byte, RFC 8032 §7.1 TEST 1–3), `ik_sig_pub`, `sha256` = SHA-256(pub), `device_id_bytes` = 16 byte đầu sau khi đặt byte 6 = `(b & 0x0f) | 0x80`, byte 8 = `(b & 0x3f) | 0x80`, `device_id` = dạng uuid.
+
+### `ed25519.json`
+`seed` (khóa bí mật 32 byte), `public_key`, `message`, `signature` (64 byte R ‖ S): RFC 8032 §7.1 TEST 1–3, cùng khóa với `device-id.json`. Ed25519 tất định: ký lại `message` bằng `seed` phải ra đúng `signature`. Cùng thuật toán với chữ ký attestation (PAIR-01) và chữ ký gửi relay (`relay-auth.json`). `invalid_vectors`: `{public_key, message, signature, reason}`, kiểm phải thất bại — thông điệp bị sửa (`message_tampered`), R hoặc S bị sửa (`signature_mismatch`), khóa khác (`wrong_key`), S thay bằng S + L (`signature_not_canonical`: thư viện kiểm lỏng sẽ chấp nhận; RFC 8032 §5.1.7 bắt S < L), chữ ký 63 byte (`signature_length`).
+
+### `relay-auth.json`
+`kind` = `register` (`POST /v1/devices`, CONN-03 API 1) hoặc `auth` (`POST /v1/auth/token`, 0.6.4, CONN-03 API 3). Trường chung: `ik_sig_seed`, `ik_sig_pub` (khóa RFC 8032 TEST 1–3), `device_id` (như `device-id.json`), `message`, `sig` (hex), `request` (body JSON trên dây, dạng gọn, b64u không padding). `register` thêm `platform` (`macos`, `android`, `ios`), `app_version`, `ts`; `message` = `"HLREG1"` ‖ device_id 16 byte ‖ ik_sig_pub 32 ‖ UTF-8(platform) ‖ ts int64 BE. `auth` thêm `challenge` (32 byte), `challenge_b64u`; `message` = `"HLAUTH1"` ‖ challenge ‖ device_id 16. `invalid_vectors`: `{kind, reason, ik_sig_pub, request}` (`auth` thêm `challenge` = giá trị relay đã cấp; `ik_sig_pub` là khóa relay lưu cho `device_id`), relay phải từ chối: `message_tampered` (ts, platform hoặc challenge đổi sau khi ký; `signed_message` là thông điệp đã ký thật), `device_id_mismatch` (chữ ký đúng nhưng `device_id` không dẫn xuất từ khóa), `wrong_label` (ký bằng nhãn kia), `wrong_key` (`signer_pub` là khóa đã ký), `signature_length` (400 `BAD_REQUEST`), `signature_not_canonical` (S + L); trừ `signature_length`, relay trả 401 `SIGNATURE_INVALID`.
 
 ### `pair-prk.json`
 Hai cặp, một cặp `device_id` client nhỏ hơn, một cặp lớn hơn (`client_id_is_smaller`). `ik_dh` = khóa Alice/Bob RFC 7748 §6.1. `dh_shared` = X25519(ik_dh mình, ik_dh đối phương) (hai phía như nhau); `ikm` = `dh_shared` ‖ `pairing_secret` (64 byte); `salt_input` = id nhỏ ‖ id lớn (32 byte); `salt` = SHA-256(salt_input); `info` (chuỗi UTF-8), `length` = 32; `prk`.
