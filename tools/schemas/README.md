@@ -15,6 +15,7 @@ Thoát 0 khi xanh. Các bước:
    - `01`–`08`: kiểm mọi envelope (`v` + `type`), mọi ack (`re` + `ok`) và mọi `{op, data}` nằm dưới tiêu đề `WS session/<op>` hoặc `WS capability/<op>`. Envelope `session` có payload giải base64 ra JSON thì kiểm cả plaintext bắt tay. Đối tượng khác (op của clipboard, sms…, REST, push) ngoài phạm vi, chỉ đếm.
    - Khối ```json không parse cả khối thì parse từng dòng; dòng không parse được là lỗi tài liệu. Inline code chỉ tính khi là JSON hợp lệ.
 3. Mẫu dương tự viết (`sample_messages.py`) phải qua; mẫu âm (mỗi mẫu làm hỏng đúng một chỗ: thiếu trường, sai `v`, `type` lạ, mã lỗi lạ, uuid sai dạng, b64 sai…) phải bị từ chối.
+4. Đoạn catalog chuỗi giao diện trích trong 0.12.1 (khối ```jsonc có `strings`) qua `strings/ui-strings.schema.json` và các quy tắc của `tools/strings/catalog_rules.py`, trừ thứ tự khóa.
 
 ## Quy tắc thay placeholder
 
