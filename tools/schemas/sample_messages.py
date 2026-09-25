@@ -112,6 +112,8 @@ NEGATIVE_SPECS = [
     ("session/error mã lạ", "session-error", "session/error AUTH_FAILED", _set(["data", "code"], "NOPE")),
     ("session/error min_protocol với AUTH_FAILED", "session-error", "session/error AUTH_FAILED",
      _set(["data", "min_protocol"], 2)),
+    ("session/error UNSUPPORTED_VERSION thiếu min_protocol", "session-error", "session/error UNSUPPORTED_VERSION",
+     _drop(["data", "min_protocol"])),
     ("session/rekey thiếu epoch", "session-rekey", "session/rekey", _drop(["data", "epoch"])),
     ("ack rekey thiếu eph", "session-rekey#ack", "ack của session/rekey", _drop(["data", "eph"])),
     ("session/bye reason lạ", "session-bye", "session/bye", _set(["data", "reason"], "sleep")),

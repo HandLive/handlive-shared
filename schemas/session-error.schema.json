@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://handlive.app/schemas/v1/session-error.schema.json",
   "title": "HandLive — session/error (S→C)",
-  "description": "00-common-specs 0.6.3 bước 2; CONN-01 API 6. Payload chưa mã hóa; S đóng kết nối ngay sau đó (0.8.3). min_protocol chỉ đi kèm UNSUPPORTED_VERSION.",
+  "description": "00-common-specs 0.6.3 bước 2; CONN-01 API 6. Payload chưa mã hóa; S đóng kết nối ngay sau đó (0.8.3). min_protocol bắt buộc khi và chỉ khi code = UNSUPPORTED_VERSION.",
   "type": "object",
   "required": ["op", "data"],
   "additionalProperties": false,
@@ -28,7 +28,9 @@
       "if": {
         "properties": { "code": { "const": "UNSUPPORTED_VERSION" } }
       },
-      "then": true,
+      "then": {
+        "required": ["min_protocol"]
+      },
       "else": {
         "not": { "required": ["min_protocol"] }
       }
