@@ -17,7 +17,8 @@ Errors (exit 1):
   7. vi texts carry Apple-style tone marks (hóa, xóa, hủy, tùy — never hoá, xoá, huỷ, tuỳ);
   8. "plist_key" is present exactly in group infoplist;
   9. every "specs" ID is a leaf function or a 0.x section heading of docs/detailed-design.
-Warnings: translations ending with different punctuation; with --docs, a vi text no Vietnamese spec quotes or
+Warnings: translations ending with different punctuation; an article, coordinating conjunction or preposition of
+four or fewer letters capitalized inside an English title-style text; with --docs, a vi text no Vietnamese spec quotes or
 an en text no English spec quotes (docs/detailed-design and docs/design-system).
 
 The docs are the hub's docs/detailed-design: ../docs/detailed-design from this repository root, or

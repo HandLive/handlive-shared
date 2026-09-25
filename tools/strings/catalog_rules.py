@@ -27,6 +27,9 @@ CONTROL_CHARS = re.compile(r"[\x00-\x09\x0b-\x1f\x7f]")  # a line feed is the on
 # Apple writes them on the first vowel (hóa, khỏe, hủy). "qu" is a consonant, so quý and quả are correct.
 NEW_STYLE_TONE = re.compile(r"(?<!q)(?:o[áàảãạéèẻẽẹ]|u[ýỳỷỹỵ])(?!\w)", re.IGNORECASE)
 TERMINAL_PUNCTUATION = (".", "?", "!", ":", "…")
+# Apple title-style: these words stay lowercase unless they are the first or last word of the title.
+TITLE_MINOR_WORDS = {"a", "an", "the", "and", "but", "or", "nor", "for", "so", "yet", "at", "by", "from", "in",
+                     "into", "of", "off", "on", "onto", "out", "over", "to", "up", "via", "with"}
 
 
 @dataclass
@@ -77,6 +80,21 @@ def apple_style(word: str) -> str:
 def new_style_words(text: str) -> list[str]:
     """Words of a Vietnamese text written with new-style tone marks."""
     return [word for word in re.findall(r"\w+", text) if NEW_STYLE_TONE.search(word)]
+
+
+def title_style_slips(text: str) -> list[str]:
+    """Minor words capitalized inside an English text written title-style (every other word capitalized).
+
+    Each sentence or clause is its own title ("Can't Scan? Use a PIN"); texts with a lowercase significant word
+    are sentence-style and are not checked."""
+    slips = []
+    for part in re.split(r"[.?!:;—]\s+", PLACEHOLDER.sub("Arg", text)):  # an argument counts as a capitalized word
+        words = re.findall(r"[A-Za-z][A-Za-z'’-]*", part)
+        significant = [w for w in words if w.lower() not in TITLE_MINOR_WORDS]
+        if len(words) < 2 or not significant or not all(w[0].isupper() or w[1:2].isupper() for w in significant):
+            continue
+        slips += [w for w in words[1:-1] if w.lower() in TITLE_MINOR_WORDS and w[0].isupper()]
+    return slips
 
 
 def check_catalog(catalog: object, schema: dict, spec_ids: set[str] | None, require_sorted: bool = True) -> Result:
@@ -144,6 +162,9 @@ def _check_entry(entry: dict, languages: list[str], spec_ids: set[str] | None, r
         for category, text in variants(value):
             where = f"{key} [{lang}{'.' + category if category else ''}]"
             _check_text(text, where, lang, result)
+            if lang == "en":
+                for word in title_style_slips(text):
+                    result.warn(f"{where}: title-style keeps {word!r} lowercase inside a title ({word.lower()!r})")
             used = _placeholders(text, where, result)
             for name in sorted(used - declared):
                 result.error(f"{where}: placeholder {{{name}}} is not declared in \"args\"")

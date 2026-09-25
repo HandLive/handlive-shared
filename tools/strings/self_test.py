@@ -144,6 +144,19 @@ def test_tone_marks(t: Harness) -> None:
         t.check(f"suggests {fixed}", rules.apple_style(word) == fixed, rules.apple_style(word))
 
 
+def test_title_style(t: Harness, schema: dict) -> None:
+    for text, slips in [("Pair With {device_name}?", ["With"]), ("Pair with {device_name}?", []),
+                        ("Paste From Other Apps", ["From"]), ("Show HandLive In Menu Bar", ["In"]),
+                        ("Take Calls on Mac", []), ("Connected via Wi-Fi", []), ("Off on {device_name}", []),
+                        ("Can't Scan? Use a PIN", []), ("Waiting for a connection", []), ("No Devices Yet", []),
+                        ("Pair iPhone With Mac", ["With"]), ("Get Notified About Messages and Calls", [])]:
+        t.check(f"title-style {text!r}", rules.title_style_slips(text) == slips, str(rules.title_style_slips(text)))
+    catalog = base_catalog()
+    entry(catalog, "common.cancel")["en"] = "Cancel For Now"
+    result = rules.check_catalog(catalog, schema, SPEC_IDS)
+    t.check("warns about a capitalized minor word", any("'For'" in w for w in result.warnings), str(result.warnings))
+
+
 def test_docs(t: Harness) -> None:
     vi_spec = (
         "# 1. Nhóm chức năng: Thiết lập\n\n## 1.1 SET-01 — Thiết lập ban đầu và cấp quyền\n\n"
@@ -196,6 +209,7 @@ def main(schema: dict) -> int:
     t = Harness()
     test_catalog_rules(t, schema)
     test_tone_marks(t)
+    test_title_style(t, schema)
     test_docs(t)
     print(f"self-test: {t.passed} passed, {len(t.failed)} failed")
     return 1 if t.failed else 0
