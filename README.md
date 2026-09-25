@@ -1,6 +1,8 @@
-# handlive-shared — dữ liệu hợp đồng liên nền tảng của HandLive
+# handlive-shared
 
-Test vector, JSON Schema, design tokens và công cụ Python sinh/kiểm chúng. Nguồn: `../docs/detailed-design/00-common-specs.md` và `../docs/design-system/` của kho hub `handlive` (thư mục cha trong workspace). Android, Apple và relay đọc kho này qua `../shared`. Xem `CLAUDE.md` của kho này.
+Kho này không chạy ứng dụng. Nó giữ test vector, JSON Schema và design token để Android, Apple và relay đối chiếu cùng một hợp đồng. Các kho kia đọc qua `../shared`.
+
+Nguồn: `../docs/detailed-design/00-common-specs.md` và `../docs/design-system/` của kho hub. Công cụ Python trong `tools/` sinh và kiểm các file này. Xem `CLAUDE.md` của kho này.
 
 | Thư mục | Nội dung | Tài liệu |
 |---------|----------|----------|
