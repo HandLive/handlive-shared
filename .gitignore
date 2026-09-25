@@ -1,0 +1,6 @@
+# macOS
+.DS_Store
+
+# venv Python cục bộ của tools/ (tạo: python3 -m venv tools/.venv && tools/.venv/bin/pip install -r tools/vectors/requirements.txt -r tools/schemas/requirements.txt)
+tools/.venv/
+__pycache__/
