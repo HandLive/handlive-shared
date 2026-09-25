@@ -160,6 +160,15 @@
       "specs": ["CLIP-01"]
     },
     {
+      "key": "clipboard.skipped_just_received",
+      "en": "Not sent — this just came from {device_name}.",
+      "vi": "Không gửi: nội dung này vừa nhận từ {device_name}.",
+      "comment": "CLIP-01 field 11, manual send skipped because the content matches what was just received (QC4, E9)",
+      "platforms": ["android"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["CLIP-01"]
+    },
+    {
       "key": "clipboard.tile_not_connected",
       "en": "Not connected",
       "vi": "Chưa kết nối",
@@ -322,6 +331,15 @@
       "specs": ["CLIP-01", "CLIP-02"]
     },
     {
+      "key": "error.clip_write_failed_on_device",
+      "en": "Couldn't update the clipboard on {device_name}",
+      "vi": "Không cập nhật được bảng nhớ tạm trên {device_name}",
+      "comment": "CLIP-01 field 11 on Android: the other device refused a manual send with an error other than FEATURE_DISABLED or CLIP_TOO_LARGE",
+      "platforms": ["android"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["CLIP-01"]
+    },
+    {
       "key": "error.clip_write_failed_on_phone",
       "en": "Couldn't update the clipboard on the phone",
       "vi": "Không ghi được bảng nhớ tạm trên điện thoại",
@@ -352,6 +370,14 @@
       "vi": "Mã QR đã đổi. Quét mã mới trên Mac hoặc iPhone.",
       "comment": "PAIR-01 E2 on the phone: the code expired or the Mac/iPhone refreshed it (PAIRING_CLOSED). Proposed text",
       "platforms": ["android"],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "error.pairing_failed",
+      "en": "Pairing didn't finish. Try again.",
+      "vi": "Không ghép nối được. Thử lại.",
+      "comment": "PAIR-01 field 10: failures without their own text (lost connection, internal error)",
+      "platforms": ["android", "macos", "ios"],
       "specs": ["PAIR-01"]
     },
     {
