@@ -85,7 +85,7 @@ def extract_examples(path: Path) -> list[Example]:
             else:
                 block.append((no, text))
             continue
-        if text.startswith("```json"):
+        if text.split("\n", 1)[0].strip() == "```json":
             in_block, block_start, block = True, no, []
             continue
         if text.startswith("#"):
