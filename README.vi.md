@@ -8,12 +8,12 @@ Nguồn: `../docs/detailed-design/00-common-specs.md` và `../docs/design-system
 
 | Thư mục | Nội dung | Tài liệu |
 |---------|----------|----------|
-| `test-vectors/` | 16 file vector (RFC + tự sinh) và `envelope-roundtrip{,-apple}.json` liên nền tảng | `test-vectors/README.md` |
-| `schemas/` | JSON Schema 2020-12: envelope, payload, ack, error, `session-*`, `capability-*` | `schemas/README.md` |
-| `design-tokens/` | `tokens.json` (giống byte với `../docs/design-system/tokens.json`), `type-extras.json` | `design-tokens/README.md` |
+| `test-vectors/` | 16 file vector (RFC + tự sinh) và `envelope-roundtrip{,-apple}.json` liên nền tảng | `test-vectors/README.vi.md` |
+| `schemas/` | JSON Schema 2020-12: envelope, payload, ack, error, `session-*`, `capability-*` | `schemas/README.vi.md` |
+| `design-tokens/` | `tokens.json` (giống byte với `../docs/design-system/tokens.json`), `type-extras.json` | `design-tokens/README.vi.md` |
 | `strings/` | `ui-strings.json`: mọi chuỗi hiển thị bằng tiếng Anh và tiếng Việt, kèm JSON Schema | `strings/README.vi.md` |
-| `tools/vectors/` | `generate_vectors.py` (`--check`), `verify_vectors.py` | `tools/vectors/README.md` |
-| `tools/schemas/` | `check_schemas.py` (schema + ví dụ trong tài liệu hub; `HANDLIVE_DOCS_DIR`) | `tools/schemas/README.md` |
+| `tools/vectors/` | `generate_vectors.py` (`--check`), `verify_vectors.py` | `tools/vectors/README.vi.md` |
+| `tools/schemas/` | `check_schemas.py` (schema + ví dụ trong tài liệu hub; `HANDLIVE_DOCS_DIR`) | `tools/schemas/README.vi.md` |
 | `tools/strings/` | `check_strings.py` (quy tắc catalog 0.12.5; `--docs`, `--self-test`) | `strings/README.vi.md` |
 | `tools/bench/` | Độ trễ bảng nhớ tạm và thời gian kết nối lại từ log `HLBENCH/1` của hai thiết bị; kiểm thử tay theo ma trận thiết bị | `tools/bench/README.vi.md` |
 
