@@ -1,0 +1,1384 @@
+{
+  "version": 1,
+  "source_language": "en",
+  "languages": ["en", "vi"],
+  "strings": [
+    {
+      "key": "clipboard.auto_send_off_on_phone",
+      "en": "Auto-send is off on the phone — use the Send Clipboard button on the phone",
+      "vi": "Tự gửi đang tắt trên điện thoại — dùng nút Gửi bảng nhớ tạm trên điện thoại",
+      "comment": "Mac/iPhone note when the phone reports features.clipboard.auto_send = false",
+      "platforms": ["macos", "ios"],
+      "specs": ["CLIP-01"]
+    },
+    {
+      "key": "clipboard.conflict_body",
+      "en": "That device just copied something new.",
+      "vi": "Thiết bị này vừa có nội dung sao chép mới.",
+      "comment": "Body of the conflict notification; the device is the one named in the title",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "clipboard.conflict_title",
+      "en": "Clipboard Not Updated on {device_name}",
+      "vi": "Chưa ghi lên {device_name}",
+      "comment": "Title of the conflict notification on the sending device; action clipboard.send_again",
+      "platforms": ["android", "macos"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "clipboard.consent_events",
+      "en": "The service receives tap events and short on-screen messages to find the Copy action; unrelated events are dropped immediately and never stored or sent.",
+      "vi": "Dịch vụ nhận các sự kiện bấm và thông báo ngắn trên màn hình để tìm thao tác Sao chép; sự kiện không liên quan bị bỏ ngay, không lưu, không gửi đi.",
+      "comment": "Accessibility disclosure (ConsentSheet), line 2 of 4; changing its meaning needs a new key and a new consent",
+      "platforms": ["android"],
+      "specs": ["CLIP-01", "SET-01"]
+    },
+    {
+      "key": "clipboard.consent_manual",
+      "en": "You can turn this off at any time and send manually with the Send Clipboard button.",
+      "vi": "Bạn có thể tắt bất cứ lúc nào và gửi thủ công bằng nút Gửi bảng nhớ tạm.",
+      "comment": "Accessibility disclosure (ConsentSheet), line 4 of 4",
+      "platforms": ["android"],
+      "specs": ["CLIP-01", "SET-01"]
+    },
+    {
+      "key": "clipboard.consent_purpose",
+      "en": "HandLive uses an Accessibility service only to notice when you tap Copy, then reads what you just copied and sends it (end-to-end encrypted) to your paired Mac, iPhone, and iPad.",
+      "vi": "HandLive dùng dịch vụ Hỗ trợ tiếp cận chỉ để nhận biết khi bạn bấm Sao chép, rồi đọc nội dung vừa sao chép và gửi (mã hóa đầu-cuối) tới Mac, iPhone, iPad đã ghép nối.",
+      "comment": "Accessibility disclosure (ConsentSheet), line 1 of 4; changing its meaning needs a new key and a new consent",
+      "platforms": ["android"],
+      "specs": ["CLIP-01", "SET-01"]
+    },
+    {
+      "key": "clipboard.consent_send_manually",
+      "en": "Send Manually",
+      "vi": "Gửi thủ công",
+      "comment": "Second choice of the Accessibility disclosure: keep auto-send off",
+      "platforms": ["android"],
+      "specs": ["CLIP-01"]
+    },
+    {
+      "key": "clipboard.consent_toast",
+      "en": "Each time HandLive reads the clipboard, Android may show “HandLive pasted from your clipboard”.",
+      "vi": "Mỗi lần đọc, Android có thể hiện “HandLive đã dán từ bộ nhớ đệm”.",
+      "comment": "Accessibility disclosure (ConsentSheet), line 3 of 4; the quote is Android's own toast (Android 12+) in the system language",
+      "platforms": ["android"],
+      "specs": ["CLIP-01", "SET-01"]
+    },
+    {
+      "key": "clipboard.empty_or_not_text",
+      "en": "The clipboard is empty or doesn't contain text",
+      "vi": "Bảng nhớ tạm trống hoặc không phải văn bản",
+      "comment": "Result of a manual send with nothing to send; Android toast or HUD",
+      "platforms": ["android"],
+      "specs": ["CLIP-01"]
+    },
+    {
+      "key": "clipboard.image_sending",
+      "en": "Sending image to {device_name} — {percent}",
+      "vi": "Đang gửi ảnh tới {device_name} — {percent}",
+      "comment": "Progress of an image over 1 MiB (Android notification, Mac menu bar menu) with a Cancel button; {percent} is formatted by the system",
+      "platforms": ["android", "macos"],
+      "args": [{"name": "device_name", "type": "string"}, {"name": "percent", "type": "string"}],
+      "specs": ["CLIP-03"]
+    },
+    {
+      "key": "clipboard.not_connected_will_send",
+      "en": "Not connected — will send if reconnected within 2 minutes",
+      "vi": "Chưa kết nối — sẽ gửi nếu kết nối lại trong 2 phút",
+      "comment": "Result of a manual send while no device is connected (Android toast, Mac menu bar status line)",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "clipboard.send",
+      "en": "Send Clipboard",
+      "vi": "Gửi bảng nhớ tạm",
+      "comment": "Action of the ongoing service notification and label of the Quick Settings tile",
+      "platforms": ["android"],
+      "specs": ["CLIP-01", "SET-01"]
+    },
+    {
+      "key": "clipboard.send_again",
+      "en": "Send Again",
+      "vi": "Gửi lại",
+      "comment": "Action of the conflict notification; valid for 2 minutes",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "clipboard.send_anyway",
+      "en": "Send Anyway",
+      "vi": "Vẫn gửi",
+      "comment": "Action of the sensitive content notification; valid for 2 minutes",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "clipboard.sensitive_blocked_body",
+      "en": "HandLive doesn't send content that looks like a password or card number.",
+      "vi": "HandLive không gửi nội dung có vẻ là mật khẩu hoặc số thẻ.",
+      "comment": "Body of the sensitive content notification (Android channel clipboard, Mac notification)",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "clipboard.sensitive_blocked_title",
+      "en": "Sensitive Content Blocked",
+      "vi": "Đã chặn nội dung nhạy cảm",
+      "comment": "Title of the sensitive content notification; action clipboard.send_anyway",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "clipboard.sent_to",
+      "en": "Sent to {device_name}",
+      "vi": "Đã gửi tới {device_name}",
+      "comment": "Result of a manual send (Android toast or HUD, Mac status line, iPhone HUD)",
+      "platforms": ["android", "macos", "ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["CLIP-01"]
+    },
+    {
+      "key": "clipboard.share_target",
+      "en": "Send to Devices (HandLive)",
+      "vi": "Gửi tới thiết bị (HandLive)",
+      "comment": "Label of the Android share target (text/plain only)",
+      "platforms": ["android"],
+      "specs": ["CLIP-01"]
+    },
+    {
+      "key": "clipboard.tile_not_connected",
+      "en": "Not connected",
+      "vi": "Chưa kết nối",
+      "comment": "Quick Settings tile subtitle while no client is connected",
+      "platforms": ["android"],
+      "specs": ["CLIP-01"]
+    },
+    {
+      "key": "clipboard.tile_to_count",
+      "en": {"one": "To {count} device", "other": "To {count} devices"},
+      "vi": {"other": "Tới {count} thiết bị"},
+      "comment": "Quick Settings tile subtitle with several connected clients",
+      "platforms": ["android"],
+      "args": [{"name": "count", "type": "int"}],
+      "specs": ["CLIP-01"]
+    },
+    {
+      "key": "clipboard.tile_to_device",
+      "en": "To {device_name}",
+      "vi": "Tới {device_name}",
+      "comment": "Quick Settings tile subtitle with one connected client",
+      "platforms": ["android"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["CLIP-01"]
+    },
+    {
+      "key": "common.agree",
+      "en": "Agree",
+      "vi": "Đồng ý",
+      "comment": "ConsentSheet primary button (right on Mac, full width at the bottom on Android); max 2 words",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-01"]
+    },
+    {
+      "key": "common.cancel",
+      "en": "Cancel",
+      "vi": "Hủy",
+      "comment": "Cancel button of alerts, sheets and progress (left of the action, or last in an action sheet); never the default",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["PAIR-01", "PAIR-03", "CLIP-03"]
+    },
+    {
+      "key": "common.continue",
+      "en": "Continue",
+      "vi": "Tiếp tục",
+      "comment": "Only button of a permission explanation (PermissionPrimer) and next step of a multi-step flow",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-01", "SET-03"]
+    },
+    {
+      "key": "common.done",
+      "en": "Done",
+      "vi": "Xong",
+      "comment": "Last button of the first-run flow (the Paired screen); design system Onboarding",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-01", "SET-03", "PAIR-01"]
+    },
+    {
+      "key": "common.get_started",
+      "en": "Get Started",
+      "vi": "Bắt đầu",
+      "comment": "Button of the welcome screen (Onboarding), bottom on iPhone and Android, bottom right on Mac",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-01", "SET-03"]
+    },
+    {
+      "key": "common.off",
+      "en": "Off",
+      "vi": "Tắt",
+      "comment": "Off value: option of Auto-Clear Received Clipboard, state read by TalkBack/VoiceOver for a switch",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02", "CLIP-05"]
+    },
+    {
+      "key": "common.on",
+      "en": "On",
+      "vi": "Bật",
+      "comment": "On value: state read by TalkBack/VoiceOver for a switch, value of a permission row",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "common.open_settings",
+      "en": "Open Settings",
+      "vi": "Mở cài đặt",
+      "comment": "Button that opens the app's page in the system Settings (Android app info, iOS Settings) after a permission was denied for good",
+      "platforms": ["android", "ios"],
+      "specs": ["SET-01", "SET-03"]
+    },
+    {
+      "key": "common.open_system_settings",
+      "en": "Open System Settings",
+      "vi": "Mở Cài đặt hệ thống",
+      "comment": "Mac button that opens the right page of System Settings (paste permission, login items, local network)",
+      "platforms": ["macos"],
+      "specs": ["SET-03", "CLIP-02"]
+    },
+    {
+      "key": "common.retry",
+      "en": "Try Again",
+      "vi": "Thử lại",
+      "comment": "Button of an error that the user can retry (service start, key creation)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-01", "SET-03"]
+    },
+    {
+      "key": "common.skip",
+      "en": "Skip",
+      "vi": "Bỏ qua",
+      "comment": "Skip button of a step that opens no system dialog (manufacturer autostart guide)",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "error.clip_image_no_space",
+      "en": "Not enough storage to receive the image",
+      "vi": "Không đủ bộ nhớ để nhận ảnh",
+      "comment": "Receiver of an image transfer cannot write the temporary file (acks INTERNAL); Android toast, Mac menu bar status line",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-03"]
+    },
+    {
+      "key": "error.clip_image_send_failed",
+      "en": "Couldn't send the image",
+      "vi": "Không gửi được ảnh",
+      "comment": "Sender after the second CLIP_CHECKSUM_MISMATCH of one image; notification",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-03"]
+    },
+    {
+      "key": "error.clip_image_too_large",
+      "en": "Image is too large (up to 10 MB)",
+      "vi": "Ảnh quá lớn (tối đa 10 MB)",
+      "comment": "CLIP_TOO_LARGE for an image; shown in place (Android toast, Mac menu bar status line), never as a notification",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-03"]
+    },
+    {
+      "key": "error.clip_image_unreadable",
+      "en": "Couldn't read the image",
+      "vi": "Không đọc được ảnh",
+      "comment": "Manual send of an image that cannot be decoded (CLIP_UNSUPPORTED_MIME); Android toast, Mac menu bar status line",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-03"]
+    },
+    {
+      "key": "error.clip_text_too_large",
+      "en": "Content is too large to send (up to 1 MB of text)",
+      "vi": "Nội dung quá lớn để gửi (tối đa 1 MB văn bản)",
+      "comment": "CLIP_TOO_LARGE for text; shown in place (Android toast, Mac menu bar status line), never as a notification",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "error.clip_write_failed_on_phone",
+      "en": "Couldn't update the clipboard on the phone",
+      "vi": "Không ghi được bảng nhớ tạm trên điện thoại",
+      "comment": "Mac menu bar status line when the phone acks INTERNAL for a clip it could not write",
+      "platforms": ["macos"],
+      "specs": ["CLIP-02"]
+    },
+    {
+      "key": "error.feature_disabled",
+      "en": "This feature is off on {device_name}",
+      "vi": "Tính năng đang tắt trên {device_name}",
+      "comment": "Reply FEATURE_DISABLED from the peer; {device_name} is the peer's name",
+      "platforms": ["android", "macos", "ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["0.8.1"]
+    },
+    {
+      "key": "error.pairing_auth_failed",
+      "en": "Pairing isn't secure — try again",
+      "vi": "Ghép nối không an toàn, thử lại",
+      "comment": "AUTH_FAILED while pairing (MAC, signature or TLS binding wrong); shown inside the pairing sheet, a new QR code follows",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "error.pin_invalid",
+      "en": "The PIN is incorrect. Check the code on your Mac and try again.",
+      "vi": "Mã PIN không đúng. Kiểm tra mã trên Mac rồi nhập lại.",
+      "comment": "PIN_INVALID on the Android PIN screen; example text of the design system (Writing, errors)",
+      "platforms": ["android"],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "error.service_start_failed",
+      "en": "Couldn't Start the Connection Service",
+      "vi": "Không khởi động được dịch vụ kết nối",
+      "comment": "Alert title when the foreground service cannot start after a retry; button common.retry",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "error.session_auth_failed",
+      "en": "Couldn't verify the phone",
+      "vi": "Không xác thực được điện thoại",
+      "comment": "session/error AUTH_FAILED; status line on Mac/iPhone, no automatic retry for 5 minutes",
+      "platforms": ["macos", "ios"],
+      "specs": ["CONN-01"]
+    },
+    {
+      "key": "error.update_phone_app",
+      "en": "Update HandLive on the phone",
+      "vi": "Cập nhật HandLive trên điện thoại",
+      "comment": "UNSUPPORTED_VERSION when the phone's app is older (min_protocol above its protocol)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CONN-01"]
+    },
+    {
+      "key": "error.update_this_app",
+      "en": "Update HandLive on this device",
+      "vi": "Cập nhật HandLive trên máy này",
+      "comment": "UNSUPPORTED_VERSION when this Mac/iPhone's app is older than the phone requires",
+      "platforms": ["macos", "ios"],
+      "specs": ["CONN-01"]
+    },
+    {
+      "key": "infoplist.focus_status_usage",
+      "plist_key": "NSFocusStatusUsageDescription",
+      "en": "HandLive reads your Focus status so it doesn't ring or show calls while a Focus is on.",
+      "vi": "HandLive đọc trạng thái Tập trung để không đổ chuông và không hiện cuộc gọi khi bạn đang tập trung.",
+      "comment": "Purpose string of the Focus status permission, asked when the user turns on Ring on Mac; one active sentence starting with HandLive",
+      "platforms": ["macos"],
+      "specs": ["SET-03", "CALL-01"]
+    },
+    {
+      "key": "infoplist.local_network_usage",
+      "plist_key": "NSLocalNetworkUsageDescription",
+      "en": "HandLive looks for your Android phone on your Wi-Fi network to connect to it directly, not over the internet.",
+      "vi": "HandLive tìm điện thoại Android của bạn trong mạng Wi-Fi để kết nối trực tiếp, không qua Internet.",
+      "comment": "Purpose string of the local network permission (iOS, macOS 15+), asked by the first Bonjour browse",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-03", "CONN-01"]
+    },
+    {
+      "key": "infoplist.microphone_usage",
+      "plist_key": "NSMicrophoneUsageDescription",
+      "en": "HandLive uses the microphone so you can talk during calls transferred from your phone.",
+      "vi": "HandLive dùng micro để bạn nói trong cuộc gọi chuyển từ điện thoại.",
+      "comment": "Purpose string of the microphone permission, asked with Bluetooth when the user turns on Take Calls on Mac",
+      "platforms": ["macos"],
+      "specs": ["SET-03", "AUDIO-01"]
+    },
+    {
+      "key": "menu.camera_preview",
+      "en": "Camera Preview",
+      "vi": "Xem trước camera",
+      "comment": "Mac menu bar menu and Window menu item opening the camera preview window; dimmed while unavailable",
+      "platforms": ["macos"],
+      "specs": ["CONN-01"]
+    },
+    {
+      "key": "menu.messages",
+      "en": "Messages",
+      "vi": "Tin nhắn",
+      "comment": "Mac menu bar menu item opening the Messages window (unread count on the right); dimmed while unavailable",
+      "platforms": ["macos"],
+      "specs": ["CONN-01"]
+    },
+    {
+      "key": "menu.quit",
+      "en": "Quit HandLive",
+      "vi": "Thoát HandLive",
+      "comment": "Last item of the Mac menu bar menu and of the HandLive menu (⌘Q)",
+      "platforms": ["macos"],
+      "specs": ["CONN-01"]
+    },
+    {
+      "key": "menu.send_clipboard_to_phone",
+      "en": "Send Clipboard to Phone",
+      "vi": "Gửi bảng nhớ tạm sang điện thoại",
+      "comment": "Mac menu bar menu, Edit menu and Dock menu item; reads the clipboard now instead of waiting for the next poll",
+      "platforms": ["macos"],
+      "specs": ["CLIP-02"]
+    },
+    {
+      "key": "menu.settings",
+      "en": "Settings…",
+      "vi": "Cài đặt…",
+      "comment": "Mac menu bar menu and HandLive menu item opening Settings (⌘,)",
+      "platforms": ["macos"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "notification.channel_clipboard_description",
+      "en": "Blocked sensitive content, clipboard conflicts, and image transfer progress.",
+      "vi": "Nội dung nhạy cảm bị chặn, xung đột bảng nhớ tạm và tiến trình gửi ảnh.",
+      "comment": "Description of Android notification channel clipboard in system settings. Proposed text: the specs give no description yet",
+      "platforms": ["android"],
+      "specs": ["CLIP-01", "CLIP-03"]
+    },
+    {
+      "key": "notification.channel_clipboard_name",
+      "en": "Clipboard",
+      "vi": "Bảng nhớ tạm",
+      "comment": "Name of Android notification channel clipboard (sensitive content, conflicts, image progress)",
+      "platforms": ["android"],
+      "specs": ["CLIP-01"]
+    },
+    {
+      "key": "notification.channel_permission_description",
+      "en": "Suggestions to grant a permission when a Mac or iPhone needs a feature of this phone.",
+      "vi": "Gợi ý cấp quyền khi Mac hoặc iPhone cần một tính năng trên điện thoại.",
+      "comment": "Description of Android notification channel permission in system settings. Proposed text: the specs give no description yet",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "notification.channel_permission_name",
+      "en": "Permissions",
+      "vi": "Quyền",
+      "comment": "Name of Android notification channel permission (IMPORTANCE_LOW)",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "notification.channel_service_description",
+      "en": "Connection status with your Mac, iPhone, and iPad, and the Send Clipboard button.",
+      "vi": "Trạng thái kết nối với Mac, iPhone, iPad và nút Gửi bảng nhớ tạm.",
+      "comment": "Description of Android notification channel hl_service in system settings. Proposed text: the specs give no description yet",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "notification.channel_service_name",
+      "en": "Connection service",
+      "vi": "Dịch vụ kết nối",
+      "comment": "Name of Android notification channel hl_service (ongoing foreground service notification, IMPORTANCE_LOW)",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "notification.permission_sms_read",
+      "en": "{device_name} needs permission to read SMS on this phone — tap to allow",
+      "vi": "{device_name} cần quyền đọc SMS trên điện thoại — chạm để cho phép",
+      "comment": "Android notification (channel permission) after answering PERMISSION_MISSING to a client; at most once per feature per 24 h; {device_name} is the client",
+      "platforms": ["android"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "notification.service_connected_count",
+      "en": {"one": "Connected to {count} device", "other": "Connected to {count} devices"},
+      "vi": {"other": "Đã kết nối với {count} thiết bị"},
+      "comment": "Text of the ongoing service notification when several clients are connected",
+      "platforms": ["android"],
+      "args": [{"name": "count", "type": "int"}],
+      "specs": ["CONN-01", "SET-01"]
+    },
+    {
+      "key": "notification.service_connected_to",
+      "en": "Connected to {device_name}",
+      "vi": "Đã kết nối với {device_name}",
+      "comment": "Text of the ongoing service notification with one connected client",
+      "platforms": ["android"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["CONN-01", "SET-01"]
+    },
+    {
+      "key": "notification.service_waiting",
+      "en": "Waiting for a connection",
+      "vi": "Đang chờ kết nối",
+      "comment": "Text of the ongoing service notification while no client is connected (no title: Android shows the app name)",
+      "platforms": ["android"],
+      "specs": ["SET-01", "CONN-01"]
+    },
+    {
+      "key": "pairing.add_device",
+      "en": "Add Device",
+      "vi": "Thêm thiết bị",
+      "comment": "Android button on the Devices tab and its empty state; opens the pairing screen",
+      "platforms": ["android"],
+      "specs": ["PAIR-02", "PAIR-01"]
+    },
+    {
+      "key": "pairing.add_phone",
+      "en": "Add Phone…",
+      "vi": "Thêm điện thoại…",
+      "comment": "Mac/iPhone button that opens the pairing sheet with the QR code (first run, empty state)",
+      "platforms": ["macos", "ios"],
+      "specs": ["PAIR-01", "SET-03"]
+    },
+    {
+      "key": "pairing.confirm_title",
+      "en": "Pair With {device_name}?",
+      "vi": "Ghép nối với {device_name}?",
+      "comment": "Android confirmation after scanning; {device_name} is the Mac/iPhone name from the QR code; buttons pairing.pair (default) and common.cancel",
+      "platforms": ["android"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "pairing.details",
+      "en": "Details…",
+      "vi": "Chi tiết…",
+      "comment": "Mac button on the phone's row in Settings › Devices",
+      "platforms": ["macos"],
+      "specs": ["PAIR-02"]
+    },
+    {
+      "key": "pairing.devices",
+      "en": "Devices",
+      "vi": "Thiết bị",
+      "comment": "Android tab and Mac Settings pane listing the paired devices",
+      "platforms": ["android", "macos"],
+      "specs": ["PAIR-02"]
+    },
+    {
+      "key": "pairing.empty_body_client",
+      "en": "Pair an Android phone to get its clipboard, messages, and calls.",
+      "vi": "Ghép điện thoại Android để nhận bảng nhớ tạm, tin nhắn và cuộc gọi.",
+      "comment": "One-sentence body of the Mac/iPhone empty state; button pairing.add_phone",
+      "platforms": ["macos", "ios"],
+      "specs": ["PAIR-02"]
+    },
+    {
+      "key": "pairing.empty_title_android",
+      "en": "No Devices Yet",
+      "vi": "Chưa có thiết bị nào",
+      "comment": "Title of the Android Devices tab with no paired device; button pairing.add_device",
+      "platforms": ["android"],
+      "specs": ["PAIR-02"]
+    },
+    {
+      "key": "pairing.empty_title_client",
+      "en": "No Phone Yet",
+      "vi": "Chưa có điện thoại",
+      "comment": "Title of the Mac/iPhone empty state before pairing",
+      "platforms": ["macos", "ios"],
+      "specs": ["PAIR-02"]
+    },
+    {
+      "key": "pairing.enter_pin",
+      "en": "Enter PIN",
+      "vi": "Nhập mã PIN",
+      "comment": "Android button on the pairing screen and the scanner; opens the 6-digit PIN entry (same Wi-Fi only)",
+      "platforms": ["android"],
+      "specs": ["PAIR-01", "SET-01"]
+    },
+    {
+      "key": "pairing.in_progress",
+      "en": "Pairing…",
+      "vi": "Đang ghép nối…",
+      "comment": "Label of the pairing button while the exchange runs (locked until a result)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "pairing.options",
+      "en": "Options",
+      "vi": "Tùy chọn",
+      "comment": "Button in a device's details that opens its settings (SET-02)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["PAIR-02"]
+    },
+    {
+      "key": "pairing.pair",
+      "en": "Pair",
+      "vi": "Ghép nối",
+      "comment": "Default button of the pairing confirmation",
+      "platforms": ["android"],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "pairing.pair_a_device",
+      "en": "Pair a Device",
+      "vi": "Ghép nối thiết bị",
+      "comment": "Title of the Android pairing screen with pairing.scan_qr and pairing.enter_pin",
+      "platforms": ["android"],
+      "specs": ["PAIR-01", "SET-01"]
+    },
+    {
+      "key": "pairing.pair_phone",
+      "en": "Pair Phone…",
+      "vi": "Ghép điện thoại…",
+      "comment": "Mac HandLive menu item and button (Settings › Devices, Needs to be paired again) that opens the pairing sheet",
+      "platforms": ["macos", "ios"],
+      "specs": ["PAIR-01", "PAIR-02"]
+    },
+    {
+      "key": "pairing.pair_phone_title",
+      "en": "Pair Phone",
+      "vi": "Ghép nối điện thoại",
+      "comment": "Title of the pairing sheet (PairingCard) that shows the QR code",
+      "platforms": ["macos", "ios"],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "pairing.paired",
+      "en": "Paired",
+      "vi": "Đã ghép nối",
+      "comment": "Title of the screen shown after pairing during first run",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "pairing.paired_with",
+      "en": "Paired with {device_name}",
+      "vi": "Đã ghép nối với {device_name}",
+      "comment": "Feedback on both devices when pairing succeeds (HUD, sheet); {device_name} is the peer",
+      "platforms": ["android", "macos", "ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "pairing.qr_code_changes_in",
+      "en": "Code changes in {time}",
+      "vi": "Mã đổi sau {time}",
+      "comment": "Countdown under the QR code; {time} is the remaining time formatted m:ss by the system (1:42)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "time", "type": "string"}],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "pairing.qr_instructions",
+      "en": "Open HandLive on your Android phone, tap Add Device, then scan this code.",
+      "vi": "Mở HandLive trên điện thoại Android, chạm Thêm thiết bị rồi quét mã này.",
+      "comment": "Instructions in the pairing sheet above the QR code; Add Device is pairing.add_device",
+      "platforms": ["macos", "ios"],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "pairing.reason_internet_off_on_phone",
+      "en": "Internet connection is off on the phone",
+      "vi": "Kết nối qua Internet đang tắt trên điện thoại",
+      "comment": "Reason under a feature that needs the internet connection while the phone turned it off",
+      "platforms": ["macos", "ios"],
+      "specs": ["PAIR-02", "SET-02"]
+    },
+    {
+      "key": "pairing.reason_missing_permission",
+      "en": "Missing permission on the phone",
+      "vi": "Thiếu quyền trên điện thoại",
+      "comment": "Reason under a feature that lacks an Android permission (permissions_missing)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-02", "PAIR-02"]
+    },
+    {
+      "key": "pairing.reason_missing_sms_permission",
+      "en": "Missing SMS permission on the phone",
+      "vi": "Thiếu quyền SMS trên điện thoại",
+      "comment": "Reason under the SMS feature when the phone lacks READ_SMS",
+      "platforms": ["macos", "ios"],
+      "specs": ["PAIR-02"]
+    },
+    {
+      "key": "pairing.reason_off_on_device",
+      "en": "Off on {device_name}",
+      "vi": "Tắt trên {device_name}",
+      "comment": "Reason under a feature turned off on the peer device; {device_name} is the peer",
+      "platforms": ["android", "macos", "ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["PAIR-02", "SET-02"]
+    },
+    {
+      "key": "pairing.revoked_elsewhere",
+      "en": "{device_name} was unpaired from another device",
+      "vi": "Thiết bị {device_name} đã được hủy ghép nối từ thiết bị khác",
+      "comment": "Shown after cleaning up a pair that was revoked from the other device",
+      "platforms": ["android", "macos", "ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["PAIR-02"]
+    },
+    {
+      "key": "pairing.scan_hint",
+      "en": "Point the camera at the QR code on your Mac or iPhone",
+      "vi": "Hướng camera vào mã QR trên Mac hoặc iPhone",
+      "comment": "Hint over the Android QR scanner",
+      "platforms": ["android"],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "pairing.scan_qr",
+      "en": "Scan QR Code",
+      "vi": "Quét mã QR",
+      "comment": "Android button on the pairing screen; asks for the camera permission first",
+      "platforms": ["android"],
+      "specs": ["PAIR-01", "SET-01"]
+    },
+    {
+      "key": "pairing.security_code",
+      "en": "Security Code",
+      "vi": "Mã an toàn",
+      "comment": "Label of the 8-hex-digit code shown on both devices to compare (device details, Android confirmation)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["PAIR-02", "PAIR-01"]
+    },
+    {
+      "key": "pairing.unpair",
+      "en": "Unpair",
+      "vi": "Hủy ghép nối",
+      "comment": "Destructive action: device details (iPhone, Android), confirm button of the unpair alert and action sheet",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["PAIR-02", "PAIR-03"]
+    },
+    {
+      "key": "pairing.unpair_confirm_message",
+      "en": "Unpairing deletes the security keys and the SMS messages and call history synced to {device_name}. This can't be undone.",
+      "vi": "Hủy ghép nối sẽ xóa khóa bảo mật và dữ liệu SMS, nhật ký cuộc gọi đã đồng bộ trên {device_name}. Không thể hoàn tác.",
+      "comment": "Message of the unpair alert; {device_name} is the Mac/iPhone that holds the synced data",
+      "platforms": ["android", "macos", "ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["PAIR-03"]
+    },
+    {
+      "key": "pairing.unpair_confirm_title",
+      "en": "Unpair {device_name}?",
+      "vi": "Hủy ghép nối với {device_name}?",
+      "comment": "Title of the unpair alert (Mac sheet) or action sheet (iPhone, Android); {device_name} is the device to unpair",
+      "platforms": ["android", "macos", "ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["PAIR-03"]
+    },
+    {
+      "key": "pairing.unpair_ellipsis",
+      "en": "Unpair…",
+      "vi": "Hủy ghép nối…",
+      "comment": "Mac button on the phone's row in Settings › Devices; opens the unpair alert",
+      "platforms": ["macos"],
+      "specs": ["PAIR-02", "PAIR-03"]
+    },
+    {
+      "key": "pairing.unpaired_by_peer",
+      "en": "{device_name} unpaired this device",
+      "vi": "{device_name} đã hủy ghép nối với thiết bị này",
+      "comment": "Shown on the other device after an unpair from {device_name}",
+      "platforms": ["android", "macos", "ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["PAIR-03"]
+    },
+    {
+      "key": "pairing.use_pin",
+      "en": "Can't Scan? Use a PIN",
+      "vi": "Không quét được? Dùng mã PIN",
+      "comment": "Text button under the QR code; shows a 6-digit PIN instead (same Wi-Fi only)",
+      "platforms": ["macos", "ios"],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "permission.background_primer",
+      "en": "So your Mac and iPhone can always reach this phone, HandLive needs to run in the background without being stopped by the system.",
+      "vi": "Để Mac và iPhone luôn tới được điện thoại, HandLive cần chạy nền mà không bị hệ thống ngắt.",
+      "comment": "Android explanation before the battery optimization exemption dialog",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "permission.camera_qr_primer",
+      "en": "HandLive uses the camera to scan the QR code on your Mac, iPhone, or iPad.",
+      "vi": "HandLive dùng camera để quét mã QR trên Mac, iPhone hoặc iPad.",
+      "comment": "Android explanation before the CAMERA dialog of the QR scanner. Proposed in the design system (Asking for permission); not yet in SET-01 API 2",
+      "platforms": ["android"],
+      "specs": ["PAIR-01", "SET-01"]
+    },
+    {
+      "key": "permission.grant",
+      "en": "Grant Permission",
+      "vi": "Cấp quyền",
+      "comment": "Android button on a feature card that still needs a permission",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "permission.local_network_primer_title",
+      "en": "Find Your Phone on Wi-Fi",
+      "vi": "Tìm điện thoại trong mạng Wi-Fi",
+      "comment": "Title of the explanation before the local network dialog (iOS, macOS 15+)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-03"]
+    },
+    {
+      "key": "permission.notifications_primer_android",
+      "en": "Notifications show the connection status and let you confirm requests from your Mac, such as turning on the camera.",
+      "vi": "Thông báo cho bạn biết trạng thái kết nối và để bạn xác nhận yêu cầu từ Mac, ví dụ bật camera.",
+      "comment": "Android 13+ explanation before the POST_NOTIFICATIONS dialog",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "permission.notifications_primer_client",
+      "en": "Notifications tell you about new SMS messages and incoming calls; incoming calls are Time Sensitive so they arrive on time.",
+      "vi": "Thông báo cho bạn biết có SMS mới và cuộc gọi đến; cuộc gọi đến dùng mức nhạy cảm thời gian để đến kịp lúc.",
+      "comment": "Mac/iPhone explanation before the notification dialog",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-03"]
+    },
+    {
+      "key": "permission.notifications_primer_title_client",
+      "en": "Get Notified About Messages and Calls",
+      "vi": "Báo khi có tin nhắn và cuộc gọi",
+      "comment": "Title of the explanation before the notification dialog",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-03"]
+    },
+    {
+      "key": "permission.primer_footer",
+      "en": "You can change this in Settings at any time.",
+      "vi": "Bạn có thể đổi lại trong Cài đặt bất cứ lúc nào.",
+      "comment": "Small print at the bottom of every permission explanation (PermissionPrimer)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-01", "SET-03"]
+    },
+    {
+      "key": "permission.sms_primer",
+      "en": "To view and reply to SMS messages on your Mac or iPhone, HandLive needs to read and send SMS, read your contacts to show sender names, and read the phone state to choose a SIM.",
+      "vi": "Để xem và trả lời SMS trên Mac hoặc iPhone, HandLive cần đọc và gửi SMS, đọc danh bạ để hiện tên người gửi và đọc trạng thái điện thoại để chọn SIM.",
+      "comment": "Android explanation before the SMS permission dialogs (feature card Grant Permission)",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "push.call_incoming",
+      "en": "Incoming call on your phone",
+      "vi": "Cuộc gọi đến trên điện thoại",
+      "comment": "APNs aps.alert.loc-key for reason call_incoming when the extension cannot decrypt (iPhone locked)",
+      "platforms": ["ios"],
+      "specs": ["CONN-04"]
+    },
+    {
+      "key": "push.call_missed",
+      "en": "Missed call on your phone",
+      "vi": "Cuộc gọi nhỡ trên điện thoại",
+      "comment": "APNs aps.alert.loc-key for reason call_missed when the extension cannot decrypt",
+      "platforms": ["ios"],
+      "specs": ["CONN-04"]
+    },
+    {
+      "key": "push.generic",
+      "en": "New notification from your phone",
+      "vi": "Có thông báo mới từ điện thoại",
+      "comment": "Body the notification service extension shows when it cannot read the key or decrypt",
+      "platforms": ["ios"],
+      "specs": ["CONN-04"]
+    },
+    {
+      "key": "push.sms_new",
+      "en": "New SMS message",
+      "vi": "Tin nhắn SMS mới",
+      "comment": "APNs aps.alert.loc-key for reason sms_new when the extension cannot decrypt; no title (the system shows the app name)",
+      "platforms": ["ios"],
+      "specs": ["CONN-04"]
+    },
+    {
+      "key": "settings.auto_clear",
+      "en": "Auto-Clear Received Clipboard",
+      "vi": "Tự xóa bảng nhớ tạm đã nhận",
+      "comment": "Pop-up (Mac) or list row (iPhone, Android) for clip.auto_clear_s; options common.off, settings.auto_clear_1_min, settings.auto_clear_5_min",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02", "CLIP-05"]
+    },
+    {
+      "key": "settings.auto_clear_1_min",
+      "en": "After 1 Minute",
+      "vi": "Sau 1 phút",
+      "comment": "Option of Auto-Clear Received Clipboard (60 s)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CLIP-05"]
+    },
+    {
+      "key": "settings.auto_clear_5_min",
+      "en": "After 5 Minutes",
+      "vi": "Sau 5 phút",
+      "comment": "Option of Auto-Clear Received Clipboard (300 s)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CLIP-05"]
+    },
+    {
+      "key": "settings.auto_clear_footer",
+      "en": "Clears only content received from other devices, and only if you haven't copied anything new.",
+      "vi": "Chỉ xóa nội dung nhận từ thiết bị khác, và chỉ khi bạn chưa sao chép gì mới.",
+      "comment": "Footnote under Auto-Clear Received Clipboard",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CLIP-05"]
+    },
+    {
+      "key": "settings.auto_send",
+      "en": "Auto-Send on Copy",
+      "vi": "Tự gửi khi sao chép",
+      "comment": "Android switch for clip.auto_send; the first time it opens the Accessibility disclosure (also its title)",
+      "platforms": ["android"],
+      "specs": ["SET-02", "CLIP-01"]
+    },
+    {
+      "key": "settings.auto_send_consented_at",
+      "en": "Agreed on {date} at {time}",
+      "vi": "Đã đồng ý lúc {time}, {date}",
+      "comment": "Footnote under Auto-Send on Copy with the consent time; {date} and {time} are formatted by the system",
+      "platforms": ["android"],
+      "args": [{"name": "time", "type": "string"}, {"name": "date", "type": "string"}],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.auto_send_not_on",
+      "en": "Auto-send isn't on yet",
+      "vi": "Chưa bật tự gửi",
+      "comment": "Android status when the user comes back from Accessibility settings without turning the service on",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "settings.block_sensitive",
+      "en": "Block Sensitive Content",
+      "vi": "Chặn nội dung nhạy cảm",
+      "comment": "Switch or checkbox for clip.block_sensitive (Android, Mac; iPhone sends only on Paste)",
+      "platforms": ["android", "macos"],
+      "specs": ["SET-02", "CLIP-01"]
+    },
+    {
+      "key": "settings.calls",
+      "en": "Calls",
+      "vi": "Cuộc gọi",
+      "comment": "Mac Settings pane title (toolbar item)",
+      "platforms": ["macos"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.camera",
+      "en": "Camera",
+      "vi": "Camera",
+      "comment": "Mac Settings pane title (toolbar item)",
+      "platforms": ["macos"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.clipboard",
+      "en": "Clipboard",
+      "vi": "Bảng nhớ tạm",
+      "comment": "Mac Settings pane title; group header of the settings list on iPhone and Android",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.general",
+      "en": "General",
+      "vi": "Chung",
+      "comment": "Mac Settings pane title (toolbar item)",
+      "platforms": ["macos"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.internet_connection",
+      "en": "Internet Connection",
+      "vi": "Kết nối qua Internet",
+      "comment": "Switch for relay.enabled (connect through the HandLive server when not on the same Wi-Fi)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.language",
+      "en": "Language",
+      "vi": "Ngôn ngữ",
+      "comment": "Android settings row: Android 13+ opens the system app-language page, Android 10-12 picks in the app",
+      "platforms": ["android"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.language_en",
+      "en": "English",
+      "vi": "English",
+      "comment": "Language option, always written in its own language",
+      "platforms": ["android"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.language_system",
+      "en": "System Default",
+      "vi": "Theo hệ thống",
+      "comment": "Language option that follows the system's preferred languages",
+      "platforms": ["android"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.language_vi",
+      "en": "Tiếng Việt",
+      "vi": "Tiếng Việt",
+      "comment": "Language option, always written in its own language",
+      "platforms": ["android"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.messages",
+      "en": "Messages",
+      "vi": "Tin nhắn",
+      "comment": "Mac Settings pane title (toolbar item)",
+      "platforms": ["macos"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.open_at_login",
+      "en": "Open HandLive at Login",
+      "vi": "Mở HandLive khi đăng nhập",
+      "comment": "Mac switch (Settings › General) and first-run checkbox backed by SMAppService",
+      "platforms": ["macos"],
+      "specs": ["SET-02", "SET-03"]
+    },
+    {
+      "key": "settings.paste_from_other_apps",
+      "en": "Paste from Other Apps",
+      "vi": "Dán từ ứng dụng khác",
+      "comment": "Mac row (macOS 15.4+) with the paste permission state; the name of the macOS privacy setting",
+      "platforms": ["macos"],
+      "specs": ["CLIP-02", "SET-03"]
+    },
+    {
+      "key": "settings.paste_permission_hint",
+      "en": "To send the clipboard automatically, open System Settings › Privacy & Security › Paste from Other Apps and choose Always Allow for HandLive.",
+      "vi": "Để tự gửi bảng nhớ tạm, mở Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Dán từ ứng dụng khác và chọn Luôn cho phép cho HandLive.",
+      "comment": "Mac guidance when NSPasteboard.accessBehavior is ask or alwaysDeny; macOS names as the system shows them",
+      "platforms": ["macos"],
+      "specs": ["CLIP-02", "SET-03"]
+    },
+    {
+      "key": "settings.permissions_background",
+      "en": "Permissions & Background",
+      "vi": "Quyền và chạy nền",
+      "comment": "Android settings row opening the feature permission cards and the background state",
+      "platforms": ["android"],
+      "specs": ["SET-02", "SET-01"]
+    },
+    {
+      "key": "settings.show_in_menu_bar",
+      "en": "Show HandLive in Menu Bar",
+      "vi": "Hiện HandLive trên thanh menu",
+      "comment": "Mac switch (Settings › General) and first-run checkbox for mac.menu_bar_extra",
+      "platforms": ["macos"],
+      "specs": ["SET-02", "SET-03"]
+    },
+    {
+      "key": "settings.show_in_menu_bar_footer",
+      "en": "When this is off, HandLive appears in the Dock.",
+      "vi": "Khi tắt, HandLive nằm trên Dock.",
+      "comment": "Footnote under Show HandLive in Menu Bar",
+      "platforms": ["macos"],
+      "specs": ["SET-03", "SET-02"]
+    },
+    {
+      "key": "settings.sync_clipboard",
+      "en": "Sync Clipboard",
+      "vi": "Đồng bộ bảng nhớ tạm",
+      "comment": "Main switch of the clipboard feature (feature.clipboard)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02", "CLIP-02"]
+    },
+    {
+      "key": "settings.sync_images",
+      "en": "Sync Images",
+      "vi": "Đồng bộ ảnh",
+      "comment": "Switch or checkbox for clip.send_images under Sync Clipboard",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02", "CLIP-03"]
+    },
+    {
+      "key": "settings.title",
+      "en": "Settings",
+      "vi": "Cài đặt",
+      "comment": "Title of the Settings tab (Android, iPhone)",
+      "platforms": ["android", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "setup.applications_later",
+      "en": "Not Now",
+      "vi": "Để sau",
+      "comment": "Mac button: keep HandLive outside the Applications folder for now",
+      "platforms": ["macos"],
+      "specs": ["SET-03"]
+    },
+    {
+      "key": "setup.applications_move",
+      "en": "Move",
+      "vi": "Chuyển",
+      "comment": "Mac button: copy HandLive into /Applications, open it and quit this copy",
+      "platforms": ["macos"],
+      "specs": ["SET-03"]
+    },
+    {
+      "key": "setup.applications_prompt",
+      "en": "The virtual camera works only when HandLive is in the Applications folder. Move it now?",
+      "vi": "Camera ảo chỉ hoạt động khi HandLive nằm trong thư mục Ứng dụng. Chuyển ngay?",
+      "comment": "Mac first run when the app does not run from /Applications; buttons setup.applications_later, setup.applications_move",
+      "platforms": ["macos"],
+      "specs": ["SET-03"]
+    },
+    {
+      "key": "setup.autostart_done",
+      "en": "Done",
+      "vi": "Đã xong",
+      "comment": "Android button after following the manufacturer autostart guide",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.autostart_oppo",
+      "en": "In HandLive's Battery usage, turn on Allow background activity and Allow auto launch",
+      "vi": "Trong Sử dụng pin của HandLive, bật Cho phép hoạt động nền và Cho phép tự khởi chạy",
+      "comment": "Autostart guide for OPPO, realme, OnePlus; menu names as ColorOS shows them",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.autostart_samsung",
+      "en": "Battery › Background usage limits › Never sleeping apps › add HandLive",
+      "vi": "Pin › Giới hạn sử dụng nền › Ứng dụng không bao giờ ngủ › thêm HandLive",
+      "comment": "Autostart guide for Samsung; menu names as One UI shows them",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.autostart_xiaomi",
+      "en": "Turn on Autostart for HandLive; in HandLive's Battery saver, choose No restrictions",
+      "vi": "Bật Tự khởi chạy cho HandLive; trong Tiết kiệm pin của HandLive chọn Không hạn chế",
+      "comment": "Autostart guide for Xiaomi, Redmi, POCO; menu names as MIUI and HyperOS show them",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.ios_limits",
+      "en": "The clipboard syncs while HandLive is open on this device: tap the Paste button to send, with no paste permission prompt. iPhone and iPad can't take calls. When HandLive is closed, SMS messages and incoming calls appear as notifications.",
+      "vi": "Bảng nhớ tạm đồng bộ khi HandLive đang mở trên máy này: chạm nút Dán để gửi, không bị hỏi quyền dán. iPhone/iPad không nghe gọi được. Khi HandLive đóng, SMS và cuộc gọi đến hiện dưới dạng thông báo.",
+      "comment": "iPhone/iPad first run: the platform limits, stated plainly",
+      "platforms": ["ios"],
+      "specs": ["SET-03"]
+    },
+    {
+      "key": "setup.open_manufacturer_settings",
+      "en": "Open Manufacturer Settings",
+      "vi": "Mở cài đặt của hãng",
+      "comment": "Android button that opens the manufacturer's autostart or battery screen",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.open_notification_settings",
+      "en": "Open Notification Settings",
+      "vi": "Mở cài đặt thông báo",
+      "comment": "Android button on the warning shown when notifications are denied",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.pause_app_activity",
+      "en": "Pause app activity if unused",
+      "vi": "Tạm dừng hoạt động nếu không dùng",
+      "comment": "Name of the Android 11+ system setting that HandLive suggests turning off; write it as the system shows it",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.restricted_settings_help",
+      "en": "If Android shows “Restricted setting”: open Settings › Apps › HandLive, tap ⋮ at the top, choose “Allow restricted settings”, authenticate, then come back and turn on HandLive in Accessibility.",
+      "vi": "Nếu Android báo “Chế độ cài đặt bị hạn chế”: mở Cài đặt › Ứng dụng › HandLive, chạm ⋮ ở góc trên, chọn “Cho phép chế độ cài đặt bị hạn chế”, xác thực, rồi quay lại bật HandLive trong Hỗ trợ tiếp cận.",
+      "comment": "Android 13+ guide for installs outside Google Play before opening Accessibility settings; system names as Android shows them",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.time_sensitive_off",
+      "en": "Focus may silence call notifications",
+      "vi": "Thông báo cuộc gọi có thể bị chế độ Tập trung chặn",
+      "comment": "Warning when Time Sensitive notifications are turned off for HandLive",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-03"]
+    },
+    {
+      "key": "setup.welcome_body_android",
+      "en": "HandLive connects this phone to your Mac, iPhone, and iPad. Data is end-to-end encrypted and travels only between devices you've paired; the server can't read it. No account needed.",
+      "vi": "HandLive nối điện thoại này với Mac, iPhone, iPad của bạn. Dữ liệu được mã hóa đầu-cuối và chỉ đi giữa các thiết bị bạn đã ghép; máy chủ không đọc được nội dung. Không cần tài khoản.",
+      "comment": "Android welcome screen: introduction and privacy summary",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.welcome_body_client",
+      "en": "HandLive brings the clipboard, SMS messages, and calls from your Android phone to this device. Data is end-to-end encrypted and travels only between your devices; the server can't read it. No account needed.",
+      "vi": "HandLive đưa bảng nhớ tạm, tin nhắn SMS và cuộc gọi từ điện thoại Android lên máy này. Dữ liệu được mã hóa đầu-cuối, chỉ đi giữa các thiết bị của bạn; máy chủ không đọc được nội dung. Không cần tài khoản.",
+      "comment": "Mac/iPhone welcome screen: introduction and privacy summary",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-03"]
+    },
+    {
+      "key": "setup.welcome_privacy_link",
+      "en": "HandLive and Your Privacy",
+      "vi": "HandLive và quyền riêng tư của bạn",
+      "comment": "Link on the welcome screen to a short privacy page",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-01", "SET-03"]
+    },
+    {
+      "key": "setup.welcome_title",
+      "en": "Welcome to HandLive",
+      "vi": "Chào mừng đến với HandLive",
+      "comment": "Title of the welcome screen (Onboarding, brand large title)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-01", "SET-03"]
+    },
+    {
+      "key": "status.channel_internet",
+      "en": "Internet",
+      "vi": "Qua Internet",
+      "comment": "Short channel label (pill) of a device connected through the HandLive server",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["PAIR-02"]
+    },
+    {
+      "key": "status.channel_lan",
+      "en": "LAN",
+      "vi": "LAN",
+      "comment": "Short channel label (pill) of a device on the same Wi-Fi",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["PAIR-02"]
+    },
+    {
+      "key": "status.channel_usb",
+      "en": "USB",
+      "vi": "USB",
+      "comment": "Short channel label (pill) of a device connected by USB cable",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["PAIR-02"]
+    },
+    {
+      "key": "status.connected_internet",
+      "en": "Connected over the internet",
+      "vi": "Đã kết nối qua Internet",
+      "comment": "State Connected while the session goes through the relay",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["0.11", "PAIR-02"]
+    },
+    {
+      "key": "status.connected_usb",
+      "en": "Connected via USB",
+      "vi": "Đã kết nối qua USB",
+      "comment": "State Connected while the camera channel uses USB",
+      "platforms": ["android", "macos"],
+      "specs": ["0.11"]
+    },
+    {
+      "key": "status.connected_wifi",
+      "en": "Connected via Wi-Fi",
+      "vi": "Đã kết nối qua Wi-Fi",
+      "comment": "State Connected while the session goes over the LAN",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["0.11", "PAIR-02", "CONN-01"]
+    },
+    {
+      "key": "status.connected_wifi_to",
+      "en": "Connected via Wi-Fi to {device_name}",
+      "vi": "Đã kết nối qua Wi-Fi với {device_name}",
+      "comment": "Status line with the phone's name (Mac menu bar menu); also the VoiceOver/TalkBack text of the indicator",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["CONN-01"]
+    },
+    {
+      "key": "status.connecting",
+      "en": "Connecting…",
+      "vi": "Đang kết nối…",
+      "comment": "States Discovering, Connecting and Handshaking",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["0.11", "CONN-01", "PAIR-02"]
+    },
+    {
+      "key": "status.disconnected",
+      "en": "Disconnected",
+      "vi": "Mất kết nối",
+      "comment": "States Idle and Backoff",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["0.11", "PAIR-02"]
+    },
+    {
+      "key": "status.messages_waiting",
+      "en": {"one": "{count} message waiting for the phone", "other": "{count} messages waiting for the phone"},
+      "vi": {"other": "{count} tin đang chờ điện thoại"},
+      "comment": "Number of SMS messages queued until the phone reconnects",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "count", "type": "int"}],
+      "specs": ["CONN-02"]
+    },
+    {
+      "key": "status.not_paired",
+      "en": "Not paired",
+      "vi": "Chưa ghép nối",
+      "comment": "Mac menu bar status before the first pairing",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-03"]
+    },
+    {
+      "key": "status.peer_offline",
+      "en": "Phone offline",
+      "vi": "Điện thoại ngoại tuyến",
+      "comment": "State WaitingPeer: the server is reachable but the phone is not",
+      "platforms": ["macos", "ios"],
+      "specs": ["0.11", "PAIR-02"]
+    },
+    {
+      "key": "status.peer_offline_since",
+      "en": "Phone offline · last seen {time}",
+      "vi": "Điện thoại ngoại tuyến · lần cuối {time}",
+      "comment": "WaitingPeer with the last contact; {time} is formatted by the system (14:05, 2:05 PM)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "time", "type": "string"}],
+      "specs": ["PAIR-02"]
+    },
+    {
+      "key": "status.reconnect_now",
+      "en": "Reconnect Now",
+      "vi": "Kết nối lại ngay",
+      "comment": "Button or menu item shown while not connected; skips the backoff wait",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CONN-01", "CONN-02"]
+    },
+    {
+      "key": "status.repair_needed",
+      "en": "Needs to be paired again",
+      "vi": "Cần ghép nối lại",
+      "comment": "Every instance of the pair failed certificate pinning, or the pair is gone (status-error); action pairing.pair_phone",
+      "platforms": ["macos", "ios"],
+      "specs": ["0.11", "CONN-01"]
+    },
+    {
+      "key": "status.retry_in",
+      "en": "Retrying in {duration}",
+      "vi": "Thử lại sau {duration}",
+      "comment": "Backoff countdown; {duration} is formatted by the system (8 s)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "duration", "type": "string"}],
+      "specs": ["CONN-02"]
+    }
+  ]
+}
