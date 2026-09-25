@@ -5,7 +5,7 @@ Nguồn đã tải về và trích tự động từ bản .txt chính thức (2
 - RFC 8439 §2.8.2 và §A.5 (AEAD_ChaCha20_Poly1305)
 - RFC 7748 §5.2 và §6.1 (X25519)
 - RFC 5869 §A.1–A.3 (HKDF-SHA256)
-- RFC 8032 §7.1 TEST 1–3 (khóa Ed25519, dùng làm `ik_sig` mẫu)
+- RFC 8032 §7.1 TEST 1–3 (khóa Ed25519, dùng làm `ik_sig` mẫu; thông điệp và chữ ký của ba test)
 Không sửa tay các giá trị này; verify_vectors.py kiểm lại bằng thư viện độc lập.
 """
 
@@ -111,3 +111,15 @@ ED25519_8032 = [
     ("RFC 8032 7.1 TEST 3", "c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7",
      "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"),
 ]
+
+# RFC 8032 §7.1: (tên, MESSAGE, SIGNATURE) của TEST 1–3, cùng thứ tự với ED25519_8032.
+ED25519_8032_SIG = [
+    ("RFC 8032 7.1 TEST 1", "",
+     "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"),
+    ("RFC 8032 7.1 TEST 2", "72",
+     "92a009a9f0d4cab8720e820b5f642540a2b27b5416503f8fb3762223ebdb69da085ac1e43e15996e458f3613d0f11d8c387b2eaeb4302aeeb00d291612bb0c00"),
+    ("RFC 8032 7.1 TEST 3", "af82",
+     "6291d657deec24024827e69c3abe01a30ce548a284743a445e3680d7db5ac3ac18ff9b538d16f290ae67f760984dc6594a7c15e9716ed28dc027beceea1ec40a"),
+]
+# Bậc L của nhóm con cơ sở Ed25519 (RFC 8032 §5.1): S hợp lệ phải < L.
+ED25519_L = 2**252 + 27742317777372353535851937790883648493

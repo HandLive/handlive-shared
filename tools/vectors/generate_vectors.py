@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_identity_session_vectors  # noqa: E402
 import build_message_vectors  # noqa: E402
 import build_primitive_vectors  # noqa: E402
+import build_signature_vectors  # noqa: E402
 
 OUT_DIR = Path(__file__).resolve().parents[2] / "test-vectors"  # gốc kho shared/
 
@@ -22,6 +23,7 @@ def render_all() -> dict[str, str]:
     session_files, ctx = build_identity_session_vectors.build()
     files.update(session_files)
     files.update(build_message_vectors.build(ctx))
+    files.update(build_signature_vectors.build())
     return {name: json.dumps(doc, indent=2, ensure_ascii=False) + "\n" for name, doc in sorted(files.items())}
 
 
