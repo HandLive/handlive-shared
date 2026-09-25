@@ -185,6 +185,14 @@
       "specs": ["CLIP-01"]
     },
     {
+      "key": "common.app_name",
+      "en": "HandLive",
+      "vi": "HandLive",
+      "comment": "App name on Android (launcher label, app info, notification header, Accessibility service list); a proper name, never translated",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
       "key": "common.cancel",
       "en": "Cancel",
       "vi": "Hủy",
@@ -330,10 +338,26 @@
       "specs": ["PAIR-01"]
     },
     {
+      "key": "error.pairing_closed",
+      "en": "The QR code has changed. Scan the new code on your Mac or iPhone.",
+      "vi": "Mã QR đã đổi. Quét mã mới trên Mac hoặc iPhone.",
+      "comment": "PAIR-01 E2 on the phone: the code expired or the Mac/iPhone refreshed it (PAIRING_CLOSED). Proposed text",
+      "platforms": ["android"],
+      "specs": ["PAIR-01"]
+    },
+    {
       "key": "error.pin_invalid",
       "en": "The PIN is incorrect. Check the code on your Mac and try again.",
       "vi": "Mã PIN không đúng. Kiểm tra mã trên Mac rồi nhập lại.",
       "comment": "PIN_INVALID on the Android PIN screen; example text of the design system (Writing, errors)",
+      "platforms": ["android"],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "error.qr_invalid",
+      "en": "This QR code isn't a HandLive code.",
+      "vi": "Mã QR này không phải của HandLive.",
+      "comment": "PAIR-01 E1 on the phone, under the scanner: the code is not a HandLive pairing code or has the wrong format. Proposed text",
       "platforms": ["android"],
       "specs": ["PAIR-01"]
     },
@@ -536,6 +560,14 @@
       "specs": ["PAIR-01", "SET-03"]
     },
     {
+      "key": "pairing.camera_denied",
+      "en": "The camera isn't available. Use a PIN to pair.",
+      "vi": "Không dùng được camera. Dùng mã PIN để ghép nối.",
+      "comment": "PAIR-01 E9 on the phone when the camera permission is denied; the Enter PIN button follows. Proposed text",
+      "platforms": ["android"],
+      "specs": ["PAIR-01"]
+    },
+    {
       "key": "pairing.confirm_title",
       "en": "Pair With {device_name}?",
       "vi": "Ghép nối với {device_name}?",
@@ -601,6 +633,14 @@
       "specs": ["PAIR-01"]
     },
     {
+      "key": "pairing.limit_reached",
+      "en": "This phone is already paired with 8 devices. Unpair one and try again.",
+      "vi": "Điện thoại đã ghép đủ 8 thiết bị. Hủy ghép nối một thiết bị rồi thử lại.",
+      "comment": "PAIR-01 E6 on the phone after scanning: 8 active pairs already. Proposed text",
+      "platforms": ["android"],
+      "specs": ["PAIR-01"]
+    },
+    {
       "key": "pairing.options",
       "en": "Options",
       "vi": "Tùy chọn",
@@ -655,6 +695,15 @@
       "comment": "Feedback on both devices when pairing succeeds (HUD, sheet); {device_name} is the peer",
       "platforms": ["android", "macos", "ios"],
       "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["PAIR-01"]
+    },
+    {
+      "key": "pairing.pin_attempts_left",
+      "en": {"one": "{count} attempt left", "other": "{count} attempts left"},
+      "vi": {"other": "Còn {count} lần thử"},
+      "comment": "PAIR-01 field 7, under the PIN field after a wrong PIN. Proposed text",
+      "platforms": ["android"],
+      "args": [{"name": "count", "type": "int"}],
       "specs": ["PAIR-01"]
     },
     {
@@ -775,11 +824,28 @@
       "specs": ["PAIR-02", "PAIR-03"]
     },
     {
+      "key": "pairing.unpaired",
+      "en": "Unpaired",
+      "vi": "Đã hủy ghép nối",
+      "comment": "PAIR-03 field 4, result done: both devices cleaned up (HUD). Proposed text",
+      "platforms": ["android"],
+      "specs": ["PAIR-03"]
+    },
+    {
       "key": "pairing.unpaired_by_peer",
       "en": "{device_name} unpaired this device",
       "vi": "{device_name} đã hủy ghép nối với thiết bị này",
       "comment": "Shown on the other device after an unpair from {device_name}",
       "platforms": ["android", "macos", "ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["PAIR-03"]
+    },
+    {
+      "key": "pairing.unpaired_pending",
+      "en": "Unpaired; {device_name} will clean up when it reconnects",
+      "vi": "Đã hủy ghép nối; {device_name} sẽ tự dọn khi kết nối lại",
+      "comment": "PAIR-03 field 4, result done_pending_remote: the other device was not connected. Proposed text",
+      "platforms": ["android"],
       "args": [{"name": "device_name", "type": "string"}],
       "specs": ["PAIR-03"]
     },
@@ -1281,11 +1347,29 @@
       "specs": ["0.11", "PAIR-02"]
     },
     {
+      "key": "status.connected_internet_to",
+      "en": "Connected over the internet to {device_name}",
+      "vi": "Đã kết nối qua Internet với {device_name}",
+      "comment": "TalkBack text of the Android status indicator with the peer's name while the session goes through the relay. Proposed text",
+      "platforms": ["android"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["0.11", "PAIR-02"]
+    },
+    {
       "key": "status.connected_usb",
       "en": "Connected via USB",
       "vi": "Đã kết nối qua USB",
       "comment": "State Connected while the camera channel uses USB",
       "platforms": ["android", "macos"],
+      "specs": ["0.11"]
+    },
+    {
+      "key": "status.connected_usb_to",
+      "en": "Connected via USB to {device_name}",
+      "vi": "Đã kết nối qua USB với {device_name}",
+      "comment": "TalkBack text of the Android status indicator with the peer's name while the camera channel uses USB. Proposed text",
+      "platforms": ["android"],
+      "args": [{"name": "device_name", "type": "string"}],
       "specs": ["0.11"]
     },
     {
@@ -1301,7 +1385,7 @@
       "en": "Connected via Wi-Fi to {device_name}",
       "vi": "Đã kết nối qua Wi-Fi với {device_name}",
       "comment": "Status line with the phone's name (Mac menu bar menu); also the VoiceOver/TalkBack text of the indicator",
-      "platforms": ["macos", "ios"],
+      "platforms": ["android", "macos", "ios"],
       "args": [{"name": "device_name", "type": "string"}],
       "specs": ["CONN-01"]
     },
