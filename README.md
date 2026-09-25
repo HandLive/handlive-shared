@@ -16,3 +16,7 @@ tools/.venv/bin/python tools/vectors/verify_vectors.py          # phải in "0 l
 tools/.venv/bin/python tools/vectors/generate_vectors.py --check # phải in "0 lệch"
 tools/.venv/bin/python tools/schemas/check_schemas.py           # phải in "XANH"
 ```
+
+## Giấy phép
+
+Apache License 2.0 — xem [LICENSE](LICENSE). Đóng góp theo [CONTRIBUTING](https://github.com/HandLive/.github/blob/main/CONTRIBUTING.md) (commit nhỏ, đứng tên người thật, ký DCO bằng `git commit -s`); báo lỗi bảo mật kín theo [SECURITY](https://github.com/HandLive/.github/blob/main/SECURITY.md).
