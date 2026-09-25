@@ -2,7 +2,7 @@
 
 Chạy: tools/.venv/bin/python tools/schemas/check_schemas.py
 1. Mọi schema hợp lệ theo metaschema draft 2020-12, $id khớp tên file, mọi $ref phân giải được;
-   enum mã lỗi và enum type khớp bảng 0.8.1 và 0.7.1.
+   enum mã lỗi, mã đóng WebSocket và type khớp bảng 0.8.1, 0.8.3 và 0.7.1.
 2. Ví dụ JSON trong 00-common-specs.md (bắt buộc, mọi khối ```json phải được phân loại) và
    ví dụ envelope/ack/session/capability trong 01–08 phải qua schema tương ứng.
 3. Mẫu dương tự viết phải qua; mẫu âm phải bị từ chối.
@@ -106,6 +106,13 @@ def check_enums_match_spec(schemas: dict[str, dict], report: Report) -> None:
     else:
         report.fail(f"error.code lệch 0.8.1: thiếu {set(spec_codes) - set(schema_codes)}, "
                     f"thừa {set(schema_codes) - set(spec_codes)}")
+    table = text.split("### 0.8.3", 1)[1].split("\n## ", 1)[0]
+    spec_close = [int(code) for code in re.findall(r"^\| (\d{4}) \|", table, re.M)]
+    schema_close = schemas["common"]["$defs"]["ws-close-code"]["enum"]
+    if spec_close == schema_close:
+        report.ok("enum khớp bảng spec")
+    else:
+        report.fail(f"common.ws-close-code lệch 0.8.3: spec {spec_close}, schema {schema_close}")
     section = text.split("### 0.7.1", 1)[1].split("### 0.7.2", 1)[0]
     spec_types = set(re.findall(r"^\| `([a-z_]+)` \|", section, re.M))
     schema_types = set(schemas["envelope"]["$defs"]["type"]["enum"])
