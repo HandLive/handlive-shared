@@ -79,8 +79,10 @@ def new_style_words(text: str) -> list[str]:
     return [word for word in re.findall(r"\w+", text) if NEW_STYLE_TONE.search(word)]
 
 
-def check_catalog(catalog: object, schema: dict, spec_ids: set[str] | None) -> Result:
-    """All catalog rules; spec_ids=None skips the check that "specs" name real headings of the docs."""
+def check_catalog(catalog: object, schema: dict, spec_ids: set[str] | None, require_sorted: bool = True) -> Result:
+    """All catalog rules; spec_ids=None skips the check that "specs" name real headings of the docs.
+
+    require_sorted=False accepts entries in any order (the catalog excerpt quoted in 0.12.1)."""
     result = Result()
     for error in sorted(Draft202012Validator(schema).iter_errors(catalog), key=lambda e: list(e.absolute_path)):
         where = "/".join(str(part) for part in error.absolute_path) or "(root)"
@@ -89,13 +91,13 @@ def check_catalog(catalog: object, schema: dict, spec_ids: set[str] | None) -> R
         return result
     languages = [lang for lang in catalog.get("languages", []) if isinstance(lang, str)]
     entries = [entry for entry in catalog["strings"] if isinstance(entry, dict)]
-    _check_keys(entries, result)
+    _check_keys(entries, result, require_sorted)
     for entry in entries:
         _check_entry(entry, languages, spec_ids, result)
     return result
 
 
-def _check_keys(entries: list[dict], result: Result) -> None:
+def _check_keys(entries: list[dict], result: Result, require_sorted: bool) -> None:
     by_key: dict[str, int] = {}
     by_resource: dict[str, str] = {}
     previous = ""
@@ -112,7 +114,7 @@ def _check_keys(entries: list[dict], result: Result) -> None:
         by_resource.setdefault(resource, key)
         if key.split(".")[0] not in GROUPS:
             result.error(f"{key}: unknown group {key.split('.')[0]!r} (groups: {', '.join(GROUPS)})")
-        if key < previous:
+        if require_sorted and key < previous:
             result.error(f"{key}: entries must be sorted by key; it comes after {previous}")
         previous = max(previous, key)
 

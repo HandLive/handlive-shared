@@ -120,6 +120,9 @@ def test_catalog_rules(t: Harness, schema: dict) -> None:
     t.check("warns about different final punctuation",
             not result.errors and any("different punctuation" in w for w in result.warnings), str(result.warnings))
     t.check("spec IDs are optional", not rules.check_catalog(base_catalog(), schema, None).errors)
+    catalog = base_catalog()
+    catalog["strings"].reverse()
+    t.check("order is free when not required", not rules.check_catalog(catalog, schema, SPEC_IDS, False).errors)
     try:
         rules.load_json('{"key": "a", "key": "b"}')
         t.check("rejects a repeated field", False, "no error")

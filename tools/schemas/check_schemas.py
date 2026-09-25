@@ -6,6 +6,8 @@ Chạy: tools/.venv/bin/python tools/schemas/check_schemas.py
 2. Ví dụ JSON trong 00-common-specs.md (bắt buộc, mọi khối ```json phải được phân loại) và
    ví dụ envelope/ack/session/capability trong 01–08 phải qua schema tương ứng.
 3. Mẫu dương tự viết phải qua; mẫu âm phải bị từ chối.
+4. Ví dụ catalog chuỗi giao diện (khối ```jsonc có "strings" trong 00-common-specs, mục 0.12.1) qua
+   strings/ui-strings.schema.json và các quy tắc của tools/strings/catalog_rules.py (trừ thứ tự khóa).
 Thoát 0 khi mọi mục xanh.
 """
 
@@ -25,6 +27,10 @@ sys.dont_write_bytecode = True  # không để lại __pycache__ trong kho
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import doc_examples  # noqa: E402
 import sample_messages  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "strings"))
+import catalog_rules  # noqa: E402
+import spec_docs  # noqa: E402
 
 SHARED_ROOT = Path(__file__).resolve().parents[2]  # gốc kho shared/
 SCHEMA_DIR = SHARED_ROOT / "schemas"
@@ -196,6 +202,47 @@ def validate_samples(validators, report: Report) -> None:
             print(f"  REJECT {name}: {error.message[:110]}")
 
 
+def validate_catalog_examples(report: Report) -> None:
+    """Khối ```jsonc dạng catalog (có "languages" và "strings") trong 00-common-specs phải qua mọi quy tắc catalog."""
+    schema = json.loads((SHARED_ROOT / "strings" / "ui-strings.schema.json").read_text(encoding="utf-8"))
+    ids = spec_docs.spec_ids(DOCS_DIR)
+    found = 0
+    for line, block in _jsonc_blocks(COMMON_SPECS):
+        where = f"{COMMON_SPECS.name}:{line}"
+        try:
+            obj = catalog_rules.load_json(block)
+        except ValueError as exc:
+            report.fail(f"{where}: khối ```jsonc không parse được: {exc}")
+            continue
+        if not (isinstance(obj, dict) and "strings" in obj and "languages" in obj):
+            report.ok("khối jsonc không phải catalog (bỏ qua)")
+            continue
+        found += 1
+        result = catalog_rules.check_catalog(obj, schema, ids, require_sorted=False)
+        for message in result.errors:
+            report.fail(f"{where} [ui-strings]: {message}")
+        if not result.errors:
+            report.ok("ví dụ catalog chuỗi giao diện")
+            print(f"  PASS {where} [ui-strings] ({len(obj['strings'])} mục)")
+    if not found:
+        report.fail(f"{COMMON_SPECS.name}: không thấy ví dụ catalog (khối ```jsonc có \"strings\", mục 0.12.1)")
+
+
+def _jsonc_blocks(path: Path) -> list[tuple[int, str]]:
+    """(dòng đầu nội dung, nội dung) của mỗi khối ```jsonc; bỏ dòng chú thích // đứng riêng."""
+    blocks, current, start = [], None, 0
+    for no, text in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if current is None:
+            if text.strip() == "```jsonc":
+                current, start = [], no + 1
+        elif text.strip().startswith("```"):
+            blocks.append((start, "\n".join(current)))
+            current = None
+        elif not text.strip().startswith("//"):
+            current.append(text)
+    return blocks
+
+
 def main() -> int:
     report = Report()
     print("== 1. Metaschema, $id, $ref, enum khớp spec")
@@ -207,6 +254,8 @@ def main() -> int:
     validate_docs(validators, report)
     print("== 3. Mẫu tự viết")
     validate_samples(validators, report)
+    print("== 4. Ví dụ catalog chuỗi giao diện (0.12.1)")
+    validate_catalog_examples(report)
     print("== Tổng kết")
     for bucket, count in report.counts.items():
         print(f"  {bucket}: {count}")
