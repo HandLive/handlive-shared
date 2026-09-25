@@ -77,6 +77,15 @@
       "specs": ["CLIP-01"]
     },
     {
+      "key": "clipboard.image_receiving",
+      "en": "Receiving image from {device_name} — {percent}",
+      "vi": "Đang nhận ảnh từ {device_name} — {percent}",
+      "comment": "Progress of an incoming image over 1 MiB (Android notification, Mac menu bar menu); {percent} is formatted by the system",
+      "platforms": ["android", "macos"],
+      "args": [{"name": "device_name", "type": "string"}, {"name": "percent", "type": "string"}],
+      "specs": ["CLIP-03"]
+    },
+    {
       "key": "clipboard.image_sending",
       "en": "Sending image to {device_name} — {percent}",
       "vi": "Đang gửi ảnh tới {device_name} — {percent}",
@@ -698,6 +707,14 @@
       "specs": ["PAIR-01"]
     },
     {
+      "key": "pairing.phone_not_found",
+      "en": "Couldn't find the phone. Put both devices on the same Wi-Fi network and try again.",
+      "vi": "Không tìm thấy điện thoại. Để hai máy cùng mạng Wi-Fi rồi thử lại.",
+      "comment": "PAIR-01 E3 on the Mac or iPhone: no LAN instance and no relay within 20 s",
+      "platforms": ["macos", "ios"],
+      "specs": ["PAIR-01"]
+    },
+    {
       "key": "pairing.pin_attempts_left",
       "en": {"one": "{count} attempt left", "other": "{count} attempts left"},
       "vi": {"other": "Còn {count} lần thử"},
@@ -1241,6 +1258,14 @@
       "comment": "iPhone/iPad first run: the platform limits, stated plainly",
       "platforms": ["ios"],
       "specs": ["SET-03"]
+    },
+    {
+      "key": "setup.notifications_denied",
+      "en": "Notifications are off, so connection status and requests from your Mac don't appear.",
+      "vi": "Thông báo đang tắt: không thấy trạng thái kết nối và yêu cầu từ Mac.",
+      "comment": "SET-01 E1 warning banner on Android when POST_NOTIFICATIONS is denied, next to a button that opens notification settings",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
     },
     {
       "key": "setup.open_manufacturer_settings",
