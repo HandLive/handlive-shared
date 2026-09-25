@@ -724,6 +724,14 @@
       "specs": ["PAIR-01"]
     },
     {
+      "key": "pairing.pin_instructions",
+      "en": "On the phone, tap Add Device, choose Enter PIN, and type this code.",
+      "vi": "Trên điện thoại, chạm Thêm thiết bị, chọn Nhập mã PIN rồi nhập mã này.",
+      "comment": "Mac/iPhone PairingCard in PIN mode, under the six digits (PIN fallback of PAIR-01 A1–A3)",
+      "platforms": ["macos", "ios"],
+      "specs": ["PAIR-01"]
+    },
+    {
       "key": "pairing.qr_code_changes_in",
       "en": "Code changes in {time}",
       "vi": "Mã đổi sau {time}",
@@ -1196,6 +1204,14 @@
       "specs": ["SET-02"]
     },
     {
+      "key": "setup.applications_drag_hint",
+      "en": "Drag HandLive into the Applications folder in Finder, then open it again.",
+      "vi": "Kéo HandLive vào thư mục Ứng dụng trong Finder rồi mở lại.",
+      "comment": "Mac first run when HandLive cannot move itself (App Translocation or no write access), SET-03 E2",
+      "platforms": ["macos"],
+      "specs": ["SET-03"]
+    },
+    {
       "key": "setup.applications_later",
       "en": "Not Now",
       "vi": "Để sau",
@@ -1260,12 +1276,44 @@
       "specs": ["SET-03"]
     },
     {
+      "key": "setup.keys_failed",
+      "en": "Couldn't create the security keys on this device. Try again.",
+      "vi": "Không tạo được khóa bảo mật trên máy này. Hãy thử lại.",
+      "comment": "Mac/iPhone first run when creating or saving the identity keys in the Keychain fails (SET-03 E1); shown with a Try Again button",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-03"]
+    },
+    {
+      "key": "setup.local_network_denied_mac",
+      "en": "HandLive can't look for the phone on Wi-Fi. Turn on HandLive in System Settings › Privacy & Security › Local Network.",
+      "vi": "HandLive không tìm được điện thoại trong mạng Wi-Fi. Bật HandLive trong Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Mạng cục bộ.",
+      "comment": "Mac guidance when local network access is denied (SET-03 E4, CONN-01 E8), with an Open System Settings button",
+      "platforms": ["macos"],
+      "specs": ["SET-03", "CONN-01"]
+    },
+    {
+      "key": "setup.login_item_approval_mac",
+      "en": "To open HandLive at login, allow it in System Settings › General › Login Items.",
+      "vi": "Để mở HandLive khi đăng nhập, cho phép trong Cài đặt hệ thống › Cài đặt chung › Mục đăng nhập.",
+      "comment": "Mac guidance when SMAppService reports requiresApproval (SET-03 E5), with an Open System Settings button",
+      "platforms": ["macos"],
+      "specs": ["SET-03"]
+    },
+    {
       "key": "setup.notifications_denied",
       "en": "Notifications are off, so connection status and requests from your Mac don't appear.",
       "vi": "Thông báo đang tắt: không thấy trạng thái kết nối và yêu cầu từ Mac.",
       "comment": "SET-01 E1 warning banner on Android when POST_NOTIFICATIONS is denied, next to a button that opens notification settings",
       "platforms": ["android"],
       "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.notifications_denied_mac",
+      "en": "Notifications are off, so new SMS messages and missed calls don't appear. Turn them on in System Settings › Notifications › HandLive.",
+      "vi": "Thông báo đang tắt nên không thấy SMS mới và cuộc gọi nhỡ. Bật lại trong Cài đặt hệ thống › Thông báo › HandLive.",
+      "comment": "Mac guidance when notifications are denied (SET-03 E3), with an Open System Settings button",
+      "platforms": ["macos"],
+      "specs": ["SET-03"]
     },
     {
       "key": "setup.open_manufacturer_settings",
