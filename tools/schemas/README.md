@@ -1,36 +1,38 @@
-# Kiểm JSON Schema
+English | [Tiếng Việt](README.vi.md)
 
-Chạy từ gốc kho `shared/` (handlive-shared). Ví dụ được đọc từ `docs/detailed-design/` của kho hub — mặc định là thư mục cha của `shared/` trong workspace, ghi đè bằng `HANDLIVE_DOCS_DIR`.
+# JSON Schema checks
+
+Run from the root of `shared/` (handlive-shared). Examples are read from `docs/detailed-design/` of the hub repository — by default the parent directory of `shared/` in the workspace, overridden with `HANDLIVE_DOCS_DIR`.
 
 ```sh
-tools/.venv/bin/python -m pip install -r tools/schemas/requirements.txt   # nếu venv chưa có
+tools/.venv/bin/python -m pip install -r tools/schemas/requirements.txt   # if the venv lacks it
 tools/.venv/bin/python tools/schemas/check_schemas.py
 ```
 
-Thoát 0 khi xanh. Các bước:
+Exits 0 when green (it prints `XANH`). Steps:
 
-1. Mọi `shared/schemas/*.schema.json` hợp lệ theo metaschema draft 2020-12, `$id` khớp tên file, mọi `$ref` phân giải được; enum mã lỗi khớp bảng 0.8.1, enum mã đóng WebSocket khớp bảng 0.8.3 và enum `type` khớp bảng 0.7.1 (đọc thẳng từ `00-common-specs.md`).
-2. Ví dụ trong `docs/detailed-design/`:
-   - `00-common-specs.md`: **mọi** khối ```json phải phân loại được và qua schema; `{op, data}` ngoài mục session/capability kiểm bằng `payload.schema.json`.
-   - `01`–`08`: kiểm mọi envelope (`v` + `type`), mọi ack (`re` + `ok`) và mọi `{op, data}` nằm dưới tiêu đề `WS session/<op>` hoặc `WS capability/<op>`. Envelope `session` có payload giải base64 ra JSON thì kiểm cả plaintext bắt tay. Đối tượng khác (op của clipboard, sms…, REST, push) ngoài phạm vi, chỉ đếm.
-   - Khối ```json không parse cả khối thì parse từng dòng; dòng không parse được là lỗi tài liệu. Inline code chỉ tính khi là JSON hợp lệ.
-3. Mẫu dương tự viết (`sample_messages.py`) phải qua; mẫu âm (mỗi mẫu làm hỏng đúng một chỗ: thiếu trường, sai `v`, `type` lạ, mã lỗi lạ, uuid sai dạng, b64 sai…) phải bị từ chối.
-4. Đoạn catalog chuỗi giao diện trích trong 0.12.1 (khối ```jsonc có `strings`) qua `strings/ui-strings.schema.json` và các quy tắc của `tools/strings/catalog_rules.py`, trừ thứ tự khóa.
+1. Every `shared/schemas/*.schema.json` is valid against the draft 2020-12 metaschema, its `$id` matches the file name and every `$ref` resolves; the error code enum matches table 0.8.1, the WebSocket close code enum matches table 0.8.3 and the `type` enum matches table 0.7.1 (read straight from `00-common-specs.md`).
+2. Examples in `docs/detailed-design/`:
+   - `00-common-specs.md`: **every** ```json block must be classified and pass its schema; `{op, data}` outside the session/capability sections is checked with `payload.schema.json`.
+   - `01`–`08`: every envelope (`v` + `type`), every ack (`re` + `ok`) and every `{op, data}` under a `WS session/<op>` or `WS capability/<op>` heading is checked. A `session` envelope whose payload decodes from base64 to JSON also has its handshake plaintext checked. Other objects (clipboard or sms ops, REST, push) are out of scope and only counted.
+   - A ```json block that does not parse as a whole is parsed line by line; a line that does not parse is a documentation error. Inline code counts only when it is valid JSON.
+3. Hand-written positive samples (`sample_messages.py`) must pass; negative samples (each breaks exactly one thing: a missing field, a wrong `v`, an unknown `type`, an unknown error code, a malformed uuid, bad b64…) must be rejected.
+4. The UI string catalog excerpt quoted in 0.12.1 (the ```jsonc block with `strings`) passes `strings/ui-strings.schema.json` and the rules of `tools/strings/catalog_rules.py`, except the key order.
 
-## Quy tắc thay placeholder
+## Placeholder substitution
 
-Placeholder là chuỗi dạng `"<...>"` (ví dụ `"<b64>"`, `"<id của yêu cầu>"`), chuỗi chứa `…` (ví dụ `"…"`, `"0192f4a0-…"`) hoặc đúng `"..."`. Thay theo **tên khóa** chứa nó, và in ra mỗi lần thay:
+A placeholder is a string like `"<...>"` (for example `"<b64>"`, `"<request id>"`), a string containing `…` (for example `"…"`, `"0192f4a0-…"`), or exactly `"..."`. It is replaced according to the **name of the key** that holds it, and each substitution is printed:
 
-| Khóa | Giá trị thay |
-|------|--------------|
+| Key | Replacement |
+|-----|-------------|
 | `id`, `re` | `01920000-0000-7000-8000-000000000000` (UUIDv7) |
 | `pair_id` | `00000000-0000-4000-8000-000000000000` (UUIDv4) |
 | `device_id` | `00000000-0000-8000-8000-000000000000` (UUIDv8) |
-| `payload` | Base64 có padding của 40 byte 0 (nonce 24 + tag 16) |
-| `eph`, `nonce`, `mac` | b64u không padding của 32 byte 0 |
+| `payload` | Base64 with padding of 40 zero bytes (nonce 24 + tag 16) |
+| `eph`, `nonce`, `mac` | b64u without padding of 32 zero bytes |
 
-Placeholder ở khóa khác → lỗi, không bỏ qua.
+A placeholder under any other key is an error, never skipped.
 
 ## Known spec issues
 
-`KNOWN_SPEC_ISSUES` trong `doc_examples.py` liệt kê ví dụ trong tài liệu sai so với chính đặc tả, kèm lý do (không sửa `docs/` từ công cụ này). Mục đó phải tiếp tục hỏng; khi tài liệu được sửa và ví dụ qua, script báo lỗi để xóa mục khỏi danh sách.
+`KNOWN_SPEC_ISSUES` in `doc_examples.py` lists documentation examples that contradict the spec itself, with the reason (this tool never edits `docs/`). Such an entry must keep failing; once the documentation is fixed and the example passes, the script reports it so the entry is removed.
