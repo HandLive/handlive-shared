@@ -740,14 +740,6 @@
       "specs": ["PAIR-01", "SET-01"]
     },
     {
-      "key": "pairing.pair_phone",
-      "en": "Pair Phone…",
-      "vi": "Ghép điện thoại…",
-      "comment": "Mac HandLive menu item and button (Settings › Devices, Needs to be paired again) that opens the pairing sheet",
-      "platforms": ["macos", "ios"],
-      "specs": ["PAIR-01", "PAIR-02"]
-    },
-    {
       "key": "pairing.pair_phone_title",
       "en": "Pair Phone",
       "vi": "Ghép nối điện thoại",
