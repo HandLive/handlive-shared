@@ -72,9 +72,9 @@
       "key": "clipboard.empty_or_not_text",
       "en": "The clipboard is empty or doesn't contain text",
       "vi": "Bảng nhớ tạm trống hoặc không phải văn bản",
-      "comment": "Result of a manual send with nothing to send; Android toast or HUD",
-      "platforms": ["android"],
-      "specs": ["CLIP-01"]
+      "comment": "Result of a manual send with nothing to send; Android toast or HUD, Mac status line in the menu bar menu (Send Clipboard to Phone)",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-01", "CLIP-02"]
     },
     {
       "key": "clipboard.image_receiving",
@@ -163,10 +163,10 @@
       "key": "clipboard.skipped_just_received",
       "en": "Not sent — this just came from {device_name}.",
       "vi": "Không gửi: nội dung này vừa nhận từ {device_name}.",
-      "comment": "CLIP-01 field 11, manual send skipped because the content matches what was just received (QC4, E9)",
-      "platforms": ["android"],
+      "comment": "CLIP-01 field 11, manual send skipped because the content matches what was just received (QC4, E9); Mac: status line after Send Clipboard to Phone",
+      "platforms": ["android", "macos"],
       "args": [{"name": "device_name", "type": "string"}],
-      "specs": ["CLIP-01"]
+      "specs": ["CLIP-01", "CLIP-02"]
     },
     {
       "key": "clipboard.tile_not_connected",
