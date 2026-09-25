@@ -1,5 +1,5 @@
 {
-  "description": "Gợi ý mDNS (TXT h) theo giờ. K_disc = HKDF-SHA256(PRK, salt rỗng, info \"handlive/v1/discovery\", L 32); giờ = floor(now_ms / 3 600 000) (làm tròn xuống, kể cả số âm); hint = 8 chữ số hex thường đầu của HMAC-SHA256(K_disc, \"HLDISC1\" ‖ giờ int64 BE). Điện thoại quảng bá gợi ý giờ hiện tại của mỗi cặp (≤ 8, nối bằng dấu phẩy, không dấu cách); client chấp nhận gợi ý của giờ hiện tại VÀ giờ trước theo đồng hồ của nó (accepted = [giờ này, giờ trước]). kind \"key\": K_disc, gợi ý từng giờ, và theo từng now_ms; kind \"match\": TXT h phải khớp. Vector âm: TXT h không được coi là khớp (đồng hồ lệch ngoài cửa sổ, hoặc gợi ý tính sai).",
+  "description": "Gợi ý mDNS (TXT h) theo giờ. K_disc = HKDF-SHA256(PRK, salt rỗng, info \"handlive/v1/discovery\", L 32); giờ = floor(now_ms / 3 600 000) (làm tròn xuống, kể cả số âm); hint = 8 chữ số hex thường đầu của HMAC-SHA256(K_disc, \"HLDISC1\" ‖ giờ int64 BE). Điện thoại quảng bá gợi ý giờ hiện tại của mỗi cặp (≤ 8, nối bằng dấu phẩy, không dấu cách); client chấp nhận gợi ý của giờ trước, giờ hiện tại VÀ giờ sau theo đồng hồ của nó (accepted = [giờ trước, giờ này, giờ sau]), nên chịu lệch đồng hồ tới một giờ theo cả hai chiều. kind \"key\": K_disc, gợi ý từng giờ, và theo từng now_ms; kind \"match\": TXT h phải khớp (matched_as = previous, current hoặc next). Vector âm: TXT h không được coi là khớp (chỉ số giờ của điện thoại cách hai giờ, hoặc gợi ý tính sai).",
   "source": "docs/detailed-design/00-common-specs.md 0.4.1; docs/detailed-design/03-connectivity.md CONN-01 bước 3, API 1–2; PRK của pair-prk.json",
   "vectors": [
     {
@@ -31,6 +31,12 @@
           "hint": "1786f385"
         },
         {
+          "hour": 2,
+          "message": "484c44495343310000000000000002",
+          "mac": "2116065b43489311ea80a755a39be097309fa21eb30a5eaf7c79cd020a357733",
+          "hint": "2116065b"
+        },
+        {
           "hour": 479762,
           "message": "484c44495343310000000000075212",
           "mac": "99111c435962e042f2afac35c07c2ec1b8ea96b44c9d72db6f5e198d6d172a78",
@@ -47,6 +53,12 @@
           "message": "484c44495343310000000000075214",
           "mac": "307134108f07f568317040915d27d87924e1b1ed40d673b6ec9db4276ebcdaef",
           "hint": "30713410"
+        },
+        {
+          "hour": 479765,
+          "message": "484c44495343310000000000075215",
+          "mac": "e0c3c2125837676603f830d2b0f10d6cba07fd3da3c94af60788a1426a61104b",
+          "hint": "e0c3c212"
         }
       ],
       "clock": [
@@ -55,8 +67,9 @@
           "hour": 0,
           "advertised": "9b813dd8",
           "accepted": [
+            "ea914234",
             "9b813dd8",
-            "ea914234"
+            "1786f385"
           ]
         },
         {
@@ -64,8 +77,9 @@
           "hour": 0,
           "advertised": "9b813dd8",
           "accepted": [
+            "ea914234",
             "9b813dd8",
-            "ea914234"
+            "1786f385"
           ]
         },
         {
@@ -73,8 +87,9 @@
           "hour": 1,
           "advertised": "1786f385",
           "accepted": [
+            "9b813dd8",
             "1786f385",
-            "9b813dd8"
+            "2116065b"
           ]
         },
         {
@@ -82,8 +97,9 @@
           "hour": 479763,
           "advertised": "c3782785",
           "accepted": [
+            "99111c43",
             "c3782785",
-            "99111c43"
+            "30713410"
           ]
         },
         {
@@ -91,8 +107,9 @@
           "hour": 479763,
           "advertised": "c3782785",
           "accepted": [
+            "99111c43",
             "c3782785",
-            "99111c43"
+            "30713410"
           ]
         },
         {
@@ -100,8 +117,9 @@
           "hour": 479764,
           "advertised": "30713410",
           "accepted": [
+            "c3782785",
             "30713410",
-            "c3782785"
+            "e0c3c212"
           ]
         }
       ]
@@ -135,6 +153,12 @@
           "hint": "9260b37d"
         },
         {
+          "hour": 2,
+          "message": "484c44495343310000000000000002",
+          "mac": "1da3535d415ffe3e80422ca22e553526362c64bf184ac86985cd92c2fff804f9",
+          "hint": "1da3535d"
+        },
+        {
           "hour": 479762,
           "message": "484c44495343310000000000075212",
           "mac": "cc68a4a93c5e2894b8f72442b6184daeecf24e0e977f0284b6706b71edbabf03",
@@ -151,6 +175,12 @@
           "message": "484c44495343310000000000075214",
           "mac": "af957b249e9e5fc7c3b40ce30cec91f394eebc8f21f22b6469698b15e3cd9723",
           "hint": "af957b24"
+        },
+        {
+          "hour": 479765,
+          "message": "484c44495343310000000000075215",
+          "mac": "4f6fd3a1530d3945634fce6029cbafb666c5b400b3d8ff64818a20b174e2d53c",
+          "hint": "4f6fd3a1"
         }
       ],
       "clock": [
@@ -159,8 +189,9 @@
           "hour": 0,
           "advertised": "56e8a69c",
           "accepted": [
+            "5dd94832",
             "56e8a69c",
-            "5dd94832"
+            "9260b37d"
           ]
         },
         {
@@ -168,8 +199,9 @@
           "hour": 0,
           "advertised": "56e8a69c",
           "accepted": [
+            "5dd94832",
             "56e8a69c",
-            "5dd94832"
+            "9260b37d"
           ]
         },
         {
@@ -177,8 +209,9 @@
           "hour": 1,
           "advertised": "9260b37d",
           "accepted": [
+            "56e8a69c",
             "9260b37d",
-            "56e8a69c"
+            "1da3535d"
           ]
         },
         {
@@ -186,8 +219,9 @@
           "hour": 479763,
           "advertised": "16075d63",
           "accepted": [
+            "cc68a4a9",
             "16075d63",
-            "cc68a4a9"
+            "af957b24"
           ]
         },
         {
@@ -195,8 +229,9 @@
           "hour": 479763,
           "advertised": "16075d63",
           "accepted": [
+            "cc68a4a9",
             "16075d63",
-            "cc68a4a9"
+            "af957b24"
           ]
         },
         {
@@ -204,8 +239,9 @@
           "hour": 479764,
           "advertised": "af957b24",
           "accepted": [
+            "16075d63",
             "af957b24",
-            "16075d63"
+            "4f6fd3a1"
           ]
         }
       ]
@@ -224,14 +260,15 @@
       "client_now_ms": 1727150000123,
       "client_hour": 479763,
       "accepted": [
+        "99111c43",
         "c3782785",
-        "99111c43"
+        "30713410"
       ],
       "matched_hint": "c3782785",
       "matched_as": "current"
     },
     {
-      "name": "điện thoại chậm hơn qua mốc giờ: khớp gợi ý giờ trước",
+      "name": "đồng hồ điện thoại chậm hơn 1 ms qua mốc giờ: khớp gợi ý giờ trước",
       "kind": "match",
       "phone_pairs": [
         "cặp 2",
@@ -244,26 +281,88 @@
       "client_now_ms": 1727150400000,
       "client_hour": 479764,
       "accepted": [
+        "16075d63",
         "af957b24",
-        "16075d63"
+        "4f6fd3a1"
       ],
       "matched_hint": "16075d63",
       "matched_as": "previous"
+    },
+    {
+      "name": "đồng hồ điện thoại nhanh hơn 1 ms qua mốc giờ: khớp gợi ý giờ sau",
+      "kind": "match",
+      "phone_pairs": [
+        "cặp 1",
+        "cặp 2"
+      ],
+      "phone_now_ms": 1727150400000,
+      "phone_hour": 479764,
+      "txt_h": "30713410,af957b24",
+      "client_pair": "cặp 1",
+      "client_now_ms": 1727150399999,
+      "client_hour": 479763,
+      "accepted": [
+        "99111c43",
+        "c3782785",
+        "30713410"
+      ],
+      "matched_hint": "30713410",
+      "matched_as": "next"
+    },
+    {
+      "name": "đồng hồ điện thoại chậm hơn đúng một giờ: khớp gợi ý giờ trước",
+      "kind": "match",
+      "phone_pairs": [
+        "cặp 1"
+      ],
+      "phone_now_ms": 1727150000123,
+      "phone_hour": 479763,
+      "txt_h": "c3782785",
+      "client_pair": "cặp 1",
+      "client_now_ms": 1727153600123,
+      "client_hour": 479764,
+      "accepted": [
+        "c3782785",
+        "30713410",
+        "e0c3c212"
+      ],
+      "matched_hint": "c3782785",
+      "matched_as": "previous"
+    },
+    {
+      "name": "đồng hồ điện thoại nhanh hơn đúng một giờ: khớp gợi ý giờ sau",
+      "kind": "match",
+      "phone_pairs": [
+        "cặp 2"
+      ],
+      "phone_now_ms": 1727153999999,
+      "phone_hour": 479764,
+      "txt_h": "af957b24",
+      "client_pair": "cặp 2",
+      "client_now_ms": 1727150399999,
+      "client_hour": 479763,
+      "accepted": [
+        "cc68a4a9",
+        "16075d63",
+        "af957b24"
+      ],
+      "matched_hint": "af957b24",
+      "matched_as": "next"
     }
   ],
   "invalid_vectors": [
     {
-      "name": "cặp 1 / đồng hồ điện thoại nhanh hơn, đã qua mốc giờ",
+      "name": "cặp 1 / đồng hồ điện thoại nhanh hơn một giờ và 1 ms, vượt hai mốc giờ",
       "pair": "cặp 1",
       "reason": "hint_outside_window",
       "client_now_ms": 1727150399999,
       "client_hour": 479763,
-      "txt_h": "30713410",
-      "phone_now_ms": 1727150400000,
-      "phone_hour": 479764
+      "txt_h": "e0c3c212",
+      "phone_now_ms": 1727154000000,
+      "phone_hour": 479765
     },
     {
-      "name": "cặp 1 / gợi ý cũ hai giờ",
+      "name": "cặp 1 / đồng hồ điện thoại chậm hơn đúng hai giờ",
       "pair": "cặp 1",
       "reason": "hint_outside_window",
       "client_now_ms": 1727150400000,

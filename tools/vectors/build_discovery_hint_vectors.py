@@ -2,11 +2,13 @@
 bước 3, API 1–2) từ PRK của pair-prk.json.
 
 - kind "key": K_disc của một cặp; gợi ý của từng chỉ số giờ, kể cả giờ −1 (giờ trước của giờ 0, int64 bù hai); với
-  mỗi thời điểm now_ms: chỉ số giờ, gợi ý điện thoại quảng bá và hai gợi ý client chấp nhận (giờ này rồi giờ trước).
+  mỗi thời điểm now_ms: chỉ số giờ, gợi ý điện thoại quảng bá và ba gợi ý client chấp nhận (giờ trước, giờ này, giờ
+  sau — 0.4.1 chịu lệch đồng hồ tới một giờ theo cả hai chiều).
 - kind "match": điện thoại có nhiều cặp quảng bá TXT h lúc phone_now_ms; client của một cặp duyệt lúc client_now_ms
-  và phải thấy khớp, kể cả khi đồng hồ điện thoại chậm hơn qua mốc giờ.
-Vector âm: TXT h mà client KHÔNG được coi là khớp — đồng hồ lệch ra ngoài cửa sổ hai giờ, hoặc gợi ý tính sai (thứ
-tự byte, độ dài của chỉ số giờ, nhãn, khóa HMAC).
+  và phải thấy khớp: cùng giờ, và đồng hồ điện thoại chậm hơn hoặc nhanh hơn 1 ms hay đúng một giờ qua mốc giờ.
+Vector âm: TXT h mà client KHÔNG được coi là khớp — chỉ số giờ của điện thoại cách giờ của client hai giờ (kể cả khi
+chỉ lệch một giờ và 1 ms nhưng vượt hai mốc giờ), hoặc gợi ý tính sai (thứ tự byte, độ dài của chỉ số giờ, nhãn,
+khóa HMAC).
 """
 import pairing_discovery_derivations as P
 
@@ -14,13 +16,26 @@ H = bytes.fromhex
 SPEC = "docs/detailed-design/00-common-specs.md"
 # Thời điểm (ms) của phần "clock": mốc giờ 0/1 và quanh mốc 1727150400000 (= giờ 479764).
 CLOCK = [0, 3_599_999, 3_600_000, 1_727_150_000_123, 1_727_150_399_999, 1_727_150_400_000]
+HOUR = P.HOUR_MS
 # (tên, cặp của điện thoại theo thứ tự trong TXT h, phone_now_ms, cặp của client, client_now_ms)
 MATCHES = [
     ("khớp giờ hiện tại, TXT h có gợi ý của hai cặp", ["cặp 1", "cặp 2"], 1_727_150_000_123, "cặp 1",
      1_727_150_000_123),
-    ("điện thoại chậm hơn qua mốc giờ: khớp gợi ý giờ trước", ["cặp 2", "cặp 1"], 1_727_150_399_999, "cặp 2",
-     1_727_150_400_000),
+    ("đồng hồ điện thoại chậm hơn 1 ms qua mốc giờ: khớp gợi ý giờ trước", ["cặp 2", "cặp 1"], 1_727_150_399_999,
+     "cặp 2", 1_727_150_400_000),
+    ("đồng hồ điện thoại nhanh hơn 1 ms qua mốc giờ: khớp gợi ý giờ sau", ["cặp 1", "cặp 2"], 1_727_150_400_000,
+     "cặp 1", 1_727_150_399_999),
+    ("đồng hồ điện thoại chậm hơn đúng một giờ: khớp gợi ý giờ trước", ["cặp 1"], 1_727_150_000_123, "cặp 1",
+     1_727_150_000_123 + HOUR),
+    ("đồng hồ điện thoại nhanh hơn đúng một giờ: khớp gợi ý giờ sau", ["cặp 2"], 1_727_150_399_999 + HOUR, "cặp 2",
+     1_727_150_399_999),
 ]
+# Điện thoại ngoài cửa sổ ba giờ: (tên, phone_now_ms, client_now_ms); chỉ số giờ cách nhau hai.
+OUTSIDE = [
+    ("đồng hồ điện thoại nhanh hơn một giờ và 1 ms, vượt hai mốc giờ", 1_727_150_400_000 + HOUR, 1_727_150_399_999),
+    ("đồng hồ điện thoại chậm hơn đúng hai giờ", 1_727_150_400_000 - 2 * HOUR, 1_727_150_400_000),
+]
+MATCHED_AS = ("previous", "current", "next")
 
 
 def _hint_row(key: bytes, hour: int) -> dict:
@@ -29,12 +44,13 @@ def _hint_row(key: bytes, hour: int) -> dict:
 
 
 def _accepted(key: bytes, now_ms: int) -> list[str]:
+    """0.4.1: gợi ý của giờ trước, giờ hiện tại và giờ sau theo đồng hồ của client, đúng thứ tự đó."""
     hour = P.hour_index(now_ms)
-    return [P.discovery_hint(key, hour), P.discovery_hint(key, hour - 1)]
+    return [P.discovery_hint(key, hour + d) for d in (-1, 0, 1)]
 
 
 def _key_vector(pv: dict, key: bytes) -> dict:
-    hours = sorted({h for now in CLOCK for h in (P.hour_index(now), P.hour_index(now) - 1)})
+    hours = sorted({P.hour_index(now) + d for now in CLOCK for d in (-1, 0, 1)})
     clock = [{"now_ms": now, "hour": P.hour_index(now), "advertised": P.discovery_hint(key, P.hour_index(now)),
               "accepted": _accepted(key, now)} for now in CLOCK]
     return {"name": pv["name"], "kind": "key", "pair_id": pv["pair_id"], "prk_source": "pair-prk.json",
@@ -50,7 +66,7 @@ def _match_vector(keys: dict, name, phone_pairs, phone_now, client_pair, client_
     return {"name": name, "kind": "match", "phone_pairs": phone_pairs, "phone_now_ms": phone_now,
             "phone_hour": P.hour_index(phone_now), "txt_h": ",".join(txt), "client_pair": client_pair,
             "client_now_ms": client_now, "client_hour": P.hour_index(client_now), "accepted": accepted,
-            "matched_hint": hit[0], "matched_as": "current" if hit[0] == accepted[0] else "previous"}
+            "matched_hint": hit[0], "matched_as": MATCHED_AS[accepted.index(hit[0])]}
 
 
 def _negative(name, pair, reason, client_now, txt_h, **proof) -> dict:
@@ -65,9 +81,8 @@ def _negatives(keys: dict, prks: dict) -> list[dict]:
     now = 1_727_150_000_123
     hour = P.hour_index(now)
     out = []
-    for name, phone_now, client_now in (("đồng hồ điện thoại nhanh hơn, đã qua mốc giờ", 1_727_150_400_000,
-                                         1_727_150_399_999),
-                                        ("gợi ý cũ hai giờ", 1_727_143_200_000, 1_727_150_400_000)):
+    for name, phone_now, client_now in OUTSIDE:
+        assert abs(P.hour_index(phone_now) - P.hour_index(client_now)) == 2, name
         out.append(_negative(name, "cặp 1", "hint_outside_window", client_now,
                              P.discovery_hint(k1, P.hour_index(phone_now)), phone_now_ms=phone_now,
                              phone_hour=P.hour_index(phone_now)))
@@ -88,9 +103,11 @@ DESCRIPTION = (
     "Gợi ý mDNS (TXT h) theo giờ. K_disc = HKDF-SHA256(PRK, salt rỗng, info \"handlive/v1/discovery\", L 32); "
     "giờ = floor(now_ms / 3 600 000) (làm tròn xuống, kể cả số âm); hint = 8 chữ số hex thường đầu của "
     "HMAC-SHA256(K_disc, \"HLDISC1\" ‖ giờ int64 BE). Điện thoại quảng bá gợi ý giờ hiện tại của mỗi cặp (≤ 8, nối "
-    "bằng dấu phẩy, không dấu cách); client chấp nhận gợi ý của giờ hiện tại VÀ giờ trước theo đồng hồ của nó "
-    "(accepted = [giờ này, giờ trước]). kind \"key\": K_disc, gợi ý từng giờ, và theo từng now_ms; kind \"match\": TXT "
-    "h phải khớp. Vector âm: TXT h không được coi là khớp (đồng hồ lệch ngoài cửa sổ, hoặc gợi ý tính sai).")
+    "bằng dấu phẩy, không dấu cách); client chấp nhận gợi ý của giờ trước, giờ hiện tại VÀ giờ sau theo đồng hồ của "
+    "nó (accepted = [giờ trước, giờ này, giờ sau]), nên chịu lệch đồng hồ tới một giờ theo cả hai chiều. kind "
+    "\"key\": K_disc, gợi ý từng giờ, và theo từng now_ms; kind \"match\": TXT h phải khớp (matched_as = previous, "
+    "current hoặc next). Vector âm: TXT h không được coi là khớp (chỉ số giờ của điện thoại cách hai giờ, hoặc gợi ý "
+    "tính sai).")
 
 
 def build(ctx: dict) -> dict:

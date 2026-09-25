@@ -1,8 +1,8 @@
 """Kiểm discovery-hint.json bằng hashlib/hmac (verify_common), độc lập với phía sinh (`cryptography`).
 
 Giờ = now_ms // 3 600 000 (phép chia của Python làm tròn xuống, đúng cả với số âm); thông điệp = "HLDISC1" ‖ giờ
-int64 BE; hint = hex thường của 4 byte đầu HMAC-SHA256(K_disc, thông điệp). Client chấp nhận [giờ này, giờ trước] theo
-đồng hồ của nó; TXT h là danh sách hint nối bằng dấu phẩy.
+int64 BE; hint = hex thường của 4 byte đầu HMAC-SHA256(K_disc, thông điệp). Client chấp nhận [giờ trước, giờ này, giờ
+sau] theo đồng hồ của nó (0.4.1, chịu lệch tới một giờ theo cả hai chiều); TXT h là danh sách hint nối bằng dấu phẩy.
 """
 import re
 import struct
@@ -11,6 +11,7 @@ from verify_common import H, hkdf, hmac256
 
 HOUR_MS = 3_600_000
 REASONS = {"hint_outside_window", "wrong_byte_order", "wrong_encoding", "wrong_label", "wrong_key"}
+WINDOW = {-1: "previous", 0: "current", 1: "next"}
 
 
 def k_disc(prk: bytes) -> bytes:
@@ -27,7 +28,7 @@ def hint(key: bytes, hour: int) -> str:
 
 def accepted(key: bytes, now_ms: int) -> list[str]:
     hour = now_ms // HOUR_MS
-    return [hint(key, hour), hint(key, hour - 1)]
+    return [hint(key, hour + d) for d in WINDOW]
 
 
 def _check_key(c, n: str, v: dict, pair_prk: dict) -> None:
@@ -58,7 +59,7 @@ def _check_match(c, n: str, v: dict, keys: dict) -> None:
     c.eq(f"{n} client chấp nhận", (v["client_hour"], v["accepted"]), (v["client_now_ms"] // HOUR_MS, acc))
     hits = [h for h in acc if h in v["txt_h"].split(",")]
     c.eq(f"{n} khớp đúng một gợi ý", hits, [v["matched_hint"]])
-    c.eq(f"{n} matched_as", v["matched_as"], "current" if hits and hits[0] == acc[0] else "previous")
+    c.eq(f"{n} matched_as theo chênh lệch giờ", v["matched_as"], WINDOW.get(phone_hour - v["client_now_ms"] // HOUR_MS))
 
 
 def _check_negative(c, n: str, v: dict, keys: dict, prks: dict) -> None:
@@ -69,7 +70,7 @@ def _check_negative(c, n: str, v: dict, keys: dict, prks: dict) -> None:
     if reason == "hint_outside_window":
         phone_hour = v["phone_now_ms"] // HOUR_MS
         c.eq(f"{n} TXT h = gợi ý điện thoại quảng bá", (v["phone_hour"], v["txt_h"]), (phone_hour, hint(key, phone_hour)))
-        c.true(f"{n} giờ của điện thoại ngoài {{giờ này, giờ trước}}", phone_hour not in (hour, hour - 1))
+        c.eq(f"{n} giờ của điện thoại cách giờ của client hai giờ", abs(phone_hour - hour), 2)
         return
     wrong = {"wrong_byte_order": b"HLDISC1" + struct.pack("<q", hour),
              "wrong_encoding": b"HLDISC1" + struct.pack(">i", hour),
@@ -101,11 +102,16 @@ def check_discovery_hint(c, doc, all_docs):
             c.true(f"{n} kind {v['kind']!r} không nằm trong tập đã định", False)
     c.eq("discovery-hint: mỗi cặp của pair-prk.json có một vector key", sorted(v["name"] for v in kinds.get("key", [])),
          sorted(pair_prk))
-    c.eq("discovery-hint: có khớp giờ này và giờ trước", {v["matched_as"] for v in kinds.get("match", [])},
-         {"current", "previous"})
+    matches = kinds.get("match", [])
+    c.eq("discovery-hint: có khớp giờ trước, giờ này và giờ sau", {v["matched_as"] for v in matches}, set(WINDOW.values()))
+    skews = {v["phone_now_ms"] - v["client_now_ms"] for v in matches if v["phone_hour"] != v["client_hour"]}
+    c.true("discovery-hint: đồng hồ điện thoại nhanh và chậm 1 ms và đúng một giờ qua mốc giờ",
+           {-HOUR_MS, -1, 1, HOUR_MS} <= skews)
     for v in doc["invalid_vectors"]:
         _check_negative(c, f"discovery-hint/{v['name']}", v, keys, prks)
     c.eq("discovery-hint: đủ loại vector âm", {v["reason"] for v in doc["invalid_vectors"]}, REASONS)
+    outside = {v["phone_hour"] - v["client_hour"] for v in doc["invalid_vectors"] if v["reason"] == "hint_outside_window"}
+    c.eq("discovery-hint: điện thoại nhanh và chậm hai giờ", outside, {-2, 2})
 
 
 CHECKS = {"discovery-hint.json": check_discovery_hint}
