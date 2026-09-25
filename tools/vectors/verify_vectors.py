@@ -12,6 +12,7 @@ sys.dont_write_bytecode = True  # không để lại __pycache__ trong kho
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import verify_message_checks  # noqa: E402
+import verify_pair_handshake_checks  # noqa: E402
 import verify_primitive_checks  # noqa: E402
 import verify_session_checks  # noqa: E402
 import verify_signature_checks  # noqa: E402
@@ -24,7 +25,7 @@ REQUIRED_KEYS = {"description", "source", "vectors"}
 def main() -> int:
     docs = {p.name: json.loads(p.read_text(encoding="utf-8")) for p in sorted(VEC_DIR.glob("*.json"))}
     checks = {**verify_primitive_checks.CHECKS, **verify_session_checks.CHECKS, **verify_message_checks.CHECKS,
-              **verify_signature_checks.CHECKS}
+              **verify_signature_checks.CHECKS, **verify_pair_handshake_checks.CHECKS}
     c = Checker()
     for name in checks:
         c.true(f"{name} tồn tại", name in docs)
