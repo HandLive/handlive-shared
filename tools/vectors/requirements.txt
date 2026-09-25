@@ -1,2 +1,4 @@
 cryptography==50.0.1
 PyNaCl==1.6.2
+argon2-cffi==25.1.0
+argon2-cffi-bindings==26.1.0
