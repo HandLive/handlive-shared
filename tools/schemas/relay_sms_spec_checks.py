@@ -4,8 +4,8 @@ Called by check_schemas.py:
 - tables: 0.7.1 (sms ops and which of them ack with data), 0.7.3 (relay control ops), 0.7.4 (relay REST
   endpoints and their bodies), 0.8.2 (relay error codes), CONN-04 API 2 (push reasons) and API 4 (APNs loc-keys,
   which must also be push.* keys of the UI string catalog shown on iOS);
-- vectors: the wire messages inside shared/test-vectors (relay REST requests, pair/* plaintexts) must pass their
-  schemas;
+- vectors: the wire messages inside shared/test-vectors (relay REST requests, pair/* plaintexts, push bodies, the
+  sms/new plaintexts of push envelopes, relay text wrappers) must pass their schemas;
 - embedded envelopes: env_b64 of POST /v1/push and hl of the APNs payload must decode to a valid envelope.
 """
 
@@ -33,14 +33,21 @@ REST_BODIES = {
     ("GET (WS)", "/v1/relay"): [],
 }
 REST_SHARED_DEFS = {"error-response", "error-code"}
-# Wire messages in the test vectors: (file, field holding JSON text, schema).
+# Wire messages in the test vectors: (file, field holding JSON text, schema — or a function of the vector giving the
+# schema, None to skip the vector).
 VECTOR_MESSAGES = [
-    ("relay-auth.json", "request", {"register": "relay-rest#devices-request", "auth": "relay-rest#auth-token-request"}),
+    ("relay-auth.json", "request", lambda v: {"register": "relay-rest#devices-request",
+                                              "auth": "relay-rest#auth-token-request"}[v["kind"]]),
     ("pair-handshake.json", "pairs_request", "relay-rest#pairs-request"),
     ("pair-handshake.json", "hello_plaintext", "pair-hello"),
     ("pair-handshake.json", "offer_plaintext", "pair-offer"),
     ("pair-handshake.json", "confirm_plaintext", "pair-confirm"),
     ("pair-handshake.json", "done_plaintext", "pair-done"),
+    ("push-envelope.json", "push_request", "relay-rest#push-request"),
+    ("push-envelope.json", "apns_payload", "push#apns-payload"),
+    ("push-envelope.json", "plaintext", lambda v: "sms-new" if v.get("type") == "sms" else None),
+    ("relay-frame.json", "outbound", lambda v: "relay-wrapper" if v.get("kind") == "text_rewrite" else None),
+    ("relay-frame.json", "inbound", lambda v: "relay-wrapper" if v.get("kind") == "text_rewrite" else None),
 ]
 EMBEDDED_ENVELOPE = {"relay-rest#push-request": "env_b64", "push#apns-payload": "hl"}
 
@@ -130,9 +137,9 @@ def validate_vector_messages(vectors_dir: Path, validators, report) -> None:
         doc = json.loads(path.read_text(encoding="utf-8"))
         found = 0
         for vector in doc.get("vectors", []):
-            if field not in vector:
+            name = schema(vector) if callable(schema) else schema
+            if field not in vector or name is None:
                 continue
-            name = schema[vector["kind"]] if isinstance(schema, dict) else schema
             instance = json.loads(vector[field])
             error = best_match(validators[name].iter_errors(instance))
             label = f"{file} / {vector['name']} / {field} [{name}]"
@@ -146,3 +153,13 @@ def validate_vector_messages(vectors_dir: Path, validators, report) -> None:
             print(f"  PASS {file}: {found} × {field}")
         else:
             report.fail(f"{file}: no vector carries {field}")
+    # Text wrappers the relay refuses as malformed must fail the wrapper schema too (NOT_PAIRED is not structural).
+    doc = json.loads((vectors_dir / "relay-frame.json").read_text(encoding="utf-8"))
+    for vector in doc.get("invalid_vectors", []):
+        if vector.get("kind") != "text":
+            continue
+        rejected = best_match(validators["relay-wrapper"].iter_errors(json.loads(vector["outbound"]))) is not None
+        if rejected == (vector["expected_error"] == "BAD_REQUEST"):
+            report.ok("tin trong test vector")
+        else:
+            report.fail(f"relay-frame.json / {vector['name']}: relay-wrapper schema disagrees with {vector['expected_error']}")
