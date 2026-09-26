@@ -15,7 +15,7 @@ Sources: `../docs/detailed-design/00-common-specs.md` and `../docs/design-system
 | `tools/vectors/` | `generate_vectors.py` (`--check`), `verify_vectors.py` | `tools/vectors/README.md` |
 | `tools/schemas/` | `check_schemas.py` (schemas plus the examples in the hub docs; `HANDLIVE_DOCS_DIR`) | `tools/schemas/README.md` |
 | `tools/strings/` | `check_strings.py` (catalog rules of 0.12.5; `--docs`, `--self-test`) | `strings/README.md` |
-| `tools/bench/` | Clipboard latency and reconnect time from the `HLBENCH/1` logs of both devices; manual test on the device matrix | `tools/bench/README.md` |
+| `tools/bench/` | Clipboard latency, reconnect time and SMS latency (notification, reply to Sent) from the `HLBENCH/1` logs; relay load test (`relay_load.py`, 1,000 fake devices); manual test on the device matrix | `tools/bench/README.md` |
 
 ```sh
 python3 -m venv tools/.venv && tools/.venv/bin/pip install -r tools/vectors/requirements.txt -r tools/schemas/requirements.txt -r tools/strings/requirements.txt

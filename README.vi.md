@@ -15,7 +15,7 @@ Nguồn: `../docs/detailed-design/00-common-specs.md` và `../docs/design-system
 | `tools/vectors/` | `generate_vectors.py` (`--check`), `verify_vectors.py` | `tools/vectors/README.vi.md` |
 | `tools/schemas/` | `check_schemas.py` (schema + ví dụ trong tài liệu hub; `HANDLIVE_DOCS_DIR`) | `tools/schemas/README.vi.md` |
 | `tools/strings/` | `check_strings.py` (quy tắc catalog 0.12.5; `--docs`, `--self-test`) | `strings/README.vi.md` |
-| `tools/bench/` | Độ trễ bảng nhớ tạm và thời gian kết nối lại từ log `HLBENCH/1` của hai thiết bị; kiểm thử tay theo ma trận thiết bị | `tools/bench/README.vi.md` |
+| `tools/bench/` | Độ trễ bảng nhớ tạm, thời gian kết nối lại và độ trễ SMS (thông báo, trả lời tới Đã gửi) từ log `HLBENCH/1`; thử tải relay (`relay_load.py`, 1 000 thiết bị giả); kiểm thử tay theo ma trận thiết bị | `tools/bench/README.vi.md` |
 
 ```sh
 python3 -m venv tools/.venv && tools/.venv/bin/pip install -r tools/vectors/requirements.txt -r tools/schemas/requirements.txt -r tools/strings/requirements.txt
