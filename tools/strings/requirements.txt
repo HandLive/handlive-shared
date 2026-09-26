@@ -1,0 +1,2 @@
+# check_strings.py needs only jsonschema, pinned with the schema tools
+-r ../schemas/requirements.txt

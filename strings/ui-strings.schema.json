@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/ui-strings.schema.json",
+  "title": "HandLive UI string catalog",
+  "description": "Single source of every user-facing string on Android, macOS and iOS/iPadOS (00-common-specs 0.12.1, decision C20). English is the source and fallback language. Cross-field rules (unique keys, same placeholders in every language, plural categories per language, Apple-style Vietnamese tone marks, spec IDs) are checked by tools/strings/check_strings.py.",
+  "type": "object",
+  "required": ["version", "source_language", "languages", "strings"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {"const": 1},
+    "source_language": {"const": "en"},
+    "languages": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/language"},
+      "minItems": 2,
+      "uniqueItems": true,
+      "allOf": [{"contains": {"const": "en"}}, {"contains": {"const": "vi"}}]
+    },
+    "strings": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/entry"}}
+  },
+  "$defs": {
+    "language": {
+      "description": "Language code (ISO 639-1, optional script and region): en, vi, pt-BR, zh-Hans.",
+      "type": "string",
+      "pattern": "^[a-z]{2}(-[A-Z][a-z]{3})?(-[A-Z]{2})?$"
+    },
+    "key": {
+      "description": "Lowercase [a-z0-9_], 2-5 dot-separated segments; the first segment is the group. Stable: rewording keeps the key, a new meaning gets a new key.",
+      "type": "string",
+      "pattern": "^(common|setup|settings|pairing|status|menu|clipboard|sms|call|call_audio|camera|permission|notification|push|error|a11y|infoplist)(\\.[a-z0-9_]+){1,4}$"
+    },
+    "text": {"type": "string", "minLength": 1},
+    "plural": {
+      "description": "CLDR plural variants: en has one and other, vi has only other.",
+      "type": "object",
+      "minProperties": 1,
+      "required": ["other"],
+      "propertyNames": {"enum": ["zero", "one", "two", "few", "many", "other"]},
+      "additionalProperties": {"$ref": "#/$defs/text"}
+    },
+    "translation": {"oneOf": [{"$ref": "#/$defs/text"}, {"$ref": "#/$defs/plural"}]},
+    "arg": {
+      "type": "object",
+      "required": ["name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "type": {"enum": ["string", "int", "double"]}
+      }
+    },
+    "platform": {"enum": ["android", "macos", "ios"]},
+    "spec": {
+      "description": "Leaf function ID (CLIP-01) or a section of 00-common-specs (0.11, 0.12.1).",
+      "type": "string",
+      "pattern": "^([A-Z]{2,6}-[0-9]{2}|0(\\.[0-9]+)+)$"
+    },
+    "entry": {
+      "type": "object",
+      "required": ["key", "en", "vi", "comment", "platforms", "specs"],
+      "properties": {
+        "key": {"$ref": "#/$defs/key"},
+        "comment": {"description": "Where the string appears and any length limit: context for translators.", "type": "string", "minLength": 1},
+        "platforms": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/platform"}},
+        "args": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/arg"}},
+        "specs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/spec"}},
+        "plist_key": {"description": "Group infoplist only: the Info.plist key (purpose string, display name).", "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*$"}
+      },
+      "patternProperties": {
+        "^[a-z]{2}(-[A-Z][a-z]{3})?(-[A-Z]{2})?$": {"$ref": "#/$defs/translation"}
+      },
+      "additionalProperties": false,
+      "if": {"properties": {"key": {"type": "string", "pattern": "^infoplist\\."}}},
+      "then": {"required": ["plist_key"]},
+      "else": {"not": {"required": ["plist_key"]}}
+    }
+  }
+}

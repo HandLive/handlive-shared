@@ -71,6 +71,10 @@ def ed25519_pub(seed: bytes) -> bytes:
     return ed25519.Ed25519PrivateKey.from_private_bytes(seed).public_key().public_bytes(*RAW)
 
 
+def ed25519_sign(seed: bytes, message: bytes) -> bytes:
+    return ed25519.Ed25519PrivateKey.from_private_bytes(seed).sign(message)
+
+
 def device_id_from_pub(ik_sig_pub: bytes) -> str:
     """0.2: UUIDv8 = 16 byte đầu SHA-256(ik_sig_pub), version = 8, variant = 10."""
     b = bytearray(hashlib.sha256(ik_sig_pub).digest()[:16])
@@ -112,3 +116,13 @@ def hl_header(seq: int, ts: int, ver: int = 1) -> bytes:
 
 def camera_plaintext(track: int, flags: int, pts_us: int, data: bytes) -> bytes:
     return bytes([track, flags]) + struct.pack(">q", pts_us) + data
+
+
+def registration_message(device_id: str, ik_sig_pub: bytes, platform: str, ts: int) -> bytes:
+    """CONN-03 API 1: "HLREG1" ‖ device_id (16 byte) ‖ ik_sig_pub (32) ‖ UTF-8(platform) ‖ ts (int64 BE)."""
+    return b"HLREG1" + uuid_bytes(device_id) + ik_sig_pub + platform.encode() + struct.pack(">q", ts)
+
+
+def auth_message(challenge: bytes, device_id: str) -> bytes:
+    """0.6.4 bước 2, CONN-03 API 3: "HLAUTH1" ‖ challenge (32 byte thô) ‖ device_id (16)."""
+    return b"HLAUTH1" + challenge + uuid_bytes(device_id)

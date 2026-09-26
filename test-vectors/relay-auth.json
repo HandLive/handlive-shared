@@ -1,0 +1,167 @@
+{
+  "description": "Chữ ký Ed25519 của thiết bị gửi relay. Đăng ký (POST /v1/devices): message = \"HLREG1\" ‖ device_id (16 byte) ‖ ik_sig_pub (32) ‖ UTF-8(platform) ‖ ts (int64 BE). Lấy token (POST /v1/auth/token): message = \"HLAUTH1\" ‖ challenge (32 byte thô, đã giải b64u) ‖ device_id (16). sig = Ed25519(ik_sig, message). request = body JSON trên dây (b64u không padding). Relay kiểm device_id = UUIDv8(SHA-256(ik_sig_pub)) (0.2) rồi chữ ký theo luật chặt (S < L); mọi invalid_vectors phải bị từ chối: 400 BAD_REQUEST khi sig không phải b64u 64 byte, còn lại 401 SIGNATURE_INVALID. Với kind = auth, ik_sig_pub là khóa relay lưu cho device_id và challenge là giá trị relay đã cấp.",
+  "source": "docs/detailed-design/00-common-specs.md 0.6.4; 03-connectivity.md CONN-03 API 1, API 3; khóa RFC 8032 §7.1 TEST 1–3",
+  "vectors": [
+    {
+      "name": "HLREG1 macos (khóa TEST 1)",
+      "kind": "register",
+      "ik_sig_seed": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+      "ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "platform": "macos",
+      "app_version": "1.0.0 (100)",
+      "ts": 1727151100000,
+      "message": "484c5245473121fe31dfa1548261a26bf854046fd227d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a6d61636f7300000192223a5060",
+      "sig": "aa9bfbb601c575cce17c0c6482c8f53f7a914f0a545fbd8d1e06b2d72e80f925ffb4a148f439171895754874286949669a5c917ca127cea1dd7232c8d7c8da03",
+      "request": "{\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"platform\":\"macos\",\"app_version\":\"1.0.0 (100)\",\"ik_sig_pub\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\",\"ts\":1727151100000,\"sig\":\"qpv7tgHFdczhfAxkgsj1P3qRTwpUX72NHgay1y6A-SX_tKFI9DkXGJV1SHQoaUlmmlyRfKEnzqHdcjLI18jaAw\"}"
+    },
+    {
+      "name": "HLAUTH1 macos (khóa TEST 1)",
+      "kind": "auth",
+      "ik_sig_seed": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+      "ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "challenge": "9a6981141e7f00a6ab0661997358220823beb59b670f35e27250136d0cd105c1",
+      "challenge_b64u": "mmmBFB5_AKarBmGZc1giCCO-tZtnDzXiclATbQzRBcE",
+      "message": "484c41555448319a6981141e7f00a6ab0661997358220823beb59b670f35e27250136d0cd105c121fe31dfa1548261a26bf854046fd227",
+      "sig": "2ee0295330c0806bf7907802db3fdb0fcde744cd918c71f521361702a9a56b9fe0582904c3101b4aade11c81b51f7e5221c629edcd1b121be896fb3bba143307",
+      "request": "{\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"challenge\":\"mmmBFB5_AKarBmGZc1giCCO-tZtnDzXiclATbQzRBcE\",\"sig\":\"LuApUzDAgGv3kHgC2z_bD83nRM2RjHH1ITYXAqmla5_gWCkEwxAbSq3hHIG1H35SIcYp7c0bEhvolvs7uhQzBw\"}"
+    },
+    {
+      "name": "HLREG1 android (khóa TEST 2)",
+      "kind": "register",
+      "ik_sig_seed": "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb",
+      "ik_sig_pub": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c",
+      "device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "platform": "android",
+      "app_version": "1.0.0 (100)",
+      "ts": 1727151200000,
+      "message": "484c5245473139f713d0a644853f84529421b9f51b9b3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c616e64726f696400000192223bd700",
+      "sig": "413c895ba201fc2b3cca762bb69a4e9ebfbad69e176abc09056863414190d93e5884f4a5e9175e30e3d2c5ce11a4268eae4488298b8edd34cfbda480242f6d05",
+      "request": "{\"device_id\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"platform\":\"android\",\"app_version\":\"1.0.0 (100)\",\"ik_sig_pub\":\"PUAXw-hDiVqStwqnTRt-vJyYLM8uxJaMwM1V8Sr0Zgw\",\"ts\":1727151200000,\"sig\":\"QTyJW6IB_Cs8ynYrtppOnr-61p4XarwJBWhjQUGQ2T5YhPSl6RdeMOPSxc4RpCaOrkSIKYuO3TTPvaSAJC9tBQ\"}"
+    },
+    {
+      "name": "HLAUTH1 android (khóa TEST 2)",
+      "kind": "auth",
+      "ik_sig_seed": "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb",
+      "ik_sig_pub": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c",
+      "device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "challenge": "6ea50a6add84b94fcf0cde1bc2aeaeedc717c5befeba305a442220981805c75a",
+      "challenge_b64u": "bqUKat2EuU_PDN4bwq6u7ccXxb7-ujBaRCIgmBgFx1o",
+      "message": "484c41555448316ea50a6add84b94fcf0cde1bc2aeaeedc717c5befeba305a442220981805c75a39f713d0a644853f84529421b9f51b9b",
+      "sig": "e6c4bb23ddec35434e83c040a780b411a236f277adc10a96bc4ea52f1d7e970651948a94668812eafb0c74397eef9244f5c28948ae25939a5c22d44b28c88d00",
+      "request": "{\"device_id\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"challenge\":\"bqUKat2EuU_PDN4bwq6u7ccXxb7-ujBaRCIgmBgFx1o\",\"sig\":\"5sS7I93sNUNOg8BAp4C0EaI28netwQqWvE6lLx1-lwZRlIqUZogS6vsMdDl-75JE9cKJSK4lk5pcItRLKMiNAA\"}"
+    },
+    {
+      "name": "HLREG1 ios (khóa TEST 3)",
+      "kind": "register",
+      "ik_sig_seed": "c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7",
+      "ik_sig_pub": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025",
+      "device_id": "dac073e0-123b-8ea5-9dd9-b3bda9cf6037",
+      "platform": "ios",
+      "app_version": "1.0.0 (100)",
+      "ts": 1727151300000,
+      "message": "484c52454731dac073e0123b8ea59dd9b3bda9cf6037fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025696f7300000192223d5da0",
+      "sig": "6de95bf811e3da59fe3a0e72755873ba02222aaa1de301ffb07acab189873e802db669c244dd0fb4766fbe47db86b715afad87827224cdcf10f9561772f69704",
+      "request": "{\"device_id\":\"dac073e0-123b-8ea5-9dd9-b3bda9cf6037\",\"platform\":\"ios\",\"app_version\":\"1.0.0 (100)\",\"ik_sig_pub\":\"_FHNjmIYoaONpH7QAjDwWAgW7RO6MwOsXeuRFUiQgCU\",\"ts\":1727151300000,\"sig\":\"belb-BHj2ln-Og5ydVhzugIiKqod4wH_sHrKsYmHPoAttmnCRN0PtHZvvkfbhrcVr62HgnIkzc8Q-VYXcvaXBA\"}"
+    },
+    {
+      "name": "HLAUTH1 ios (khóa TEST 3)",
+      "kind": "auth",
+      "ik_sig_seed": "c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7",
+      "ik_sig_pub": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025",
+      "device_id": "dac073e0-123b-8ea5-9dd9-b3bda9cf6037",
+      "challenge": "41e8cc1191f3f48cddb35f9188b32e4269a2b2e638dee5e509db561c39defb4e",
+      "challenge_b64u": "QejMEZHz9Izds1-RiLMuQmmisuY43uXlCdtWHDne-04",
+      "message": "484c415554483141e8cc1191f3f48cddb35f9188b32e4269a2b2e638dee5e509db561c39defb4edac073e0123b8ea59dd9b3bda9cf6037",
+      "sig": "2c0d9362ec4def95bfb678958c0b1c0758d216bd551418d980ae9d9218fef73029037df4c830279f77624eb364804c3ae2f9c80c6c31c9e1535531c7b8b28e02",
+      "request": "{\"device_id\":\"dac073e0-123b-8ea5-9dd9-b3bda9cf6037\",\"challenge\":\"QejMEZHz9Izds1-RiLMuQmmisuY43uXlCdtWHDne-04\",\"sig\":\"LA2TYuxN75W_tniVjAscB1jSFr1VFBjZgK6dkhj-9zApA330yDAnn3diTrNkgEw64vnIDGwxyeFTVTHHuLKOAg\"}"
+    }
+  ],
+  "invalid_vectors": [
+    {
+      "name": "HLREG1 / ts đổi sau khi ký",
+      "kind": "register",
+      "reason": "message_tampered",
+      "ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "request": "{\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"platform\":\"macos\",\"app_version\":\"1.0.0 (100)\",\"ik_sig_pub\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\",\"ts\":1727151100001,\"sig\":\"qpv7tgHFdczhfAxkgsj1P3qRTwpUX72NHgay1y6A-SX_tKFI9DkXGJV1SHQoaUlmmlyRfKEnzqHdcjLI18jaAw\"}",
+      "signed_message": "484c5245473121fe31dfa1548261a26bf854046fd227d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a6d61636f7300000192223a5060"
+    },
+    {
+      "name": "HLREG1 / platform đổi sau khi ký",
+      "kind": "register",
+      "reason": "message_tampered",
+      "ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "request": "{\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"platform\":\"ios\",\"app_version\":\"1.0.0 (100)\",\"ik_sig_pub\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\",\"ts\":1727151100000,\"sig\":\"qpv7tgHFdczhfAxkgsj1P3qRTwpUX72NHgay1y6A-SX_tKFI9DkXGJV1SHQoaUlmmlyRfKEnzqHdcjLI18jaAw\"}",
+      "signed_message": "484c5245473121fe31dfa1548261a26bf854046fd227d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a6d61636f7300000192223a5060"
+    },
+    {
+      "name": "HLREG1 / device_id không dẫn xuất từ ik_sig_pub",
+      "kind": "register",
+      "reason": "device_id_mismatch",
+      "ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "request": "{\"device_id\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"platform\":\"macos\",\"app_version\":\"1.0.0 (100)\",\"ik_sig_pub\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\",\"ts\":1727151100000,\"sig\":\"5Es4mjT52qnmcHSbK78379SwMbYXT2FBXpWmIoPsfDlX5LhNdciHkkM5VD7ucd0tOFkwaIN3bTJDN0kHKvpOBQ\"}",
+      "signed_message": "484c5245473139f713d0a644853f84529421b9f51b9bd75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a6d61636f7300000192223a5060"
+    },
+    {
+      "name": "HLREG1 / ký với nhãn HLAUTH1",
+      "kind": "register",
+      "reason": "wrong_label",
+      "ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "request": "{\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"platform\":\"macos\",\"app_version\":\"1.0.0 (100)\",\"ik_sig_pub\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\",\"ts\":1727151100000,\"sig\":\"0gUlSOd7UM9_LhyQpYtKpKAViliC_kRzWO8VvrmR4wOPi2wNhq09XEYPkktX5bf_ogW3h5GWN9mGcIf__j-CDg\"}",
+      "signed_message": "484c415554483121fe31dfa1548261a26bf854046fd227d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a6d61636f7300000192223a5060"
+    },
+    {
+      "name": "HLREG1 / ký bằng khóa khác",
+      "kind": "register",
+      "reason": "wrong_key",
+      "ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "request": "{\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"platform\":\"macos\",\"app_version\":\"1.0.0 (100)\",\"ik_sig_pub\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\",\"ts\":1727151100000,\"sig\":\"B9RW4YkVyinddWdOUrGz-56d9BYTzdgLNN9tYZYJ6dbKZWe1QLi3LO-C3SPcSbFswJNJLJ-0xG083gDjV2puCQ\"}",
+      "signer_pub": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+    },
+    {
+      "name": "HLAUTH1 / challenge khác giá trị đã ký",
+      "kind": "auth",
+      "reason": "message_tampered",
+      "ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "challenge": "262fbec690104ce26bf75df7d1c10e6eed2f2a72b43ed4070895ec6082ce48d7",
+      "request": "{\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"challenge\":\"Ji--xpAQTOJr91330cEObu0vKnK0PtQHCJXsYILOSNc\",\"sig\":\"LuApUzDAgGv3kHgC2z_bD83nRM2RjHH1ITYXAqmla5_gWCkEwxAbSq3hHIG1H35SIcYp7c0bEhvolvs7uhQzBw\"}",
+      "signed_message": "484c41555448319a6981141e7f00a6ab0661997358220823beb59b670f35e27250136d0cd105c121fe31dfa1548261a26bf854046fd227"
+    },
+    {
+      "name": "HLAUTH1 / ký thay thiết bị khác",
+      "kind": "auth",
+      "reason": "wrong_key",
+      "ik_sig_pub": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025",
+      "challenge": "6ea50a6add84b94fcf0cde1bc2aeaeedc717c5befeba305a442220981805c75a",
+      "request": "{\"device_id\":\"dac073e0-123b-8ea5-9dd9-b3bda9cf6037\",\"challenge\":\"bqUKat2EuU_PDN4bwq6u7ccXxb7-ujBaRCIgmBgFx1o\",\"sig\":\"lKYCFG8kUVJ5tnTaZBTBAsJjiTimfVfGP3ltyXpY0gL7CbA4QSJvxiFwNK3tjHyQg7FYjoE_tKwO1BIBwAKTBg\"}",
+      "signer_pub": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+    },
+    {
+      "name": "HLAUTH1 / ký với nhãn HLREG1",
+      "kind": "auth",
+      "reason": "wrong_label",
+      "ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "challenge": "9a6981141e7f00a6ab0661997358220823beb59b670f35e27250136d0cd105c1",
+      "request": "{\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"challenge\":\"mmmBFB5_AKarBmGZc1giCCO-tZtnDzXiclATbQzRBcE\",\"sig\":\"iLNoHjp92JsKJvEZOCEi_w_OAXru9tBSN5Tqu7qcER6bP67On__b4F02wR9t7pmthyHBt3hxxqPrXR4ZpQIaBQ\"}",
+      "signed_message": "484c524547319a6981141e7f00a6ab0661997358220823beb59b670f35e27250136d0cd105c121fe31dfa1548261a26bf854046fd227"
+    },
+    {
+      "name": "HLAUTH1 / sig 63 byte",
+      "kind": "auth",
+      "reason": "signature_length",
+      "ik_sig_pub": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c",
+      "challenge": "6ea50a6add84b94fcf0cde1bc2aeaeedc717c5befeba305a442220981805c75a",
+      "request": "{\"device_id\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"challenge\":\"bqUKat2EuU_PDN4bwq6u7ccXxb7-ujBaRCIgmBgFx1o\",\"sig\":\"5sS7I93sNUNOg8BAp4C0EaI28netwQqWvE6lLx1-lwZRlIqUZogS6vsMdDl-75JE9cKJSK4lk5pcItRLKMiN\"}"
+    },
+    {
+      "name": "HLAUTH1 / S + L (không chính tắc)",
+      "kind": "auth",
+      "reason": "signature_not_canonical",
+      "ik_sig_pub": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c",
+      "challenge": "6ea50a6add84b94fcf0cde1bc2aeaeedc717c5befeba305a442220981805c75a",
+      "request": "{\"device_id\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"challenge\":\"bqUKat2EuU_PDN4bwq6u7ccXxb7-ujBaRCIgmBgFx1o\",\"sig\":\"5sS7I93sNUNOg8BAp4C0EaI28netwQqWvE6lLx1-lwY-aIDxgOskQtKpa9xc6XFZ9cKJSK4lk5pcItRLKMiNEA\"}",
+      "signed_message": "484c41555448316ea50a6add84b94fcf0cde1bc2aeaeedc717c5befeba305a442220981805c75a39f713d0a644853f84529421b9f51b9b"
+    }
+  ]
+}

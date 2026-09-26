@@ -1,0 +1,892 @@
+{
+  "description": "Bắt tay ghép nối PAIR-01 (QR và PIN) trọn vẹn. Mọi chuỗi MAC/ký ghép BYTE thô, không JSON: uuid 16 byte, created_at int64 BE, sig 64 byte, str(x) = uint16 BE số byte ‖ UTF-8 (không chuẩn hóa Unicode). Nhãn ASCII không dấu cách: \"HL1|offer|\", \"HL1|confirm|\", \"HL1|done|\", \"HL1|prk-check-c|\", \"HL1|prk-check-s|\", \"HLPAIR1\". secret = pairing_secret (QR) hoặc K_pin = Argon2id v0x13(UTF-8 của 6 chữ số PIN, salt nonce_c ‖ nonce_s, t 3, m 65536 KiB, p 4, L 32) (PIN). K_pa = HKDF(secret, salt nonce_c ‖ nonce_s, info \"handlive/v1/pair-auth\", L 32). offer_mac = HMAC(K_pa, T_offer); confirm_mac = HMAC(K_pa, \"HL1|confirm|\" ‖ T_offer ‖ pair_id ‖ created_at ‖ sig_c); done_mac = HMAC(K_pa, \"HL1|done|\" ‖ pair_id ‖ sig_s). PRK = HKDF(X25519 ‖ secret, salt SHA-256(device_id nhỏ ‖ lớn), info \"handlive/v1/pair\", L 32); prk_check_c/s = HMAC(PRK, nhãn ‖ pair_id). attestation = \"HLPAIR1\" ‖ pair_id ‖ device_id Android ‖ device_id client ‖ ik_sig_pub Android ‖ ik_sig_pub client ‖ created_at; sig_c/sig_s = Ed25519 của client/Android trên attestation; security_code = 8 hex thường đầu của SHA-256(attestation). pr = 8 hex thường đầu của SHA-256(32 byte của pk). Vector âm: phép kiểm `check` do `checked_by` chạy phải thất bại ĐÚNG ở chỗ đó, với mã lỗi `expected_error`; `reason` nói lỗi dựng vector là gì.",
+  "source": "docs/detailed-design/02-pairing.md PAIR-01 API 1–8, PAIR-02 trường 10; docs/detailed-design/00-common-specs.md 0.4.1, 0.6.2; khóa của pair-prk.json",
+  "vectors": [
+    {
+      "name": "QR cặp 1",
+      "mode": "qr",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "keys_from": "pair-prk.json/cặp 1",
+      "client_ik_sig_seed": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+      "client_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "client_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "client_ik_dh_priv": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a",
+      "client_ik_dh_pub": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a",
+      "client_name": "MacBook của Lan",
+      "client_platform": "macos",
+      "client_model": "Mac15,3",
+      "android_ik_sig_seed": "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb",
+      "android_ik_sig_pub": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c",
+      "android_device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "android_ik_dh_priv": "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb",
+      "android_ik_dh_pub": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f",
+      "android_name": "Pixel của Lan",
+      "android_model": "Pixel 8",
+      "android_os_version": "15",
+      "tls_sha256": "1e459e216687356a5e40bdc8536bd186bffd9b63528f7a8408fb22bd26234d4e",
+      "qr_uri": "handlive://pair?v=1&pk=hSDwCYkwp1R0i33ctD73Wg2_Og0mOBr066SpjqqbTmo&ps=3tPOsNgZCP5ZWldoJkccDNy-24gHxG4ueMpPGrFJlYE&d=MacBook%20c%E1%BB%A7a%20Lan",
+      "qr_pk": "hSDwCYkwp1R0i33ctD73Wg2_Og0mOBr066SpjqqbTmo",
+      "qr_ps": "3tPOsNgZCP5ZWldoJkccDNy-24gHxG4ueMpPGrFJlYE",
+      "qr_rv": null,
+      "pr": "300c9c96",
+      "pairing_secret": "ded3ceb0d81908fe595a576826471c0cdcbedb8807c46e2e78ca4f1ab1499581",
+      "pin": null,
+      "argon2": null,
+      "k_pin": null,
+      "nonce_c": "7e4433bbc344dd5ab530cc1a8d99fcc0bd8e2d1f4e6a2549990bae3a98bf4c68",
+      "nonce_s": "805506dbd2dedf732556a7fdfdee17be3bc99f1c1b7e3e09ba5644164fac7f79",
+      "secret": "ded3ceb0d81908fe595a576826471c0cdcbedb8807c46e2e78ca4f1ab1499581",
+      "k_pa_salt": "7e4433bbc344dd5ab530cc1a8d99fcc0bd8e2d1f4e6a2549990bae3a98bf4c68805506dbd2dedf732556a7fdfdee17be3bc99f1c1b7e3e09ba5644164fac7f79",
+      "k_pa_info": "handlive/v1/pair-auth",
+      "k_pa": "943601c0368397345fd42ae8af527d4b0254557192d80812be9e86d37505a6be",
+      "t_offer_parts": [
+        {
+          "field": "label",
+          "hex": "484c317c6f666665727c"
+        },
+        {
+          "field": "device_id_c",
+          "hex": "21fe31dfa1548261a26bf854046fd227"
+        },
+        {
+          "field": "nonce_c",
+          "hex": "7e4433bbc344dd5ab530cc1a8d99fcc0bd8e2d1f4e6a2549990bae3a98bf4c68"
+        },
+        {
+          "field": "ik_sig_pub_c",
+          "hex": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+        },
+        {
+          "field": "ik_dh_pub_c",
+          "hex": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a"
+        },
+        {
+          "field": "name_c",
+          "hex": "00114d6163426f6f6b2063e1bba761204c616e"
+        },
+        {
+          "field": "device_id_s",
+          "hex": "39f713d0a644853f84529421b9f51b9b"
+        },
+        {
+          "field": "nonce_s",
+          "hex": "805506dbd2dedf732556a7fdfdee17be3bc99f1c1b7e3e09ba5644164fac7f79"
+        },
+        {
+          "field": "ik_sig_pub_s",
+          "hex": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+        },
+        {
+          "field": "ik_dh_pub_s",
+          "hex": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f"
+        },
+        {
+          "field": "tls_sha256",
+          "hex": "1e459e216687356a5e40bdc8536bd186bffd9b63528f7a8408fb22bd26234d4e"
+        },
+        {
+          "field": "name_s",
+          "hex": "000f506978656c2063e1bba761204c616e"
+        }
+      ],
+      "t_offer": "484c317c6f666665727c21fe31dfa1548261a26bf854046fd2277e4433bbc344dd5ab530cc1a8d99fcc0bd8e2d1f4e6a2549990bae3a98bf4c68d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a00114d6163426f6f6b2063e1bba761204c616e39f713d0a644853f84529421b9f51b9b805506dbd2dedf732556a7fdfdee17be3bc99f1c1b7e3e09ba5644164fac7f793d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cde9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f1e459e216687356a5e40bdc8536bd186bffd9b63528f7a8408fb22bd26234d4e000f506978656c2063e1bba761204c616e",
+      "offer_mac": "e34aa1dc094e8a69797a9f3c78664ab69fb905df1e36da10bad24c225f2c5c25",
+      "created_at": 1727150003210,
+      "attestation_parts": [
+        {
+          "field": "label",
+          "hex": "484c5041495231"
+        },
+        {
+          "field": "pair_id",
+          "hex": "3f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d"
+        },
+        {
+          "field": "device_id_android",
+          "hex": "39f713d0a644853f84529421b9f51b9b"
+        },
+        {
+          "field": "device_id_client",
+          "hex": "21fe31dfa1548261a26bf854046fd227"
+        },
+        {
+          "field": "ik_sig_pub_android",
+          "hex": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+        },
+        {
+          "field": "ik_sig_pub_client",
+          "hex": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+        },
+        {
+          "field": "created_at",
+          "hex": "000001922229940a"
+        }
+      ],
+      "attestation": "484c50414952313f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d39f713d0a644853f84529421b9f51b9b21fe31dfa1548261a26bf854046fd2273d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cd75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a000001922229940a",
+      "sig_c": "18dd1a12442314065ae811122960e463d1356ece7f25be7edccdc16803f23e652ddcac0a4ab5297015e2d82ec9e7ec555afc470c4dcbfdecea5b1ce02b7a7b0c",
+      "sig_s": "f037b687df97913599c2d2b8a6ccc126d603d759e355ec36a23131ee6b5fa29001c19c0e1de75327dae81ee9e1f02f8ab60c3e4b6ada31d06acb558504abcf08",
+      "security_code": "c5df092a",
+      "confirm_mac_input_parts": [
+        {
+          "field": "label",
+          "hex": "484c317c636f6e6669726d7c"
+        },
+        {
+          "field": "t_offer",
+          "hex": "484c317c6f666665727c21fe31dfa1548261a26bf854046fd2277e4433bbc344dd5ab530cc1a8d99fcc0bd8e2d1f4e6a2549990bae3a98bf4c68d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a00114d6163426f6f6b2063e1bba761204c616e39f713d0a644853f84529421b9f51b9b805506dbd2dedf732556a7fdfdee17be3bc99f1c1b7e3e09ba5644164fac7f793d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cde9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f1e459e216687356a5e40bdc8536bd186bffd9b63528f7a8408fb22bd26234d4e000f506978656c2063e1bba761204c616e"
+        },
+        {
+          "field": "pair_id",
+          "hex": "3f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d"
+        },
+        {
+          "field": "created_at",
+          "hex": "000001922229940a"
+        },
+        {
+          "field": "sig",
+          "hex": "18dd1a12442314065ae811122960e463d1356ece7f25be7edccdc16803f23e652ddcac0a4ab5297015e2d82ec9e7ec555afc470c4dcbfdecea5b1ce02b7a7b0c"
+        }
+      ],
+      "confirm_mac_input": "484c317c636f6e6669726d7c484c317c6f666665727c21fe31dfa1548261a26bf854046fd2277e4433bbc344dd5ab530cc1a8d99fcc0bd8e2d1f4e6a2549990bae3a98bf4c68d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a00114d6163426f6f6b2063e1bba761204c616e39f713d0a644853f84529421b9f51b9b805506dbd2dedf732556a7fdfdee17be3bc99f1c1b7e3e09ba5644164fac7f793d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cde9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f1e459e216687356a5e40bdc8536bd186bffd9b63528f7a8408fb22bd26234d4e000f506978656c2063e1bba761204c616e3f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d000001922229940a18dd1a12442314065ae811122960e463d1356ece7f25be7edccdc16803f23e652ddcac0a4ab5297015e2d82ec9e7ec555afc470c4dcbfdecea5b1ce02b7a7b0c",
+      "confirm_mac": "2c4b8eadc5387e2c979e88c4cc241f97110ca7fba3106cbdf125e12f109b2a5d",
+      "done_mac_input_parts": [
+        {
+          "field": "label",
+          "hex": "484c317c646f6e657c"
+        },
+        {
+          "field": "pair_id",
+          "hex": "3f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d"
+        },
+        {
+          "field": "sig",
+          "hex": "f037b687df97913599c2d2b8a6ccc126d603d759e355ec36a23131ee6b5fa29001c19c0e1de75327dae81ee9e1f02f8ab60c3e4b6ada31d06acb558504abcf08"
+        }
+      ],
+      "done_mac_input": "484c317c646f6e657c3f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5df037b687df97913599c2d2b8a6ccc126d603d759e355ec36a23131ee6b5fa29001c19c0e1de75327dae81ee9e1f02f8ab60c3e4b6ada31d06acb558504abcf08",
+      "done_mac": "88bd9621e5a4e4ee7e83db5122aec2ac14e21066abd16a1fa70b57c9ae640df9",
+      "dh_shared": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742",
+      "prk_ikm": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742ded3ceb0d81908fe595a576826471c0cdcbedb8807c46e2e78ca4f1ab1499581",
+      "prk_salt_input": "21fe31dfa1548261a26bf854046fd22739f713d0a644853f84529421b9f51b9b",
+      "prk_salt": "13113113d84a6f6cc06c41c2013aa34beea626991c428e7b820f3ca15f58d190",
+      "prk_info": "handlive/v1/pair",
+      "prk": "d9e9827d49f7db11a88ac107ed6fb22b761c723c35449fc798694867fe55c209",
+      "prk_check_c_input": "484c317c70726b2d636865636b2d637c3f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d",
+      "prk_check_c": "6b41f9481c0c5c2c85c07186c139b4163867e36f7a562521707d3129dfdfb139",
+      "prk_check_s_input": "484c317c70726b2d636865636b2d737c3f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d",
+      "prk_check_s": "9f52d0e201978f1e6cfd78fa2fec5e4b583880244d7ddce213c04924c98ad79e",
+      "hello_plaintext": "{\"op\":\"hello\",\"data\":{\"mode\":\"qr\",\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"nonce\":\"fkQzu8NE3Vq1MMwajZn8wL2OLR9OaiVJmQuuOpi_TGg\",\"name\":\"MacBook của Lan\",\"platform\":\"macos\",\"model\":\"Mac15,3\",\"ik_sig_pub\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\",\"ik_dh_pub\":\"hSDwCYkwp1R0i33ctD73Wg2_Og0mOBr066SpjqqbTmo\"}}",
+      "hello_envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-8b68-78ac-815b-67de8e533f5d\",\"ts\":1727150001000,\"payload\":\"eyJvcCI6ImhlbGxvIiwiZGF0YSI6eyJtb2RlIjoicXIiLCJkZXZpY2VfaWQiOiIyMWZlMzFkZi1hMTU0LTgyNjEtYTI2Yi1mODU0MDQ2ZmQyMjciLCJub25jZSI6ImZrUXp1OE5FM1ZxMU1Nd2FqWm44d0wyT0xSOU9haVZKbVF1dU9waV9UR2ciLCJuYW1lIjoiTWFjQm9vayBj4bunYSBMYW4iLCJwbGF0Zm9ybSI6Im1hY29zIiwibW9kZWwiOiJNYWMxNSwzIiwiaWtfc2lnX3B1YiI6IjExcVlBWUt4Q3JmVlNfN1R5V1FIT2c3aGN2UGFwaU1scndJYWFQY0hVUm8iLCJpa19kaF9wdWIiOiJoU0R3Q1lrd3AxUjBpMzNjdEQ3M1dnMl9PZzBtT0JyMDY2U3BqcXFiVG1vIn19\"}",
+      "offer_plaintext": "{\"op\":\"offer\",\"data\":{\"device_id\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"nonce\":\"gFUG29Le33MlVqf9_e4XvjvJnxwbfj4JulZEFk-sf3k\",\"name\":\"Pixel của Lan\",\"model\":\"Pixel 8\",\"os_version\":\"15\",\"ik_sig_pub\":\"PUAXw-hDiVqStwqnTRt-vJyYLM8uxJaMwM1V8Sr0Zgw\",\"ik_dh_pub\":\"3p7bfXt9wbTTW2HC7OQ1Nz-DQ8hbeGdNrfx-FG-IK08\",\"tls_sha256\":\"HkWeIWaHNWpeQL3IU2vRhr_9m2NSj3qECPsivSYjTU4\",\"mac\":\"40qh3AlOiml5ep88eGZKtp-5Bd8eNtoQutJMIl8sXCU\"}}",
+      "offer_envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-8b90-7f11-a02c-137783f5301c\",\"ts\":1727150001040,\"payload\":\"eyJvcCI6Im9mZmVyIiwiZGF0YSI6eyJkZXZpY2VfaWQiOiIzOWY3MTNkMC1hNjQ0LTg1M2YtODQ1Mi05NDIxYjlmNTFiOWIiLCJub25jZSI6ImdGVUcyOUxlMzNNbFZxZjlfZTRYdmp2Sm54d2JmajRKdWxaRUZrLXNmM2siLCJuYW1lIjoiUGl4ZWwgY+G7p2EgTGFuIiwibW9kZWwiOiJQaXhlbCA4Iiwib3NfdmVyc2lvbiI6IjE1IiwiaWtfc2lnX3B1YiI6IlBVQVh3LWhEaVZxU3R3cW5UUnQtdkp5WUxNOHV4SmFNd00xVjhTcjBaZ3ciLCJpa19kaF9wdWIiOiIzcDdiZlh0OXdiVFRXMkhDN09RMU56LURROGhiZUdkTnJmeC1GRy1JSzA4IiwidGxzX3NoYTI1NiI6IkhrV2VJV2FITldwZVFMM0lVMnZSaHJfOW0yTlNqM3FFQ1BzaXZTWWpUVTQiLCJtYWMiOiI0MHFoM0FsT2ltbDVlcDg4ZUdaS3RwLTVCZDhlTnRvUXV0Sk1JbDhzWENVIn19\"}",
+      "confirm_plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"created_at\":1727150003210,\"sig\":\"GN0aEkQjFAZa6BESKWDkY9E1bs5_Jb5-3M3BaAPyPmUt3KwKSrUpcBXi2C7J5-xVWvxHDE3L_ezqWxzgK3p7DA\",\"prk_check\":\"a0H5SBwMXCyFwHGGwTm0Fjhn4296ViUhcH0xKd_fsTk\",\"mac\":\"LEuOrcU4fiyXnojEzCQflxEMp_ujEGy98SXhLxCbKl0\"}}",
+      "confirm_envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-940a-7857-bfb3-579a2afb1e2e\",\"ts\":1727150003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiIzZjJiMWM0ZC01ZTZmLTRhN2ItOGM5ZC0wZTFmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUwMDAzMjEwLCJzaWciOiJHTjBhRWtRakZBWmE2QkVTS1dEa1k5RTFiczVfSmI1LTNNM0JhQVB5UG1VdDNLd0tTclVwY0JYaTJDN0o1LXhWV3Z4SERFM0xfZXpxV3h6Z0szcDdEQSIsInBya19jaGVjayI6ImEwSDVTQndNWEN5RndIR0d3VG0wRmpobjQyOTZWaVVoY0gweEtkX2ZzVGsiLCJtYWMiOiJMRXVPcmNVNGZpeVhub2pFekNRZmx4RU1wX3VqRUd5OThTWGhMeENiS2wwIn19\"}",
+      "done_plaintext": "{\"op\":\"done\",\"data\":{\"sig\":\"8De2h9-XkTWZwtK4pszBJtYD11njVew2ojEx7mtfopABwZwOHedTJ9roHunh8C-Ktgw-S2raMdBqy1WFBKvPCA\",\"prk_check\":\"n1LQ4gGXjx5s_Xj6L-xeS1g4gCRNfdziE8BJJMmK154\",\"mac\":\"iL2WIeWk5O5-g9tRIq7CrBTiEGar0WofpwtXya5kDfk\"}}",
+      "done_envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-9437-77db-8005-f998cfa095f5\",\"ts\":1727150003255,\"payload\":\"eyJvcCI6ImRvbmUiLCJkYXRhIjp7InNpZyI6IjhEZTJoOS1Ya1RXWnd0SzRwc3pCSnRZRDExbmpWZXcyb2pFeDdtdGZvcEFCd1p3T0hlZFRKOXJvSHVuaDhDLUt0Z3ctUzJyYU1kQnF5MVdGQkt2UENBIiwicHJrX2NoZWNrIjoibjFMUTRnR1hqeDVzX1hqNkwteGVTMWc0Z0NSTmZkemlFOEJKSk1tSzE1NCIsIm1hYyI6ImlMMldJZVdrNU81LWc5dFJJcTdDckJUaUVHYXIwV29mcHd0WHlhNWtEZmsifX0=\"}",
+      "pairs_request": "{\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"device_a\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"device_b\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"created_at\":1727150003210,\"attestation\":\"SExQQUlSMT8rHE1eb0p7jJ0OHyo7TF059xPQpkSFP4RSlCG59RubIf4x36FUgmGia_hUBG_SJz1AF8PoQ4lakrcKp00bfrycmCzPLsSWjMDNVfEq9GYM11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURoAAAGSIimUCg\",\"sig_a\":\"8De2h9-XkTWZwtK4pszBJtYD11njVew2ojEx7mtfopABwZwOHedTJ9roHunh8C-Ktgw-S2raMdBqy1WFBKvPCA\",\"sig_b\":\"GN0aEkQjFAZa6BESKWDkY9E1bs5_Jb5-3M3BaAPyPmUt3KwKSrUpcBXi2C7J5-xVWvxHDE3L_ezqWxzgK3p7DA\"}"
+    },
+    {
+      "name": "QR cặp 2",
+      "mode": "qr",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "keys_from": "pair-prk.json/cặp 2",
+      "client_ik_sig_seed": "c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7",
+      "client_ik_sig_pub": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025",
+      "client_device_id": "dac073e0-123b-8ea5-9dd9-b3bda9cf6037",
+      "client_ik_dh_priv": "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb",
+      "client_ik_dh_pub": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f",
+      "client_name": "iPhone của Minh & Hà",
+      "client_platform": "ios",
+      "client_model": "iPhone16,1",
+      "android_ik_sig_seed": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+      "android_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "android_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "android_ik_dh_priv": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a",
+      "android_ik_dh_pub": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a",
+      "android_name": "Galaxy của Hà",
+      "android_model": "SM-S921B",
+      "android_os_version": "14",
+      "tls_sha256": "ec55254a30f86e05761c0e0c496e77ece6238a4e403c6a69653b6dc22e846091",
+      "qr_uri": "handlive://pair?v=1&pk=3p7bfXt9wbTTW2HC7OQ1Nz-DQ8hbeGdNrfx-FG-IK08&ps=1tCrR8fNk7L9FzCPyRUJoPHzNMUPJwPCIiiif6XSMOk&d=iPhone%20c%E1%BB%A7a%20Minh%20%26%20H%C3%A0&rv=Ue_EhQo6HxBZKvz9i2Kq0A",
+      "qr_pk": "3p7bfXt9wbTTW2HC7OQ1Nz-DQ8hbeGdNrfx-FG-IK08",
+      "qr_ps": "1tCrR8fNk7L9FzCPyRUJoPHzNMUPJwPCIiiif6XSMOk",
+      "qr_rv": "51efc4850a3a1f10592afcfd8b62aad0",
+      "pr": "f35e5616",
+      "pairing_secret": "d6d0ab47c7cd93b2fd17308fc91509a0f1f334c50f2703c22228a27fa5d230e9",
+      "pin": null,
+      "argon2": null,
+      "k_pin": null,
+      "nonce_c": "6fb5db3aa4ba3f01f2b01e449b404d37e54a60ab06bab1389fdf41710ac7f47e",
+      "nonce_s": "3d1a635d4e8289922d1948d54c2afe331eeb6cbd8fdcb4a87e6cf42218ebd579",
+      "secret": "d6d0ab47c7cd93b2fd17308fc91509a0f1f334c50f2703c22228a27fa5d230e9",
+      "k_pa_salt": "6fb5db3aa4ba3f01f2b01e449b404d37e54a60ab06bab1389fdf41710ac7f47e3d1a635d4e8289922d1948d54c2afe331eeb6cbd8fdcb4a87e6cf42218ebd579",
+      "k_pa_info": "handlive/v1/pair-auth",
+      "k_pa": "57dbbd468fa603222df598681c7b08945d66a2996e9e59cc6ae99ee8284e3d44",
+      "t_offer_parts": [
+        {
+          "field": "label",
+          "hex": "484c317c6f666665727c"
+        },
+        {
+          "field": "device_id_c",
+          "hex": "dac073e0123b8ea59dd9b3bda9cf6037"
+        },
+        {
+          "field": "nonce_c",
+          "hex": "6fb5db3aa4ba3f01f2b01e449b404d37e54a60ab06bab1389fdf41710ac7f47e"
+        },
+        {
+          "field": "ik_sig_pub_c",
+          "hex": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
+        },
+        {
+          "field": "ik_dh_pub_c",
+          "hex": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f"
+        },
+        {
+          "field": "name_c",
+          "hex": "00176950686f6e652063e1bba761204d696e6820262048c3a0"
+        },
+        {
+          "field": "device_id_s",
+          "hex": "21fe31dfa1548261a26bf854046fd227"
+        },
+        {
+          "field": "nonce_s",
+          "hex": "3d1a635d4e8289922d1948d54c2afe331eeb6cbd8fdcb4a87e6cf42218ebd579"
+        },
+        {
+          "field": "ik_sig_pub_s",
+          "hex": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+        },
+        {
+          "field": "ik_dh_pub_s",
+          "hex": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a"
+        },
+        {
+          "field": "tls_sha256",
+          "hex": "ec55254a30f86e05761c0e0c496e77ece6238a4e403c6a69653b6dc22e846091"
+        },
+        {
+          "field": "name_s",
+          "hex": "001147616c617879206375cc8961204861cc80"
+        }
+      ],
+      "t_offer": "484c317c6f666665727cdac073e0123b8ea59dd9b3bda9cf60376fb5db3aa4ba3f01f2b01e449b404d37e54a60ab06bab1389fdf41710ac7f47efc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f00176950686f6e652063e1bba761204d696e6820262048c3a021fe31dfa1548261a26bf854046fd2273d1a635d4e8289922d1948d54c2afe331eeb6cbd8fdcb4a87e6cf42218ebd579d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6aec55254a30f86e05761c0e0c496e77ece6238a4e403c6a69653b6dc22e846091001147616c617879206375cc8961204861cc80",
+      "offer_mac": "5cadcfbd348f6db93c5ff384b6cc67528bea49646aaf6bb59b3e4122c28b8b15",
+      "created_at": 1727152003210,
+      "attestation_parts": [
+        {
+          "field": "label",
+          "hex": "484c5041495231"
+        },
+        {
+          "field": "pair_id",
+          "hex": "9a8b7c6d5e4f4a3b9c2d1e0f2a3b4c5d"
+        },
+        {
+          "field": "device_id_android",
+          "hex": "21fe31dfa1548261a26bf854046fd227"
+        },
+        {
+          "field": "device_id_client",
+          "hex": "dac073e0123b8ea59dd9b3bda9cf6037"
+        },
+        {
+          "field": "ik_sig_pub_android",
+          "hex": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+        },
+        {
+          "field": "ik_sig_pub_client",
+          "hex": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
+        },
+        {
+          "field": "created_at",
+          "hex": "000001922248188a"
+        }
+      ],
+      "attestation": "484c50414952319a8b7c6d5e4f4a3b9c2d1e0f2a3b4c5d21fe31dfa1548261a26bf854046fd227dac073e0123b8ea59dd9b3bda9cf6037d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511afc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025000001922248188a",
+      "sig_c": "4ac7f8c725be121f8f94706f57bd3b5e498e6cfa69dfad8c10039bc789c4c9b6953b66d47018a3a17f6cc03f7b4ce58dc5987b5c8d21e925d57a75b6d023be00",
+      "sig_s": "71cb820f0f77c587766154d917a4536be580305700a9adb760ecb7e74b822e2699846db1c03149702f51fe2321390d99313e10a3d4e04c0d6d6077b4c3ed5607",
+      "security_code": "5e293a54",
+      "confirm_mac_input_parts": [
+        {
+          "field": "label",
+          "hex": "484c317c636f6e6669726d7c"
+        },
+        {
+          "field": "t_offer",
+          "hex": "484c317c6f666665727cdac073e0123b8ea59dd9b3bda9cf60376fb5db3aa4ba3f01f2b01e449b404d37e54a60ab06bab1389fdf41710ac7f47efc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f00176950686f6e652063e1bba761204d696e6820262048c3a021fe31dfa1548261a26bf854046fd2273d1a635d4e8289922d1948d54c2afe331eeb6cbd8fdcb4a87e6cf42218ebd579d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6aec55254a30f86e05761c0e0c496e77ece6238a4e403c6a69653b6dc22e846091001147616c617879206375cc8961204861cc80"
+        },
+        {
+          "field": "pair_id",
+          "hex": "9a8b7c6d5e4f4a3b9c2d1e0f2a3b4c5d"
+        },
+        {
+          "field": "created_at",
+          "hex": "000001922248188a"
+        },
+        {
+          "field": "sig",
+          "hex": "4ac7f8c725be121f8f94706f57bd3b5e498e6cfa69dfad8c10039bc789c4c9b6953b66d47018a3a17f6cc03f7b4ce58dc5987b5c8d21e925d57a75b6d023be00"
+        }
+      ],
+      "confirm_mac_input": "484c317c636f6e6669726d7c484c317c6f666665727cdac073e0123b8ea59dd9b3bda9cf60376fb5db3aa4ba3f01f2b01e449b404d37e54a60ab06bab1389fdf41710ac7f47efc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f00176950686f6e652063e1bba761204d696e6820262048c3a021fe31dfa1548261a26bf854046fd2273d1a635d4e8289922d1948d54c2afe331eeb6cbd8fdcb4a87e6cf42218ebd579d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6aec55254a30f86e05761c0e0c496e77ece6238a4e403c6a69653b6dc22e846091001147616c617879206375cc8961204861cc809a8b7c6d5e4f4a3b9c2d1e0f2a3b4c5d000001922248188a4ac7f8c725be121f8f94706f57bd3b5e498e6cfa69dfad8c10039bc789c4c9b6953b66d47018a3a17f6cc03f7b4ce58dc5987b5c8d21e925d57a75b6d023be00",
+      "confirm_mac": "49efb8d234910fc0c7415493671f2952b0367fa5347d7346ae734d3b895df504",
+      "done_mac_input_parts": [
+        {
+          "field": "label",
+          "hex": "484c317c646f6e657c"
+        },
+        {
+          "field": "pair_id",
+          "hex": "9a8b7c6d5e4f4a3b9c2d1e0f2a3b4c5d"
+        },
+        {
+          "field": "sig",
+          "hex": "71cb820f0f77c587766154d917a4536be580305700a9adb760ecb7e74b822e2699846db1c03149702f51fe2321390d99313e10a3d4e04c0d6d6077b4c3ed5607"
+        }
+      ],
+      "done_mac_input": "484c317c646f6e657c9a8b7c6d5e4f4a3b9c2d1e0f2a3b4c5d71cb820f0f77c587766154d917a4536be580305700a9adb760ecb7e74b822e2699846db1c03149702f51fe2321390d99313e10a3d4e04c0d6d6077b4c3ed5607",
+      "done_mac": "e48f880df1e35d08db990ee84c88c12e732f936ae41f69334339b0da31590be8",
+      "dh_shared": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742",
+      "prk_ikm": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742d6d0ab47c7cd93b2fd17308fc91509a0f1f334c50f2703c22228a27fa5d230e9",
+      "prk_salt_input": "21fe31dfa1548261a26bf854046fd227dac073e0123b8ea59dd9b3bda9cf6037",
+      "prk_salt": "aeb2964bf2ae18342c2565320aa08f1b42cc29f810dc6d73f71987b3bcd4f4ab",
+      "prk_info": "handlive/v1/pair",
+      "prk": "8d3109350469af80c3db25ff2c1867ab56112623020d829301236ed7251411cc",
+      "prk_check_c_input": "484c317c70726b2d636865636b2d637c9a8b7c6d5e4f4a3b9c2d1e0f2a3b4c5d",
+      "prk_check_c": "7713c93ef401719b78a11824d45edfef1eb7bd6175d249f2abb334463fd6d0e9",
+      "prk_check_s_input": "484c317c70726b2d636865636b2d737c9a8b7c6d5e4f4a3b9c2d1e0f2a3b4c5d",
+      "prk_check_s": "7644283faa3e7cdb7ba0b77cf34a8e1f4771a7e4341f15d91f6e9957bce66fbc",
+      "hello_plaintext": "{\"op\":\"hello\",\"data\":{\"mode\":\"qr\",\"device_id\":\"dac073e0-123b-8ea5-9dd9-b3bda9cf6037\",\"nonce\":\"b7XbOqS6PwHysB5Em0BNN-VKYKsGurE4n99BcQrH9H4\",\"name\":\"iPhone của Minh & Hà\",\"platform\":\"ios\",\"model\":\"iPhone16,1\",\"ik_sig_pub\":\"_FHNjmIYoaONpH7QAjDwWAgW7RO6MwOsXeuRFUiQgCU\",\"ik_dh_pub\":\"3p7bfXt9wbTTW2HC7OQ1Nz-DQ8hbeGdNrfx-FG-IK08\"}}",
+      "hello_envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922248-0fe8-7708-976d-e3340f127f4a\",\"ts\":1727152001000,\"payload\":\"eyJvcCI6ImhlbGxvIiwiZGF0YSI6eyJtb2RlIjoicXIiLCJkZXZpY2VfaWQiOiJkYWMwNzNlMC0xMjNiLThlYTUtOWRkOS1iM2JkYTljZjYwMzciLCJub25jZSI6ImI3WGJPcVM2UHdIeXNCNUVtMEJOTi1WS1lLc0d1ckU0bjk5QmNRckg5SDQiLCJuYW1lIjoiaVBob25lIGPhu6dhIE1pbmggJiBIw6AiLCJwbGF0Zm9ybSI6ImlvcyIsIm1vZGVsIjoiaVBob25lMTYsMSIsImlrX3NpZ19wdWIiOiJfRkhOam1JWW9hT05wSDdRQWpEd1dBZ1c3Uk82TXdPc1hldVJGVWlRZ0NVIiwiaWtfZGhfcHViIjoiM3A3YmZYdDl3YlRUVzJIQzdPUTFOei1EUThoYmVHZE5yZngtRkctSUswOCJ9fQ==\"}",
+      "offer_plaintext": "{\"op\":\"offer\",\"data\":{\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"nonce\":\"PRpjXU6CiZItGUjVTCr-Mx7rbL2P3LSofmz0Ihjr1Xk\",\"name\":\"Galaxy của Hà\",\"model\":\"SM-S921B\",\"os_version\":\"14\",\"ik_sig_pub\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\",\"ik_dh_pub\":\"hSDwCYkwp1R0i33ctD73Wg2_Og0mOBr066SpjqqbTmo\",\"tls_sha256\":\"7FUlSjD4bgV2HA4MSW537OYjik5APGppZTttwi6EYJE\",\"mac\":\"XK3PvTSPbbk8X_OEtsxnUovqSWRqr2u1mz5BIsKLixU\"}}",
+      "offer_envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922248-1010-74d3-b6f0-2d5b724a78bf\",\"ts\":1727152001040,\"payload\":\"eyJvcCI6Im9mZmVyIiwiZGF0YSI6eyJkZXZpY2VfaWQiOiIyMWZlMzFkZi1hMTU0LTgyNjEtYTI2Yi1mODU0MDQ2ZmQyMjciLCJub25jZSI6IlBScGpYVTZDaVpJdEdValZUQ3ItTXg3cmJMMlAzTFNvZm16MEloanIxWGsiLCJuYW1lIjoiR2FsYXh5IGN1zIlhIEhhzIAiLCJtb2RlbCI6IlNNLVM5MjFCIiwib3NfdmVyc2lvbiI6IjE0IiwiaWtfc2lnX3B1YiI6IjExcVlBWUt4Q3JmVlNfN1R5V1FIT2c3aGN2UGFwaU1scndJYWFQY0hVUm8iLCJpa19kaF9wdWIiOiJoU0R3Q1lrd3AxUjBpMzNjdEQ3M1dnMl9PZzBtT0JyMDY2U3BqcXFiVG1vIiwidGxzX3NoYTI1NiI6IjdGVWxTakQ0YmdWMkhBNE1TVzUzN09ZamlrNUFQR3BwWlR0dHdpNkVZSkUiLCJtYWMiOiJYSzNQdlRTUGJiazhYX09FdHN4blVvdnFTV1JxcjJ1MW16NUJJc0tMaXhVIn19\"}",
+      "confirm_plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d\",\"created_at\":1727152003210,\"sig\":\"Ssf4xyW-Eh-PlHBvV707XkmObPpp362MEAObx4nEybaVO2bUcBijoX9swD97TOWNxZh7XI0h6SXVenW20CO-AA\",\"prk_check\":\"dxPJPvQBcZt4oRgk1F7f7x63vWF10knyq7M0Rj_W0Ok\",\"mac\":\"Se-40jSRD8DHQVSTZx8pUrA2f6U0fXNGrnNNO4ld9QQ\"}}",
+      "confirm_envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922248-188a-782c-8afd-63622917c02a\",\"ts\":1727152003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiI5YThiN2M2ZC01ZTRmLTRhM2ItOWMyZC0xZTBmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUyMDAzMjEwLCJzaWciOiJTc2Y0eHlXLUVoLVBsSEJ2VjcwN1hrbU9iUHBwMzYyTUVBT2J4NG5FeWJhVk8yYlVjQmlqb1g5c3dEOTdUT1dOeFpoN1hJMGg2U1hWZW5XMjBDTy1BQSIsInBya19jaGVjayI6ImR4UEpQdlFCY1p0NG9SZ2sxRjdmN3g2M3ZXRjEwa255cTdNMFJqX1cwT2siLCJtYWMiOiJTZS00MGpTUkQ4REhRVlNUWng4cFVyQTJmNlUwZlhOR3JuTk5PNGxkOVFRIn19\"}",
+      "done_plaintext": "{\"op\":\"done\",\"data\":{\"sig\":\"ccuCDw93xYd2YVTZF6RTa-WAMFcAqa23YOy350uCLiaZhG2xwDFJcC9R_iMhOQ2ZMT4Qo9TgTA1tYHe0w-1WBw\",\"prk_check\":\"dkQoP6o-fNt7oLd880qOH0dxp-Q0HxXZH26ZV7zmb7w\",\"mac\":\"5I-IDfHjXQjbmQ7oTIjBLnMvk2rkH2kzQzmw2jFZC-g\"}}",
+      "done_envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922248-18b7-7b86-abed-89b84298b578\",\"ts\":1727152003255,\"payload\":\"eyJvcCI6ImRvbmUiLCJkYXRhIjp7InNpZyI6ImNjdUNEdzkzeFlkMllWVFpGNlJUYS1XQU1GY0FxYTIzWU95MzUwdUNMaWFaaEcyeHdERkpjQzlSX2lNaE9RMlpNVDRRbzlUZ1RBMXRZSGUwdy0xV0J3IiwicHJrX2NoZWNrIjoiZGtRb1A2by1mTnQ3b0xkODgwcU9IMGR4cC1RMEh4WFpIMjZaVjd6bWI3dyIsIm1hYyI6IjVJLUlEZkhqWFFqYm1RN29USWpCTG5NdmsycmtIMmt6UXptdzJqRlpDLWcifX0=\"}",
+      "pairs_request": "{\"pair_id\":\"9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d\",\"device_a\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"device_b\":\"dac073e0-123b-8ea5-9dd9-b3bda9cf6037\",\"created_at\":1727152003210,\"attestation\":\"SExQQUlSMZqLfG1eT0o7nC0eDyo7TF0h_jHfoVSCYaJr-FQEb9In2sBz4BI7jqWd2bO9qc9gN9damAGCsQq31Uv-08lkBzoO4XLz2qYjJa8CGmj3B1Ea_FHNjmIYoaONpH7QAjDwWAgW7RO6MwOsXeuRFUiQgCUAAAGSIkgYig\",\"sig_a\":\"ccuCDw93xYd2YVTZF6RTa-WAMFcAqa23YOy350uCLiaZhG2xwDFJcC9R_iMhOQ2ZMT4Qo9TgTA1tYHe0w-1WBw\",\"sig_b\":\"Ssf4xyW-Eh-PlHBvV707XkmObPpp362MEAObx4nEybaVO2bUcBijoX9swD97TOWNxZh7XI0h6SXVenW20CO-AA\"}"
+    },
+    {
+      "name": "PIN cặp 3",
+      "mode": "pin",
+      "pair_id": "7c6b5a49-3827-4165-9f4e-3d2c1b0a9f8e",
+      "keys_from": "pair-prk.json/cặp 1",
+      "client_ik_sig_seed": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+      "client_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "client_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "client_ik_dh_priv": "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a",
+      "client_ik_dh_pub": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a",
+      "client_name": "MacBook của Lan",
+      "client_platform": "macos",
+      "client_model": "Mac15,3",
+      "android_ik_sig_seed": "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb",
+      "android_ik_sig_pub": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c",
+      "android_device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "android_ik_dh_priv": "5dab087e624a8a4b79e17f8b83800ee66f3bb1292618b6fd1c2f8b27ff88e0eb",
+      "android_ik_dh_pub": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f",
+      "android_name": "Pixel của Lan",
+      "android_model": "Pixel 8",
+      "android_os_version": "15",
+      "tls_sha256": "d99a4e7e34fe8332e9e0c8b10f7519834ef0b568ee3d4f959458dbe77624d4ce",
+      "qr_uri": null,
+      "qr_pk": null,
+      "qr_ps": null,
+      "qr_rv": null,
+      "pr": null,
+      "pairing_secret": null,
+      "pin": "042917",
+      "argon2": {
+        "variant": "argon2id",
+        "version": 19,
+        "t": 3,
+        "m_kib": 65536,
+        "p": 4,
+        "length": 32
+      },
+      "k_pin": "ca94ae8028ece2718a0c01ad6948dff5c7cf655b2fbc5c773cff2af6ea54c0aa",
+      "nonce_c": "32f4bd45a7884f0f7bf04801c8162e726a0509c4f8d8f17e54a4008a22b1275c",
+      "nonce_s": "b0ee1edde920c8dca8330f812d3dc00e8a216bd5114916297e888fd64fac0b4d",
+      "secret": "ca94ae8028ece2718a0c01ad6948dff5c7cf655b2fbc5c773cff2af6ea54c0aa",
+      "k_pa_salt": "32f4bd45a7884f0f7bf04801c8162e726a0509c4f8d8f17e54a4008a22b1275cb0ee1edde920c8dca8330f812d3dc00e8a216bd5114916297e888fd64fac0b4d",
+      "k_pa_info": "handlive/v1/pair-auth",
+      "k_pa": "63865c6cc31cb7bdab59dfa7b1b28d9a7063b1340d0672ee2b4cb7201a0ec4a7",
+      "t_offer_parts": [
+        {
+          "field": "label",
+          "hex": "484c317c6f666665727c"
+        },
+        {
+          "field": "device_id_c",
+          "hex": "21fe31dfa1548261a26bf854046fd227"
+        },
+        {
+          "field": "nonce_c",
+          "hex": "32f4bd45a7884f0f7bf04801c8162e726a0509c4f8d8f17e54a4008a22b1275c"
+        },
+        {
+          "field": "ik_sig_pub_c",
+          "hex": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+        },
+        {
+          "field": "ik_dh_pub_c",
+          "hex": "8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a"
+        },
+        {
+          "field": "name_c",
+          "hex": "00114d6163426f6f6b2063e1bba761204c616e"
+        },
+        {
+          "field": "device_id_s",
+          "hex": "39f713d0a644853f84529421b9f51b9b"
+        },
+        {
+          "field": "nonce_s",
+          "hex": "b0ee1edde920c8dca8330f812d3dc00e8a216bd5114916297e888fd64fac0b4d"
+        },
+        {
+          "field": "ik_sig_pub_s",
+          "hex": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+        },
+        {
+          "field": "ik_dh_pub_s",
+          "hex": "de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f"
+        },
+        {
+          "field": "tls_sha256",
+          "hex": "d99a4e7e34fe8332e9e0c8b10f7519834ef0b568ee3d4f959458dbe77624d4ce"
+        },
+        {
+          "field": "name_s",
+          "hex": "000f506978656c2063e1bba761204c616e"
+        }
+      ],
+      "t_offer": "484c317c6f666665727c21fe31dfa1548261a26bf854046fd22732f4bd45a7884f0f7bf04801c8162e726a0509c4f8d8f17e54a4008a22b1275cd75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a00114d6163426f6f6b2063e1bba761204c616e39f713d0a644853f84529421b9f51b9bb0ee1edde920c8dca8330f812d3dc00e8a216bd5114916297e888fd64fac0b4d3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cde9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4fd99a4e7e34fe8332e9e0c8b10f7519834ef0b568ee3d4f959458dbe77624d4ce000f506978656c2063e1bba761204c616e",
+      "offer_mac": "fe775e4b0acb2316429b69b8b11c3da5563b41f00a9f3bc38f7d21c917846a7f",
+      "created_at": 1727153003210,
+      "attestation_parts": [
+        {
+          "field": "label",
+          "hex": "484c5041495231"
+        },
+        {
+          "field": "pair_id",
+          "hex": "7c6b5a49382741659f4e3d2c1b0a9f8e"
+        },
+        {
+          "field": "device_id_android",
+          "hex": "39f713d0a644853f84529421b9f51b9b"
+        },
+        {
+          "field": "device_id_client",
+          "hex": "21fe31dfa1548261a26bf854046fd227"
+        },
+        {
+          "field": "ik_sig_pub_android",
+          "hex": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+        },
+        {
+          "field": "ik_sig_pub_client",
+          "hex": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+        },
+        {
+          "field": "created_at",
+          "hex": "0000019222575aca"
+        }
+      ],
+      "attestation": "484c50414952317c6b5a49382741659f4e3d2c1b0a9f8e39f713d0a644853f84529421b9f51b9b21fe31dfa1548261a26bf854046fd2273d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cd75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a0000019222575aca",
+      "sig_c": "b390025dc4b404fe33b4b3dd13c79b26c71ff118496a9374b05c89f2263297b506024cce869dc00b8808f31db5e0bad8cf339661db42366e3a50463503acd409",
+      "sig_s": "05f99d9e45aa06bcd83c35e0fcc26fad9519933b407a0da1a95d672e9fc1f00f639d32f68f10ffaf1e2fbdfeac4b98d373558478b664ad328acc9f7a6b3f6206",
+      "security_code": "ac61ae43",
+      "confirm_mac_input_parts": [
+        {
+          "field": "label",
+          "hex": "484c317c636f6e6669726d7c"
+        },
+        {
+          "field": "t_offer",
+          "hex": "484c317c6f666665727c21fe31dfa1548261a26bf854046fd22732f4bd45a7884f0f7bf04801c8162e726a0509c4f8d8f17e54a4008a22b1275cd75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a00114d6163426f6f6b2063e1bba761204c616e39f713d0a644853f84529421b9f51b9bb0ee1edde920c8dca8330f812d3dc00e8a216bd5114916297e888fd64fac0b4d3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cde9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4fd99a4e7e34fe8332e9e0c8b10f7519834ef0b568ee3d4f959458dbe77624d4ce000f506978656c2063e1bba761204c616e"
+        },
+        {
+          "field": "pair_id",
+          "hex": "7c6b5a49382741659f4e3d2c1b0a9f8e"
+        },
+        {
+          "field": "created_at",
+          "hex": "0000019222575aca"
+        },
+        {
+          "field": "sig",
+          "hex": "b390025dc4b404fe33b4b3dd13c79b26c71ff118496a9374b05c89f2263297b506024cce869dc00b8808f31db5e0bad8cf339661db42366e3a50463503acd409"
+        }
+      ],
+      "confirm_mac_input": "484c317c636f6e6669726d7c484c317c6f666665727c21fe31dfa1548261a26bf854046fd22732f4bd45a7884f0f7bf04801c8162e726a0509c4f8d8f17e54a4008a22b1275cd75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a00114d6163426f6f6b2063e1bba761204c616e39f713d0a644853f84529421b9f51b9bb0ee1edde920c8dca8330f812d3dc00e8a216bd5114916297e888fd64fac0b4d3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cde9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4fd99a4e7e34fe8332e9e0c8b10f7519834ef0b568ee3d4f959458dbe77624d4ce000f506978656c2063e1bba761204c616e7c6b5a49382741659f4e3d2c1b0a9f8e0000019222575acab390025dc4b404fe33b4b3dd13c79b26c71ff118496a9374b05c89f2263297b506024cce869dc00b8808f31db5e0bad8cf339661db42366e3a50463503acd409",
+      "confirm_mac": "7d738dc5a9c090a213f00881c75102145a5f7ad3e32eb2df76b45db2b32f188c",
+      "done_mac_input_parts": [
+        {
+          "field": "label",
+          "hex": "484c317c646f6e657c"
+        },
+        {
+          "field": "pair_id",
+          "hex": "7c6b5a49382741659f4e3d2c1b0a9f8e"
+        },
+        {
+          "field": "sig",
+          "hex": "05f99d9e45aa06bcd83c35e0fcc26fad9519933b407a0da1a95d672e9fc1f00f639d32f68f10ffaf1e2fbdfeac4b98d373558478b664ad328acc9f7a6b3f6206"
+        }
+      ],
+      "done_mac_input": "484c317c646f6e657c7c6b5a49382741659f4e3d2c1b0a9f8e05f99d9e45aa06bcd83c35e0fcc26fad9519933b407a0da1a95d672e9fc1f00f639d32f68f10ffaf1e2fbdfeac4b98d373558478b664ad328acc9f7a6b3f6206",
+      "done_mac": "e4373dafecb038a7d3df922dd31f94cc16c692ccde92110a9a0b900cc721fc82",
+      "dh_shared": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742",
+      "prk_ikm": "4a5d9d5ba4ce2de1728e3bf480350f25e07e21c947d19e3376f09b3c1e161742ca94ae8028ece2718a0c01ad6948dff5c7cf655b2fbc5c773cff2af6ea54c0aa",
+      "prk_salt_input": "21fe31dfa1548261a26bf854046fd22739f713d0a644853f84529421b9f51b9b",
+      "prk_salt": "13113113d84a6f6cc06c41c2013aa34beea626991c428e7b820f3ca15f58d190",
+      "prk_info": "handlive/v1/pair",
+      "prk": "1bcd4e05492b60391520896043f874f5ad5060f9850e597babb203632a712762",
+      "prk_check_c_input": "484c317c70726b2d636865636b2d637c7c6b5a49382741659f4e3d2c1b0a9f8e",
+      "prk_check_c": "a8c4071e4f9ad9ba9828c1d12219f5d29c19aec6b0e706f1d630144fb0e6ea0a",
+      "prk_check_s_input": "484c317c70726b2d636865636b2d737c7c6b5a49382741659f4e3d2c1b0a9f8e",
+      "prk_check_s": "aaac17fc23039172c7dbefbe0bb457cf311644ab2cc5a76790a788662cf22539",
+      "hello_plaintext": "{\"op\":\"hello\",\"data\":{\"mode\":\"pin\",\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"nonce\":\"MvS9RaeITw978EgByBYucmoFCcT42PF-VKQAiiKxJ1w\",\"name\":\"MacBook của Lan\",\"platform\":\"macos\",\"model\":\"Mac15,3\",\"ik_sig_pub\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\",\"ik_dh_pub\":\"hSDwCYkwp1R0i33ctD73Wg2_Og0mOBr066SpjqqbTmo\"}}",
+      "hello_envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922257-5228-77e3-afa1-203e76262063\",\"ts\":1727153001000,\"payload\":\"eyJvcCI6ImhlbGxvIiwiZGF0YSI6eyJtb2RlIjoicGluIiwiZGV2aWNlX2lkIjoiMjFmZTMxZGYtYTE1NC04MjYxLWEyNmItZjg1NDA0NmZkMjI3Iiwibm9uY2UiOiJNdlM5UmFlSVR3OTc4RWdCeUJZdWNtb0ZDY1Q0MlBGLVZLUUFpaUt4SjF3IiwibmFtZSI6Ik1hY0Jvb2sgY+G7p2EgTGFuIiwicGxhdGZvcm0iOiJtYWNvcyIsIm1vZGVsIjoiTWFjMTUsMyIsImlrX3NpZ19wdWIiOiIxMXFZQVlLeENyZlZTXzdUeVdRSE9nN2hjdlBhcGlNbHJ3SWFhUGNIVVJvIiwiaWtfZGhfcHViIjoiaFNEd0NZa3dwMVIwaTMzY3RENzNXZzJfT2cwbU9CcjA2NlNwanFxYlRtbyJ9fQ==\"}",
+      "offer_plaintext": "{\"op\":\"offer\",\"data\":{\"device_id\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"nonce\":\"sO4e3ekgyNyoMw-BLT3ADooha9URSRYpfoiP1k-sC00\",\"name\":\"Pixel của Lan\",\"model\":\"Pixel 8\",\"os_version\":\"15\",\"ik_sig_pub\":\"PUAXw-hDiVqStwqnTRt-vJyYLM8uxJaMwM1V8Sr0Zgw\",\"ik_dh_pub\":\"3p7bfXt9wbTTW2HC7OQ1Nz-DQ8hbeGdNrfx-FG-IK08\",\"tls_sha256\":\"2ZpOfjT-gzLp4MixD3UZg07wtWjuPU-VlFjb53Yk1M4\",\"mac\":\"_ndeSwrLIxZCm2m4sRw9pVY7QfAKnzvDj30hyReEan8\"}}",
+      "offer_envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922257-5250-7876-9a56-2cab6d9cdf1a\",\"ts\":1727153001040,\"payload\":\"eyJvcCI6Im9mZmVyIiwiZGF0YSI6eyJkZXZpY2VfaWQiOiIzOWY3MTNkMC1hNjQ0LTg1M2YtODQ1Mi05NDIxYjlmNTFiOWIiLCJub25jZSI6InNPNGUzZWtneU55b013LUJMVDNBRG9vaGE5VVJTUllwZm9pUDFrLXNDMDAiLCJuYW1lIjoiUGl4ZWwgY+G7p2EgTGFuIiwibW9kZWwiOiJQaXhlbCA4Iiwib3NfdmVyc2lvbiI6IjE1IiwiaWtfc2lnX3B1YiI6IlBVQVh3LWhEaVZxU3R3cW5UUnQtdkp5WUxNOHV4SmFNd00xVjhTcjBaZ3ciLCJpa19kaF9wdWIiOiIzcDdiZlh0OXdiVFRXMkhDN09RMU56LURROGhiZUdkTnJmeC1GRy1JSzA4IiwidGxzX3NoYTI1NiI6IjJacE9malQtZ3pMcDRNaXhEM1VaZzA3d3RXanVQVS1WbEZqYjUzWWsxTTQiLCJtYWMiOiJfbmRlU3dyTEl4WkNtMm00c1J3OXBWWTdRZkFLbnp2RGozMGh5UmVFYW44In19\"}",
+      "confirm_plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"7c6b5a49-3827-4165-9f4e-3d2c1b0a9f8e\",\"created_at\":1727153003210,\"sig\":\"s5ACXcS0BP4ztLPdE8ebJscf8RhJapN0sFyJ8iYyl7UGAkzOhp3AC4gI8x214LrYzzOWYdtCNm46UEY1A6zUCQ\",\"prk_check\":\"qMQHHk-a2bqYKMHRIhn10pwZrsaw5wbx1jAUT7Dm6go\",\"mac\":\"fXONxanAkKIT8AiBx1ECFFpfetPjLrLfdrRdsrMvGIw\"}}",
+      "confirm_envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922257-5aca-7181-ae4f-c6f2f3af2413\",\"ts\":1727153003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiI3YzZiNWE0OS0zODI3LTQxNjUtOWY0ZS0zZDJjMWIwYTlmOGUiLCJjcmVhdGVkX2F0IjoxNzI3MTUzMDAzMjEwLCJzaWciOiJzNUFDWGNTMEJQNHp0TFBkRThlYkpzY2Y4UmhKYXBOMHNGeUo4aVl5bDdVR0Frek9ocDNBQzRnSTh4MjE0THJZenpPV1lkdENObTQ2VUVZMUE2elVDUSIsInBya19jaGVjayI6InFNUUhIay1hMmJxWUtNSFJJaG4xMHB3WnJzYXc1d2J4MWpBVVQ3RG02Z28iLCJtYWMiOiJmWE9OeGFuQWtLSVQ4QWlCeDFFQ0ZGcGZldFBqTHJMZmRyUmRzck12R0l3In19\"}",
+      "done_plaintext": "{\"op\":\"done\",\"data\":{\"sig\":\"BfmdnkWqBrzYPDXg_MJvrZUZkztAeg2hqV1nLp_B8A9jnTL2jxD_rx4vvf6sS5jTc1WEeLZkrTKKzJ96az9iBg\",\"prk_check\":\"qqwX_CMDkXLH2---C7RXzzEWRKssxadnkKeIZizyJTk\",\"mac\":\"5Dc9r-ywOKfT35It0x-UzBbGkszekhEKmguQDMch_II\"}}",
+      "done_envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922257-5af7-76d5-abc0-6b4159122cf2\",\"ts\":1727153003255,\"payload\":\"eyJvcCI6ImRvbmUiLCJkYXRhIjp7InNpZyI6IkJmbWRua1dxQnJ6WVBEWGdfTUp2clpVWmt6dEFlZzJocVYxbkxwX0I4QTlqblRMMmp4RF9yeDR2dmY2c1M1alRjMVdFZUxaa3JUS0t6Sjk2YXo5aUJnIiwicHJrX2NoZWNrIjoicXF3WF9DTURrWExIMi0tLUM3Ulh6ekVXUktzc3hhZG5rS2VJWml6eUpUayIsIm1hYyI6IjVEYzlyLXl3T0tmVDM1SXQweC1VekJiR2tzemVraEVLbWd1UURNY2hfSUkifX0=\"}",
+      "pairs_request": "{\"pair_id\":\"7c6b5a49-3827-4165-9f4e-3d2c1b0a9f8e\",\"device_a\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"device_b\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"created_at\":1727153003210,\"attestation\":\"SExQQUlSMXxrWkk4J0Fln049LBsKn4459xPQpkSFP4RSlCG59RubIf4x36FUgmGia_hUBG_SJz1AF8PoQ4lakrcKp00bfrycmCzPLsSWjMDNVfEq9GYM11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURoAAAGSIldayg\",\"sig_a\":\"BfmdnkWqBrzYPDXg_MJvrZUZkztAeg2hqV1nLp_B8A9jnTL2jxD_rx4vvf6sS5jTc1WEeLZkrTKKzJ96az9iBg\",\"sig_b\":\"s5ACXcS0BP4ztLPdE8ebJscf8RhJapN0sFyJ8iYyl7UGAkzOhp3AC4gI8x214LrYzzOWYdtCNm46UEY1A6zUCQ\"}"
+    }
+  ],
+  "invalid_vectors": [
+    {
+      "name": "QR cặp 1 / hello: ik_dh_pub khác pk đã quét trong QR",
+      "vector": "QR cặp 1",
+      "message": "hello",
+      "check": "hello_key",
+      "checked_by": "android",
+      "reason": "key_mismatch",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"hello\",\"data\":{\"mode\":\"qr\",\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"nonce\":\"fkQzu8NE3Vq1MMwajZn8wL2OLR9OaiVJmQuuOpi_TGg\",\"name\":\"MacBook của Lan\",\"platform\":\"macos\",\"model\":\"Mac15,3\",\"ik_sig_pub\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\",\"ik_dh_pub\":\"2lhQmnNAafYclP8aAPdFEMB58hknzYSduxl8mm0Bfys\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-8b68-78ac-815b-67de8e533f5d\",\"ts\":1727150001000,\"payload\":\"eyJvcCI6ImhlbGxvIiwiZGF0YSI6eyJtb2RlIjoicXIiLCJkZXZpY2VfaWQiOiIyMWZlMzFkZi1hMTU0LTgyNjEtYTI2Yi1mODU0MDQ2ZmQyMjciLCJub25jZSI6ImZrUXp1OE5FM1ZxMU1Nd2FqWm44d0wyT0xSOU9haVZKbVF1dU9waV9UR2ciLCJuYW1lIjoiTWFjQm9vayBj4bunYSBMYW4iLCJwbGF0Zm9ybSI6Im1hY29zIiwibW9kZWwiOiJNYWMxNSwzIiwiaWtfc2lnX3B1YiI6IjExcVlBWUt4Q3JmVlNfN1R5V1FIT2c3aGN2UGFwaU1scndJYWFQY0hVUm8iLCJpa19kaF9wdWIiOiIybGhRbW5OQWFmWWNsUDhhQVBkRkVNQjU4aGtuellTZHV4bDhtbTBCZnlzIn19\"}"
+    },
+    {
+      "name": "QR cặp 1 / hello: device_id không dẫn xuất từ ik_sig_pub",
+      "vector": "QR cặp 1",
+      "message": "hello",
+      "check": "hello_device_id",
+      "checked_by": "android",
+      "reason": "device_id_mismatch",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"hello\",\"data\":{\"mode\":\"qr\",\"device_id\":\"dac073e0-123b-8ea5-9dd9-b3bda9cf6037\",\"nonce\":\"fkQzu8NE3Vq1MMwajZn8wL2OLR9OaiVJmQuuOpi_TGg\",\"name\":\"MacBook của Lan\",\"platform\":\"macos\",\"model\":\"Mac15,3\",\"ik_sig_pub\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\",\"ik_dh_pub\":\"hSDwCYkwp1R0i33ctD73Wg2_Og0mOBr066SpjqqbTmo\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-8b68-78ac-815b-67de8e533f5d\",\"ts\":1727150001000,\"payload\":\"eyJvcCI6ImhlbGxvIiwiZGF0YSI6eyJtb2RlIjoicXIiLCJkZXZpY2VfaWQiOiJkYWMwNzNlMC0xMjNiLThlYTUtOWRkOS1iM2JkYTljZjYwMzciLCJub25jZSI6ImZrUXp1OE5FM1ZxMU1Nd2FqWm44d0wyT0xSOU9haVZKbVF1dU9waV9UR2ciLCJuYW1lIjoiTWFjQm9vayBj4bunYSBMYW4iLCJwbGF0Zm9ybSI6Im1hY29zIiwibW9kZWwiOiJNYWMxNSwzIiwiaWtfc2lnX3B1YiI6IjExcVlBWUt4Q3JmVlNfN1R5V1FIT2c3aGN2UGFwaU1scndJYWFQY0hVUm8iLCJpa19kaF9wdWIiOiJoU0R3Q1lrd3AxUjBpMzNjdEQ3M1dnMl9PZzBtT0JyMDY2U3BqcXFiVG1vIn19\"}"
+    },
+    {
+      "name": "QR cặp 1 / offer: mac sửa 1 bit",
+      "vector": "QR cặp 1",
+      "message": "offer",
+      "check": "offer_mac",
+      "checked_by": "client",
+      "reason": "mac_mismatch",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"offer\",\"data\":{\"device_id\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"nonce\":\"gFUG29Le33MlVqf9_e4XvjvJnxwbfj4JulZEFk-sf3k\",\"name\":\"Pixel của Lan\",\"model\":\"Pixel 8\",\"os_version\":\"15\",\"ik_sig_pub\":\"PUAXw-hDiVqStwqnTRt-vJyYLM8uxJaMwM1V8Sr0Zgw\",\"ik_dh_pub\":\"3p7bfXt9wbTTW2HC7OQ1Nz-DQ8hbeGdNrfx-FG-IK08\",\"tls_sha256\":\"HkWeIWaHNWpeQL3IU2vRhr_9m2NSj3qECPsivSYjTU4\",\"mac\":\"Y0qh3AlOiml5ep88eGZKtp-5Bd8eNtoQutJMIl8sXCU\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-8b90-7f11-a02c-137783f5301c\",\"ts\":1727150001040,\"payload\":\"eyJvcCI6Im9mZmVyIiwiZGF0YSI6eyJkZXZpY2VfaWQiOiIzOWY3MTNkMC1hNjQ0LTg1M2YtODQ1Mi05NDIxYjlmNTFiOWIiLCJub25jZSI6ImdGVUcyOUxlMzNNbFZxZjlfZTRYdmp2Sm54d2JmajRKdWxaRUZrLXNmM2siLCJuYW1lIjoiUGl4ZWwgY+G7p2EgTGFuIiwibW9kZWwiOiJQaXhlbCA4Iiwib3NfdmVyc2lvbiI6IjE1IiwiaWtfc2lnX3B1YiI6IlBVQVh3LWhEaVZxU3R3cW5UUnQtdkp5WUxNOHV4SmFNd00xVjhTcjBaZ3ciLCJpa19kaF9wdWIiOiIzcDdiZlh0OXdiVFRXMkhDN09RMU56LURROGhiZUdkTnJmeC1GRy1JSzA4IiwidGxzX3NoYTI1NiI6IkhrV2VJV2FITldwZVFMM0lVMnZSaHJfOW0yTlNqM3FFQ1BzaXZTWWpUVTQiLCJtYWMiOiJZMHFoM0FsT2ltbDVlcDg4ZUdaS3RwLTVCZDhlTnRvUXV0Sk1JbDhzWENVIn19\"}"
+    },
+    {
+      "name": "QR cặp 1 / offer: nhãn \"HL1 | offer | \" có dấu cách",
+      "vector": "QR cặp 1",
+      "message": "offer",
+      "check": "offer_mac",
+      "checked_by": "client",
+      "reason": "wrong_label",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"offer\",\"data\":{\"device_id\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"nonce\":\"gFUG29Le33MlVqf9_e4XvjvJnxwbfj4JulZEFk-sf3k\",\"name\":\"Pixel của Lan\",\"model\":\"Pixel 8\",\"os_version\":\"15\",\"ik_sig_pub\":\"PUAXw-hDiVqStwqnTRt-vJyYLM8uxJaMwM1V8Sr0Zgw\",\"ik_dh_pub\":\"3p7bfXt9wbTTW2HC7OQ1Nz-DQ8hbeGdNrfx-FG-IK08\",\"tls_sha256\":\"HkWeIWaHNWpeQL3IU2vRhr_9m2NSj3qECPsivSYjTU4\",\"mac\":\"1k0br551IRXkkcruYuf97Uj-rQo6pgZqjoftwWSLC1k\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-8b90-7f11-a02c-137783f5301c\",\"ts\":1727150001040,\"payload\":\"eyJvcCI6Im9mZmVyIiwiZGF0YSI6eyJkZXZpY2VfaWQiOiIzOWY3MTNkMC1hNjQ0LTg1M2YtODQ1Mi05NDIxYjlmNTFiOWIiLCJub25jZSI6ImdGVUcyOUxlMzNNbFZxZjlfZTRYdmp2Sm54d2JmajRKdWxaRUZrLXNmM2siLCJuYW1lIjoiUGl4ZWwgY+G7p2EgTGFuIiwibW9kZWwiOiJQaXhlbCA4Iiwib3NfdmVyc2lvbiI6IjE1IiwiaWtfc2lnX3B1YiI6IlBVQVh3LWhEaVZxU3R3cW5UUnQtdkp5WUxNOHV4SmFNd00xVjhTcjBaZ3ciLCJpa19kaF9wdWIiOiIzcDdiZlh0OXdiVFRXMkhDN09RMU56LURROGhiZUdkTnJmeC1GRy1JSzA4IiwidGxzX3NoYTI1NiI6IkhrV2VJV2FITldwZVFMM0lVMnZSaHJfOW0yTlNqM3FFQ1BzaXZTWWpUVTQiLCJtYWMiOiIxazBicjU1MUlSWGtrY3J1WXVmOTdVai1yUW82cGdacWpvZnR3V1NMQzFrIn19\"}",
+      "mac_input": "484c31207c206f66666572207c2021fe31dfa1548261a26bf854046fd2277e4433bbc344dd5ab530cc1a8d99fcc0bd8e2d1f4e6a2549990bae3a98bf4c68d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a00114d6163426f6f6b2063e1bba761204c616e39f713d0a644853f84529421b9f51b9b805506dbd2dedf732556a7fdfdee17be3bc99f1c1b7e3e09ba5644164fac7f793d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cde9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f1e459e216687356a5e40bdc8536bd186bffd9b63528f7a8408fb22bd26234d4e000f506978656c2063e1bba761204c616e"
+    },
+    {
+      "name": "QR cặp 1 / offer: độ dài của str(name) viết little-endian",
+      "vector": "QR cặp 1",
+      "message": "offer",
+      "check": "offer_mac",
+      "checked_by": "client",
+      "reason": "wrong_byte_order",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"offer\",\"data\":{\"device_id\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"nonce\":\"gFUG29Le33MlVqf9_e4XvjvJnxwbfj4JulZEFk-sf3k\",\"name\":\"Pixel của Lan\",\"model\":\"Pixel 8\",\"os_version\":\"15\",\"ik_sig_pub\":\"PUAXw-hDiVqStwqnTRt-vJyYLM8uxJaMwM1V8Sr0Zgw\",\"ik_dh_pub\":\"3p7bfXt9wbTTW2HC7OQ1Nz-DQ8hbeGdNrfx-FG-IK08\",\"tls_sha256\":\"HkWeIWaHNWpeQL3IU2vRhr_9m2NSj3qECPsivSYjTU4\",\"mac\":\"d85_pJanXNUBNnu636U73VKGwN9PWpGb_zqSYBUwHGg\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-8b90-7f11-a02c-137783f5301c\",\"ts\":1727150001040,\"payload\":\"eyJvcCI6Im9mZmVyIiwiZGF0YSI6eyJkZXZpY2VfaWQiOiIzOWY3MTNkMC1hNjQ0LTg1M2YtODQ1Mi05NDIxYjlmNTFiOWIiLCJub25jZSI6ImdGVUcyOUxlMzNNbFZxZjlfZTRYdmp2Sm54d2JmajRKdWxaRUZrLXNmM2siLCJuYW1lIjoiUGl4ZWwgY+G7p2EgTGFuIiwibW9kZWwiOiJQaXhlbCA4Iiwib3NfdmVyc2lvbiI6IjE1IiwiaWtfc2lnX3B1YiI6IlBVQVh3LWhEaVZxU3R3cW5UUnQtdkp5WUxNOHV4SmFNd00xVjhTcjBaZ3ciLCJpa19kaF9wdWIiOiIzcDdiZlh0OXdiVFRXMkhDN09RMU56LURROGhiZUdkTnJmeC1GRy1JSzA4IiwidGxzX3NoYTI1NiI6IkhrV2VJV2FITldwZVFMM0lVMnZSaHJfOW0yTlNqM3FFQ1BzaXZTWWpUVTQiLCJtYWMiOiJkODVfcEphblhOVUJObnU2MzZVNzNWS0d3TjlQV3BHYl96cVNZQlV3SEdnIn19\"}",
+      "mac_input": "484c317c6f666665727c21fe31dfa1548261a26bf854046fd2277e4433bbc344dd5ab530cc1a8d99fcc0bd8e2d1f4e6a2549990bae3a98bf4c68d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a11004d6163426f6f6b2063e1bba761204c616e39f713d0a644853f84529421b9f51b9b805506dbd2dedf732556a7fdfdee17be3bc99f1c1b7e3e09ba5644164fac7f793d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cde9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f1e459e216687356a5e40bdc8536bd186bffd9b63528f7a8408fb22bd26234d4e0f00506978656c2063e1bba761204c616e"
+    },
+    {
+      "name": "QR cặp 2 / offer: salt của K_pa đảo thành nonce_s ‖ nonce_c",
+      "vector": "QR cặp 2",
+      "message": "offer",
+      "check": "offer_mac",
+      "checked_by": "client",
+      "reason": "wrong_byte_order",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"offer\",\"data\":{\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"nonce\":\"PRpjXU6CiZItGUjVTCr-Mx7rbL2P3LSofmz0Ihjr1Xk\",\"name\":\"Galaxy của Hà\",\"model\":\"SM-S921B\",\"os_version\":\"14\",\"ik_sig_pub\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\",\"ik_dh_pub\":\"hSDwCYkwp1R0i33ctD73Wg2_Og0mOBr066SpjqqbTmo\",\"tls_sha256\":\"7FUlSjD4bgV2HA4MSW537OYjik5APGppZTttwi6EYJE\",\"mac\":\"QHSSwT-D3zqQyycBx4kQaDLk4_zxiDPsaZk8X1yHk-k\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922248-1010-74d3-b6f0-2d5b724a78bf\",\"ts\":1727152001040,\"payload\":\"eyJvcCI6Im9mZmVyIiwiZGF0YSI6eyJkZXZpY2VfaWQiOiIyMWZlMzFkZi1hMTU0LTgyNjEtYTI2Yi1mODU0MDQ2ZmQyMjciLCJub25jZSI6IlBScGpYVTZDaVpJdEdValZUQ3ItTXg3cmJMMlAzTFNvZm16MEloanIxWGsiLCJuYW1lIjoiR2FsYXh5IGN1zIlhIEhhzIAiLCJtb2RlbCI6IlNNLVM5MjFCIiwib3NfdmVyc2lvbiI6IjE0IiwiaWtfc2lnX3B1YiI6IjExcVlBWUt4Q3JmVlNfN1R5V1FIT2c3aGN2UGFwaU1scndJYWFQY0hVUm8iLCJpa19kaF9wdWIiOiJoU0R3Q1lrd3AxUjBpMzNjdEQ3M1dnMl9PZzBtT0JyMDY2U3BqcXFiVG1vIiwidGxzX3NoYTI1NiI6IjdGVWxTakQ0YmdWMkhBNE1TVzUzN09ZamlrNUFQR3BwWlR0dHdpNkVZSkUiLCJtYWMiOiJRSFNTd1QtRDN6cVF5eWNCeDRrUWFETGs0X3p4aURQc2FaazhYMXlIay1rIn19\"}",
+      "mac_key": "f3e62e2f62ca8ebaeaee5b23397f2c8d2a7ca44a31087bd1c7dafd8e6d56cc8f"
+    },
+    {
+      "name": "QR cặp 2 / offer: tls_sha256 bị thay trên đường (MITM), mac giữ nguyên",
+      "vector": "QR cặp 2",
+      "message": "offer",
+      "check": "offer_mac",
+      "checked_by": "client",
+      "reason": "message_tampered",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"offer\",\"data\":{\"device_id\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"nonce\":\"PRpjXU6CiZItGUjVTCr-Mx7rbL2P3LSofmz0Ihjr1Xk\",\"name\":\"Galaxy của Hà\",\"model\":\"SM-S921B\",\"os_version\":\"14\",\"ik_sig_pub\":\"11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo\",\"ik_dh_pub\":\"hSDwCYkwp1R0i33ctD73Wg2_Og0mOBr066SpjqqbTmo\",\"tls_sha256\":\"uKfV2iDgpkPzsdDzibgjsdbtGho6yZ28F_nyjVa_ns4\",\"mac\":\"XK3PvTSPbbk8X_OEtsxnUovqSWRqr2u1mz5BIsKLixU\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922248-1010-74d3-b6f0-2d5b724a78bf\",\"ts\":1727152001040,\"payload\":\"eyJvcCI6Im9mZmVyIiwiZGF0YSI6eyJkZXZpY2VfaWQiOiIyMWZlMzFkZi1hMTU0LTgyNjEtYTI2Yi1mODU0MDQ2ZmQyMjciLCJub25jZSI6IlBScGpYVTZDaVpJdEdValZUQ3ItTXg3cmJMMlAzTFNvZm16MEloanIxWGsiLCJuYW1lIjoiR2FsYXh5IGN1zIlhIEhhzIAiLCJtb2RlbCI6IlNNLVM5MjFCIiwib3NfdmVyc2lvbiI6IjE0IiwiaWtfc2lnX3B1YiI6IjExcVlBWUt4Q3JmVlNfN1R5V1FIT2c3aGN2UGFwaU1scndJYWFQY0hVUm8iLCJpa19kaF9wdWIiOiJoU0R3Q1lrd3AxUjBpMzNjdEQ3M1dnMl9PZzBtT0JyMDY2U3BqcXFiVG1vIiwidGxzX3NoYTI1NiI6InVLZlYyaURncGtQenNkRHppYmdqc2RidEdobzZ5WjI4Rl9ueWpWYV9uczQiLCJtYWMiOiJYSzNQdlRTUGJiazhYX09FdHN4blVvdnFTV1JxcjJ1MW16NUJJc0tMaXhVIn19\"}",
+      "mac_input": "484c317c6f666665727cdac073e0123b8ea59dd9b3bda9cf60376fb5db3aa4ba3f01f2b01e449b404d37e54a60ab06bab1389fdf41710ac7f47efc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f00176950686f6e652063e1bba761204d696e6820262048c3a021fe31dfa1548261a26bf854046fd2273d1a635d4e8289922d1948d54c2afe331eeb6cbd8fdcb4a87e6cf42218ebd579d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6aec55254a30f86e05761c0e0c496e77ece6238a4e403c6a69653b6dc22e846091001147616c617879206375cc8961204861cc80"
+    },
+    {
+      "name": "PIN cặp 3 / offer: người dùng nhập sai PIN trên điện thoại (042971)",
+      "vector": "PIN cặp 3",
+      "message": "offer",
+      "check": "offer_mac",
+      "checked_by": "client",
+      "reason": "wrong_pin",
+      "expected_error": "PIN_INVALID",
+      "plaintext": "{\"op\":\"offer\",\"data\":{\"device_id\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"nonce\":\"sO4e3ekgyNyoMw-BLT3ADooha9URSRYpfoiP1k-sC00\",\"name\":\"Pixel của Lan\",\"model\":\"Pixel 8\",\"os_version\":\"15\",\"ik_sig_pub\":\"PUAXw-hDiVqStwqnTRt-vJyYLM8uxJaMwM1V8Sr0Zgw\",\"ik_dh_pub\":\"3p7bfXt9wbTTW2HC7OQ1Nz-DQ8hbeGdNrfx-FG-IK08\",\"tls_sha256\":\"2ZpOfjT-gzLp4MixD3UZg07wtWjuPU-VlFjb53Yk1M4\",\"mac\":\"FL5PPk95-E2mX6M657dMLvUJE9FdYyxdAis55druy6k\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922257-5250-7876-9a56-2cab6d9cdf1a\",\"ts\":1727153001040,\"payload\":\"eyJvcCI6Im9mZmVyIiwiZGF0YSI6eyJkZXZpY2VfaWQiOiIzOWY3MTNkMC1hNjQ0LTg1M2YtODQ1Mi05NDIxYjlmNTFiOWIiLCJub25jZSI6InNPNGUzZWtneU55b013LUJMVDNBRG9vaGE5VVJTUllwZm9pUDFrLXNDMDAiLCJuYW1lIjoiUGl4ZWwgY+G7p2EgTGFuIiwibW9kZWwiOiJQaXhlbCA4Iiwib3NfdmVyc2lvbiI6IjE1IiwiaWtfc2lnX3B1YiI6IlBVQVh3LWhEaVZxU3R3cW5UUnQtdkp5WUxNOHV4SmFNd00xVjhTcjBaZ3ciLCJpa19kaF9wdWIiOiIzcDdiZlh0OXdiVFRXMkhDN09RMU56LURROGhiZUdkTnJmeC1GRy1JSzA4IiwidGxzX3NoYTI1NiI6IjJacE9malQtZ3pMcDRNaXhEM1VaZzA3d3RXanVQVS1WbEZqYjUzWWsxTTQiLCJtYWMiOiJGTDVQUGs5NS1FMm1YNk02NTdkTUx2VUpFOUZkWXl4ZEFpczU1ZHJ1eTZrIn19\"}",
+      "pin_used": "042971",
+      "k_pin_used": "b792908e79826e74238d81b2d1fa200a0c0e46b584b0270cba7ca8d22e8e3e67",
+      "mac_key": "757e6478a3315222ff4d1c1004fdaf327ee0c68453704af449c17b36f0766e0a",
+      "client_reply_plaintext": "{\"op\":\"error\",\"data\":{\"code\":\"PIN_INVALID\",\"message\":\"PIN does not match\",\"attempts_left\":2}}",
+      "client_reply_envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922257-5296-756c-b4cd-33c53c275e4e\",\"ts\":1727153001110,\"payload\":\"eyJvcCI6ImVycm9yIiwiZGF0YSI6eyJjb2RlIjoiUElOX0lOVkFMSUQiLCJtZXNzYWdlIjoiUElOIGRvZXMgbm90IG1hdGNoIiwiYXR0ZW1wdHNfbGVmdCI6Mn19\"}"
+    },
+    {
+      "name": "PIN cặp 3 / k_pin: Argon2id với p = 1 (số lane cố định của libsodium)",
+      "vector": "PIN cặp 3",
+      "message": null,
+      "check": "k_pin",
+      "checked_by": "both",
+      "reason": "wrong_parameters",
+      "expected_error": "PIN_INVALID",
+      "pin_used": "042917",
+      "argon2_used": {
+        "variant": "argon2id",
+        "version": 19,
+        "t": 3,
+        "m_kib": 65536,
+        "p": 1,
+        "length": 32
+      },
+      "k_pin_used": "5be9497083a0e1e445a560667f766377fa2e052c5c400dc2df36955b91229268"
+    },
+    {
+      "name": "PIN cặp 3 / k_pin: PIN đổi sang số nguyên nên mất số 0 đầu (\"42917\")",
+      "vector": "PIN cặp 3",
+      "message": null,
+      "check": "k_pin",
+      "checked_by": "both",
+      "reason": "wrong_encoding",
+      "expected_error": "PIN_INVALID",
+      "pin_used": "42917",
+      "k_pin_used": "344236986ac3a115ac4e46af04d5322f00bdefffd5524dfc2d82d1b370030bc7"
+    },
+    {
+      "name": "QR cặp 1 / confirm: mac sửa 1 bit",
+      "vector": "QR cặp 1",
+      "message": "confirm",
+      "check": "confirm_mac",
+      "checked_by": "android",
+      "reason": "mac_mismatch",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"created_at\":1727150003210,\"sig\":\"GN0aEkQjFAZa6BESKWDkY9E1bs5_Jb5-3M3BaAPyPmUt3KwKSrUpcBXi2C7J5-xVWvxHDE3L_ezqWxzgK3p7DA\",\"prk_check\":\"a0H5SBwMXCyFwHGGwTm0Fjhn4296ViUhcH0xKd_fsTk\",\"mac\":\"rEuOrcU4fiyXnojEzCQflxEMp_ujEGy98SXhLxCbKl0\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-940a-7857-bfb3-579a2afb1e2e\",\"ts\":1727150003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiIzZjJiMWM0ZC01ZTZmLTRhN2ItOGM5ZC0wZTFmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUwMDAzMjEwLCJzaWciOiJHTjBhRWtRakZBWmE2QkVTS1dEa1k5RTFiczVfSmI1LTNNM0JhQVB5UG1VdDNLd0tTclVwY0JYaTJDN0o1LXhWV3Z4SERFM0xfZXpxV3h6Z0szcDdEQSIsInBya19jaGVjayI6ImEwSDVTQndNWEN5RndIR0d3VG0wRmpobjQyOTZWaVVoY0gweEtkX2ZzVGsiLCJtYWMiOiJyRXVPcmNVNGZpeVhub2pFekNRZmx4RU1wX3VqRUd5OThTWGhMeENiS2wwIn19\"}"
+    },
+    {
+      "name": "QR cặp 1 / confirm: nhãn \"HL1 | confirm | \" có dấu cách",
+      "vector": "QR cặp 1",
+      "message": "confirm",
+      "check": "confirm_mac",
+      "checked_by": "android",
+      "reason": "wrong_label",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"created_at\":1727150003210,\"sig\":\"GN0aEkQjFAZa6BESKWDkY9E1bs5_Jb5-3M3BaAPyPmUt3KwKSrUpcBXi2C7J5-xVWvxHDE3L_ezqWxzgK3p7DA\",\"prk_check\":\"a0H5SBwMXCyFwHGGwTm0Fjhn4296ViUhcH0xKd_fsTk\",\"mac\":\"151BTHOxXZzZ2QUVJplFla8x3SfMeo09aAvnqQYjEMQ\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-940a-7857-bfb3-579a2afb1e2e\",\"ts\":1727150003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiIzZjJiMWM0ZC01ZTZmLTRhN2ItOGM5ZC0wZTFmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUwMDAzMjEwLCJzaWciOiJHTjBhRWtRakZBWmE2QkVTS1dEa1k5RTFiczVfSmI1LTNNM0JhQVB5UG1VdDNLd0tTclVwY0JYaTJDN0o1LXhWV3Z4SERFM0xfZXpxV3h6Z0szcDdEQSIsInBya19jaGVjayI6ImEwSDVTQndNWEN5RndIR0d3VG0wRmpobjQyOTZWaVVoY0gweEtkX2ZzVGsiLCJtYWMiOiIxNTFCVEhPeFhaeloyUVVWSnBsRmxhOHgzU2ZNZW8wOWFBdm5xUVlqRU1RIn19\"}",
+      "mac_input": "484c31207c20636f6e6669726d207c20484c317c6f666665727c21fe31dfa1548261a26bf854046fd2277e4433bbc344dd5ab530cc1a8d99fcc0bd8e2d1f4e6a2549990bae3a98bf4c68d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a00114d6163426f6f6b2063e1bba761204c616e39f713d0a644853f84529421b9f51b9b805506dbd2dedf732556a7fdfdee17be3bc99f1c1b7e3e09ba5644164fac7f793d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cde9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f1e459e216687356a5e40bdc8536bd186bffd9b63528f7a8408fb22bd26234d4e000f506978656c2063e1bba761204c616e3f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d000001922229940a18dd1a12442314065ae811122960e463d1356ece7f25be7edccdc16803f23e652ddcac0a4ab5297015e2d82ec9e7ec555afc470c4dcbfdecea5b1ce02b7a7b0c"
+    },
+    {
+      "name": "QR cặp 1 / confirm: created_at viết int64 little-endian trong chuỗi MAC",
+      "vector": "QR cặp 1",
+      "message": "confirm",
+      "check": "confirm_mac",
+      "checked_by": "android",
+      "reason": "wrong_byte_order",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"created_at\":1727150003210,\"sig\":\"GN0aEkQjFAZa6BESKWDkY9E1bs5_Jb5-3M3BaAPyPmUt3KwKSrUpcBXi2C7J5-xVWvxHDE3L_ezqWxzgK3p7DA\",\"prk_check\":\"a0H5SBwMXCyFwHGGwTm0Fjhn4296ViUhcH0xKd_fsTk\",\"mac\":\"obhImKIeaxfHP5ncbAdrx8WzQ6Iz9emSkF7Qlw-8oSM\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-940a-7857-bfb3-579a2afb1e2e\",\"ts\":1727150003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiIzZjJiMWM0ZC01ZTZmLTRhN2ItOGM5ZC0wZTFmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUwMDAzMjEwLCJzaWciOiJHTjBhRWtRakZBWmE2QkVTS1dEa1k5RTFiczVfSmI1LTNNM0JhQVB5UG1VdDNLd0tTclVwY0JYaTJDN0o1LXhWV3Z4SERFM0xfZXpxV3h6Z0szcDdEQSIsInBya19jaGVjayI6ImEwSDVTQndNWEN5RndIR0d3VG0wRmpobjQyOTZWaVVoY0gweEtkX2ZzVGsiLCJtYWMiOiJvYmhJbUtJZWF4ZkhQNW5jYkFkcng4V3pRNkl6OWVtU2tGN1Fsdy04b1NNIn19\"}",
+      "mac_input": "484c317c636f6e6669726d7c484c317c6f666665727c21fe31dfa1548261a26bf854046fd2277e4433bbc344dd5ab530cc1a8d99fcc0bd8e2d1f4e6a2549990bae3a98bf4c68d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a00114d6163426f6f6b2063e1bba761204c616e39f713d0a644853f84529421b9f51b9b805506dbd2dedf732556a7fdfdee17be3bc99f1c1b7e3e09ba5644164fac7f793d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cde9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f1e459e216687356a5e40bdc8536bd186bffd9b63528f7a8408fb22bd26234d4e000f506978656c2063e1bba761204c616e3f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d0a9429229201000018dd1a12442314065ae811122960e463d1356ece7f25be7edccdc16803f23e652ddcac0a4ab5297015e2d82ec9e7ec555afc470c4dcbfdecea5b1ce02b7a7b0c"
+    },
+    {
+      "name": "QR cặp 1 / confirm: sig ghép ở dạng chuỗi b64u thay vì 64 byte thô",
+      "vector": "QR cặp 1",
+      "message": "confirm",
+      "check": "confirm_mac",
+      "checked_by": "android",
+      "reason": "wrong_encoding",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"created_at\":1727150003210,\"sig\":\"GN0aEkQjFAZa6BESKWDkY9E1bs5_Jb5-3M3BaAPyPmUt3KwKSrUpcBXi2C7J5-xVWvxHDE3L_ezqWxzgK3p7DA\",\"prk_check\":\"a0H5SBwMXCyFwHGGwTm0Fjhn4296ViUhcH0xKd_fsTk\",\"mac\":\"nEdisBq_YOlZN2gcQmrkbmoHOvrsimL50c8ydeNTmhM\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-940a-7857-bfb3-579a2afb1e2e\",\"ts\":1727150003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiIzZjJiMWM0ZC01ZTZmLTRhN2ItOGM5ZC0wZTFmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUwMDAzMjEwLCJzaWciOiJHTjBhRWtRakZBWmE2QkVTS1dEa1k5RTFiczVfSmI1LTNNM0JhQVB5UG1VdDNLd0tTclVwY0JYaTJDN0o1LXhWV3Z4SERFM0xfZXpxV3h6Z0szcDdEQSIsInBya19jaGVjayI6ImEwSDVTQndNWEN5RndIR0d3VG0wRmpobjQyOTZWaVVoY0gweEtkX2ZzVGsiLCJtYWMiOiJuRWRpc0JxX1lPbFpOMmdjUW1ya2Jtb0hPdnJzaW1MNTBjOHlkZU5UbWhNIn19\"}",
+      "mac_input": "484c317c636f6e6669726d7c484c317c6f666665727c21fe31dfa1548261a26bf854046fd2277e4433bbc344dd5ab530cc1a8d99fcc0bd8e2d1f4e6a2549990bae3a98bf4c68d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6a00114d6163426f6f6b2063e1bba761204c616e39f713d0a644853f84529421b9f51b9b805506dbd2dedf732556a7fdfdee17be3bc99f1c1b7e3e09ba5644164fac7f793d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cde9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f1e459e216687356a5e40bdc8536bd186bffd9b63528f7a8408fb22bd26234d4e000f506978656c2063e1bba761204c616e3f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d000001922229940a474e3061456b516a46415a61364245534b57446b593945316273355f4a62352d334d334261415079506d5574334b774b53725570634258693243374a352d7856577678484445334c5f657a7157787a674b3370374441"
+    },
+    {
+      "name": "QR cặp 2 / confirm: pair_id ghép ở dạng chuỗi 36 ký tự thay vì 16 byte",
+      "vector": "QR cặp 2",
+      "message": "confirm",
+      "check": "confirm_mac",
+      "checked_by": "android",
+      "reason": "wrong_encoding",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d\",\"created_at\":1727152003210,\"sig\":\"Ssf4xyW-Eh-PlHBvV707XkmObPpp362MEAObx4nEybaVO2bUcBijoX9swD97TOWNxZh7XI0h6SXVenW20CO-AA\",\"prk_check\":\"dxPJPvQBcZt4oRgk1F7f7x63vWF10knyq7M0Rj_W0Ok\",\"mac\":\"mnmAlX0JuBQUcFB6Dub-x2wwV1rM9wAEpbTWBzKvzlY\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922248-188a-782c-8afd-63622917c02a\",\"ts\":1727152003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiI5YThiN2M2ZC01ZTRmLTRhM2ItOWMyZC0xZTBmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUyMDAzMjEwLCJzaWciOiJTc2Y0eHlXLUVoLVBsSEJ2VjcwN1hrbU9iUHBwMzYyTUVBT2J4NG5FeWJhVk8yYlVjQmlqb1g5c3dEOTdUT1dOeFpoN1hJMGg2U1hWZW5XMjBDTy1BQSIsInBya19jaGVjayI6ImR4UEpQdlFCY1p0NG9SZ2sxRjdmN3g2M3ZXRjEwa255cTdNMFJqX1cwT2siLCJtYWMiOiJtbm1BbFgwSnVCUVVjRkI2RHViLXgyd3dWMXJNOXdBRXBiVFdCekt2emxZIn19\"}",
+      "mac_input": "484c317c636f6e6669726d7c484c317c6f666665727cdac073e0123b8ea59dd9b3bda9cf60376fb5db3aa4ba3f01f2b01e449b404d37e54a60ab06bab1389fdf41710ac7f47efc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025de9edb7d7b7dc1b4d35b61c2ece435373f8343c85b78674dadfc7e146f882b4f00176950686f6e652063e1bba761204d696e6820262048c3a021fe31dfa1548261a26bf854046fd2273d1a635d4e8289922d1948d54c2afe331eeb6cbd8fdcb4a87e6cf42218ebd579d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a8520f0098930a754748b7ddcb43ef75a0dbf3a0d26381af4eba4a98eaa9b4e6aec55254a30f86e05761c0e0c496e77ece6238a4e403c6a69653b6dc22e846091001147616c617879206375cc8961204861cc8039613862376336642d356534662d346133622d396332642d316530663261336234633564000001922248188a4ac7f8c725be121f8f94706f57bd3b5e498e6cfa69dfad8c10039bc789c4c9b6953b66d47018a3a17f6cc03f7b4ce58dc5987b5c8d21e925d57a75b6d023be00"
+    },
+    {
+      "name": "QR cặp 1 / confirm: prk_check sửa 1 bit",
+      "vector": "QR cặp 1",
+      "message": "confirm",
+      "check": "prk_check_c",
+      "checked_by": "android",
+      "reason": "mac_mismatch",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"created_at\":1727150003210,\"sig\":\"GN0aEkQjFAZa6BESKWDkY9E1bs5_Jb5-3M3BaAPyPmUt3KwKSrUpcBXi2C7J5-xVWvxHDE3L_ezqWxzgK3p7DA\",\"prk_check\":\"60H5SBwMXCyFwHGGwTm0Fjhn4296ViUhcH0xKd_fsTk\",\"mac\":\"LEuOrcU4fiyXnojEzCQflxEMp_ujEGy98SXhLxCbKl0\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-940a-7857-bfb3-579a2afb1e2e\",\"ts\":1727150003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiIzZjJiMWM0ZC01ZTZmLTRhN2ItOGM5ZC0wZTFmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUwMDAzMjEwLCJzaWciOiJHTjBhRWtRakZBWmE2QkVTS1dEa1k5RTFiczVfSmI1LTNNM0JhQVB5UG1VdDNLd0tTclVwY0JYaTJDN0o1LXhWV3Z4SERFM0xfZXpxV3h6Z0szcDdEQSIsInBya19jaGVjayI6IjYwSDVTQndNWEN5RndIR0d3VG0wRmpobjQyOTZWaVVoY0gweEtkX2ZzVGsiLCJtYWMiOiJMRXVPcmNVNGZpeVhub2pFekNRZmx4RU1wX3VqRUd5OThTWGhMeENiS2wwIn19\"}"
+    },
+    {
+      "name": "QR cặp 2 / confirm: prk_check dùng nhãn của Android \"HL1|prk-check-s|\"",
+      "vector": "QR cặp 2",
+      "message": "confirm",
+      "check": "prk_check_c",
+      "checked_by": "android",
+      "reason": "wrong_label",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d\",\"created_at\":1727152003210,\"sig\":\"Ssf4xyW-Eh-PlHBvV707XkmObPpp362MEAObx4nEybaVO2bUcBijoX9swD97TOWNxZh7XI0h6SXVenW20CO-AA\",\"prk_check\":\"dkQoP6o-fNt7oLd880qOH0dxp-Q0HxXZH26ZV7zmb7w\",\"mac\":\"Se-40jSRD8DHQVSTZx8pUrA2f6U0fXNGrnNNO4ld9QQ\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922248-188a-782c-8afd-63622917c02a\",\"ts\":1727152003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiI5YThiN2M2ZC01ZTRmLTRhM2ItOWMyZC0xZTBmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUyMDAzMjEwLCJzaWciOiJTc2Y0eHlXLUVoLVBsSEJ2VjcwN1hrbU9iUHBwMzYyTUVBT2J4NG5FeWJhVk8yYlVjQmlqb1g5c3dEOTdUT1dOeFpoN1hJMGg2U1hWZW5XMjBDTy1BQSIsInBya19jaGVjayI6ImRrUW9QNm8tZk50N29MZDg4MHFPSDBkeHAtUTBIeFhaSDI2WlY3em1iN3ciLCJtYWMiOiJTZS00MGpTUkQ4REhRVlNUWng4cFVyQTJmNlUwZlhOR3JuTk5PNGxkOVFRIn19\"}",
+      "prk_check_input": "484c317c70726b2d636865636b2d737c9a8b7c6d5e4f4a3b9c2d1e0f2a3b4c5d"
+    },
+    {
+      "name": "QR cặp 2 / confirm: PRK tính với salt = SHA-256(device_id lớn ‖ nhỏ)",
+      "vector": "QR cặp 2",
+      "message": "confirm",
+      "check": "prk_check_c",
+      "checked_by": "android",
+      "reason": "wrong_byte_order",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d\",\"created_at\":1727152003210,\"sig\":\"Ssf4xyW-Eh-PlHBvV707XkmObPpp362MEAObx4nEybaVO2bUcBijoX9swD97TOWNxZh7XI0h6SXVenW20CO-AA\",\"prk_check\":\"FWcblM4-5b1U8RbPOqaehcNt-F3swNm5MXTKGLDJd5w\",\"mac\":\"Se-40jSRD8DHQVSTZx8pUrA2f6U0fXNGrnNNO4ld9QQ\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922248-188a-782c-8afd-63622917c02a\",\"ts\":1727152003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiI5YThiN2M2ZC01ZTRmLTRhM2ItOWMyZC0xZTBmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUyMDAzMjEwLCJzaWciOiJTc2Y0eHlXLUVoLVBsSEJ2VjcwN1hrbU9iUHBwMzYyTUVBT2J4NG5FeWJhVk8yYlVjQmlqb1g5c3dEOTdUT1dOeFpoN1hJMGg2U1hWZW5XMjBDTy1BQSIsInBya19jaGVjayI6IkZXY2JsTTQtNWIxVThSYlBPcWFlaGNOdC1GM3N3Tm01TVhUS0dMREpkNXciLCJtYWMiOiJTZS00MGpTUkQ4REhRVlNUWng4cFVyQTJmNlUwZlhOR3JuTk5PNGxkOVFRIn19\"}",
+      "prk_salt_input_used": "dac073e0123b8ea59dd9b3bda9cf603721fe31dfa1548261a26bf854046fd227",
+      "prk_used": "74abbd2a34b830fd9565cb50855d55a482964e59fe29e0bfb3d3a200bd45db08"
+    },
+    {
+      "name": "QR cặp 1 / confirm: sig sửa 1 bit (mac tính lại cho khớp)",
+      "vector": "QR cặp 1",
+      "message": "confirm",
+      "check": "sig_c",
+      "checked_by": "android",
+      "reason": "signature_mismatch",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"created_at\":1727150003210,\"sig\":\"Gd0aEkQjFAZa6BESKWDkY9E1bs5_Jb5-3M3BaAPyPmUt3KwKSrUpcBXi2C7J5-xVWvxHDE3L_ezqWxzgK3p7DA\",\"prk_check\":\"a0H5SBwMXCyFwHGGwTm0Fjhn4296ViUhcH0xKd_fsTk\",\"mac\":\"Gkf-GA9_bDhVFEakSfkEHsCTugwziecLPs20rPNGrYk\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-940a-7857-bfb3-579a2afb1e2e\",\"ts\":1727150003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiIzZjJiMWM0ZC01ZTZmLTRhN2ItOGM5ZC0wZTFmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUwMDAzMjEwLCJzaWciOiJHZDBhRWtRakZBWmE2QkVTS1dEa1k5RTFiczVfSmI1LTNNM0JhQVB5UG1VdDNLd0tTclVwY0JYaTJDN0o1LXhWV3Z4SERFM0xfZXpxV3h6Z0szcDdEQSIsInBya19jaGVjayI6ImEwSDVTQndNWEN5RndIR0d3VG0wRmpobjQyOTZWaVVoY0gweEtkX2ZzVGsiLCJtYWMiOiJHa2YtR0E5X2JEaFZGRWFrU2ZrRUhzQ1R1Z3d6aWVjTFBzMjByUE5HcllrIn19\"}"
+    },
+    {
+      "name": "QR cặp 1 / confirm: sig ký attestation có created_at little-endian (mac tính lại cho khớp)",
+      "vector": "QR cặp 1",
+      "message": "confirm",
+      "check": "sig_c",
+      "checked_by": "android",
+      "reason": "wrong_byte_order",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"created_at\":1727150003210,\"sig\":\"b8_4obm7980vYsfF51z2Z3Tqv17OCz_VZnICI6c_oyDA_97hijCk1pPob-WUMGJtmicRUfLCxZVQOZHQ--1TDQ\",\"prk_check\":\"a0H5SBwMXCyFwHGGwTm0Fjhn4296ViUhcH0xKd_fsTk\",\"mac\":\"rZha5Toh1ej0qtXzSm_GfK_ivtMgVceRyjMWMypgSxo\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-940a-7857-bfb3-579a2afb1e2e\",\"ts\":1727150003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiIzZjJiMWM0ZC01ZTZmLTRhN2ItOGM5ZC0wZTFmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUwMDAzMjEwLCJzaWciOiJiOF80b2JtNzk4MHZZc2ZGNTF6MlozVHF2MTdPQ3pfVlpuSUNJNmNfb3lEQV85N2hpakNrMXBQb2ItV1VNR0p0bWljUlVmTEN4WlZRT1pIUS0tMVREUSIsInBya19jaGVjayI6ImEwSDVTQndNWEN5RndIR0d3VG0wRmpobjQyOTZWaVVoY0gweEtkX2ZzVGsiLCJtYWMiOiJyWmhhNVRvaDFlajBxdFh6U21fR2ZLX2l2dE1nVmNlUnlqTVdNeXBnU3hvIn19\"}",
+      "signed_message": "484c50414952313f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d39f713d0a644853f84529421b9f51b9b21fe31dfa1548261a26bf854046fd2273d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660cd75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a0a94292292010000"
+    },
+    {
+      "name": "QR cặp 2 / confirm: sig ký attestation đặt device_id và khóa của client trước Android (mac tính lại cho khớp)",
+      "vector": "QR cặp 2",
+      "message": "confirm",
+      "check": "sig_c",
+      "checked_by": "android",
+      "reason": "wrong_field_order",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d\",\"created_at\":1727152003210,\"sig\":\"vr678ZA11b-kRm1RyPUqsJQ4XcemCf3-BPH8mq95-E-dqKsJMd3dv1AUT_PYykxowdayRrtJ-HT1Fn3RA_YHAQ\",\"prk_check\":\"dxPJPvQBcZt4oRgk1F7f7x63vWF10knyq7M0Rj_W0Ok\",\"mac\":\"XusJALlblIePOibvI4d1C8PHIqrkqes3JmXr9A9rYU0\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922248-188a-782c-8afd-63622917c02a\",\"ts\":1727152003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiI5YThiN2M2ZC01ZTRmLTRhM2ItOWMyZC0xZTBmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUyMDAzMjEwLCJzaWciOiJ2cjY3OFpBMTFiLWtSbTFSeVBVcXNKUTRYY2VtQ2YzLUJQSDhtcTk1LUUtZHFLc0pNZDNkdjFBVVRfUFl5a3hvd2RheVJydEotSFQxRm4zUkFfWUhBUSIsInBya19jaGVjayI6ImR4UEpQdlFCY1p0NG9SZ2sxRjdmN3g2M3ZXRjEwa255cTdNMFJqX1cwT2siLCJtYWMiOiJYdXNKQUxsYmxJZVBPaWJ2STRkMUM4UEhJcXJrcWVzM0ptWHI5QTlyWVUwIn19\"}",
+      "signed_message": "484c50414952319a8b7c6d5e4f4a3b9c2d1e0f2a3b4c5ddac073e0123b8ea59dd9b3bda9cf603721fe31dfa1548261a26bf854046fd227fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a000001922248188a"
+    },
+    {
+      "name": "QR cặp 2 / confirm: sig có S + L, không chính tắc (mac tính lại cho khớp)",
+      "vector": "QR cặp 2",
+      "message": "confirm",
+      "check": "sig_c",
+      "checked_by": "android",
+      "reason": "signature_not_canonical",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"confirm\",\"data\":{\"pair_id\":\"9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d\",\"created_at\":1727152003210,\"sig\":\"Ssf4xyW-Eh-PlHBvV707XkmObPpp362MEAObx4nEybaCD1wxi3u1-VUJuOJZRsSixZh7XI0h6SXVenW20CO-EA\",\"prk_check\":\"dxPJPvQBcZt4oRgk1F7f7x63vWF10knyq7M0Rj_W0Ok\",\"mac\":\"Xz4oxzJ3u5mwU3272Lt4DCyw0G0olyZpMuDNxJNoDoo\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922248-188a-782c-8afd-63622917c02a\",\"ts\":1727152003210,\"payload\":\"eyJvcCI6ImNvbmZpcm0iLCJkYXRhIjp7InBhaXJfaWQiOiI5YThiN2M2ZC01ZTRmLTRhM2ItOWMyZC0xZTBmMmEzYjRjNWQiLCJjcmVhdGVkX2F0IjoxNzI3MTUyMDAzMjEwLCJzaWciOiJTc2Y0eHlXLUVoLVBsSEJ2VjcwN1hrbU9iUHBwMzYyTUVBT2J4NG5FeWJhQ0Qxd3hpM3UxLVZVSnVPSlpSc1NpeFpoN1hJMGg2U1hWZW5XMjBDTy1FQSIsInBya19jaGVjayI6ImR4UEpQdlFCY1p0NG9SZ2sxRjdmN3g2M3ZXRjEwa255cTdNMFJqX1cwT2siLCJtYWMiOiJYejRveHpKM3U1bXdVMzI3Mkx0NERDeXcwRzBvbHlacE11RE54Sk5vRG9vIn19\"}"
+    },
+    {
+      "name": "QR cặp 1 / done: mac sửa 1 bit",
+      "vector": "QR cặp 1",
+      "message": "done",
+      "check": "done_mac",
+      "checked_by": "client",
+      "reason": "mac_mismatch",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"done\",\"data\":{\"sig\":\"8De2h9-XkTWZwtK4pszBJtYD11njVew2ojEx7mtfopABwZwOHedTJ9roHunh8C-Ktgw-S2raMdBqy1WFBKvPCA\",\"prk_check\":\"n1LQ4gGXjx5s_Xj6L-xeS1g4gCRNfdziE8BJJMmK154\",\"mac\":\"CL2WIeWk5O5-g9tRIq7CrBTiEGar0WofpwtXya5kDfk\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-9437-77db-8005-f998cfa095f5\",\"ts\":1727150003255,\"payload\":\"eyJvcCI6ImRvbmUiLCJkYXRhIjp7InNpZyI6IjhEZTJoOS1Ya1RXWnd0SzRwc3pCSnRZRDExbmpWZXcyb2pFeDdtdGZvcEFCd1p3T0hlZFRKOXJvSHVuaDhDLUt0Z3ctUzJyYU1kQnF5MVdGQkt2UENBIiwicHJrX2NoZWNrIjoibjFMUTRnR1hqeDVzX1hqNkwteGVTMWc0Z0NSTmZkemlFOEJKSk1tSzE1NCIsIm1hYyI6IkNMMldJZVdrNU81LWc5dFJJcTdDckJUaUVHYXIwV29mcHd0WHlhNWtEZmsifX0=\"}"
+    },
+    {
+      "name": "QR cặp 1 / done: nhãn \"HL1 | done | \" có dấu cách",
+      "vector": "QR cặp 1",
+      "message": "done",
+      "check": "done_mac",
+      "checked_by": "client",
+      "reason": "wrong_label",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"done\",\"data\":{\"sig\":\"8De2h9-XkTWZwtK4pszBJtYD11njVew2ojEx7mtfopABwZwOHedTJ9roHunh8C-Ktgw-S2raMdBqy1WFBKvPCA\",\"prk_check\":\"n1LQ4gGXjx5s_Xj6L-xeS1g4gCRNfdziE8BJJMmK154\",\"mac\":\"ZFlkltFLZqsKgTevZ9osHSOsNJCi81Y8babe7pJSrdw\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922229-9437-77db-8005-f998cfa095f5\",\"ts\":1727150003255,\"payload\":\"eyJvcCI6ImRvbmUiLCJkYXRhIjp7InNpZyI6IjhEZTJoOS1Ya1RXWnd0SzRwc3pCSnRZRDExbmpWZXcyb2pFeDdtdGZvcEFCd1p3T0hlZFRKOXJvSHVuaDhDLUt0Z3ctUzJyYU1kQnF5MVdGQkt2UENBIiwicHJrX2NoZWNrIjoibjFMUTRnR1hqeDVzX1hqNkwteGVTMWc0Z0NSTmZkemlFOEJKSk1tSzE1NCIsIm1hYyI6IlpGbGtsdEZMWnFzS2dUZXZaOW9zSFNPc05KQ2k4MVk4YmFiZTdwSlNyZHcifX0=\"}",
+      "mac_input": "484c31207c20646f6e65207c203f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5df037b687df97913599c2d2b8a6ccc126d603d759e355ec36a23131ee6b5fa29001c19c0e1de75327dae81ee9e1f02f8ab60c3e4b6ada31d06acb558504abcf08"
+    },
+    {
+      "name": "QR cặp 2 / done: prk_check dùng nhãn của client \"HL1|prk-check-c|\"",
+      "vector": "QR cặp 2",
+      "message": "done",
+      "check": "prk_check_s",
+      "checked_by": "client",
+      "reason": "wrong_label",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"done\",\"data\":{\"sig\":\"ccuCDw93xYd2YVTZF6RTa-WAMFcAqa23YOy350uCLiaZhG2xwDFJcC9R_iMhOQ2ZMT4Qo9TgTA1tYHe0w-1WBw\",\"prk_check\":\"dxPJPvQBcZt4oRgk1F7f7x63vWF10knyq7M0Rj_W0Ok\",\"mac\":\"5I-IDfHjXQjbmQ7oTIjBLnMvk2rkH2kzQzmw2jFZC-g\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922248-18b7-7b86-abed-89b84298b578\",\"ts\":1727152003255,\"payload\":\"eyJvcCI6ImRvbmUiLCJkYXRhIjp7InNpZyI6ImNjdUNEdzkzeFlkMllWVFpGNlJUYS1XQU1GY0FxYTIzWU95MzUwdUNMaWFaaEcyeHdERkpjQzlSX2lNaE9RMlpNVDRRbzlUZ1RBMXRZSGUwdy0xV0J3IiwicHJrX2NoZWNrIjoiZHhQSlB2UUJjWnQ0b1JnazFGN2Y3eDYzdldGMTBrbnlxN00wUmpfVzBPayIsIm1hYyI6IjVJLUlEZkhqWFFqYm1RN29USWpCTG5NdmsycmtIMmt6UXptdzJqRlpDLWcifX0=\"}",
+      "prk_check_input": "484c317c70726b2d636865636b2d637c9a8b7c6d5e4f4a3b9c2d1e0f2a3b4c5d"
+    },
+    {
+      "name": "QR cặp 2 / done: sig sửa 1 bit (mac tính lại cho khớp)",
+      "vector": "QR cặp 2",
+      "message": "done",
+      "check": "sig_s",
+      "checked_by": "client",
+      "reason": "signature_mismatch",
+      "expected_error": "AUTH_FAILED",
+      "plaintext": "{\"op\":\"done\",\"data\":{\"sig\":\"cMuCDw93xYd2YVTZF6RTa-WAMFcAqa23YOy350uCLiaZhG2xwDFJcC9R_iMhOQ2ZMT4Qo9TgTA1tYHe0w-1WBw\",\"prk_check\":\"dkQoP6o-fNt7oLd880qOH0dxp-Q0HxXZH26ZV7zmb7w\",\"mac\":\"IxIAMqdde9m4LQ3an8DNTdgxhDzdmaiomFB6Sil-9vA\"}}",
+      "envelope": "{\"v\":1,\"type\":\"pair\",\"id\":\"01922248-18b7-7b86-abed-89b84298b578\",\"ts\":1727152003255,\"payload\":\"eyJvcCI6ImRvbmUiLCJkYXRhIjp7InNpZyI6ImNNdUNEdzkzeFlkMllWVFpGNlJUYS1XQU1GY0FxYTIzWU95MzUwdUNMaWFaaEcyeHdERkpjQzlSX2lNaE9RMlpNVDRRbzlUZ1RBMXRZSGUwdy0xV0J3IiwicHJrX2NoZWNrIjoiZGtRb1A2by1mTnQ3b0xkODgwcU9IMGR4cC1RMEh4WFpIMjZaVjd6bWI3dyIsIm1hYyI6Ikl4SUFNcWRkZTltNExRM2FuOEROVGRneGhEemRtYWlvbUZCNlNpbC05dkEifX0=\"}"
+    },
+    {
+      "name": "QR cặp 1 / pr: SHA-256 trên chuỗi b64u của pk thay vì 32 byte đã giải",
+      "vector": "QR cặp 1",
+      "message": null,
+      "check": "pr",
+      "checked_by": "both",
+      "reason": "wrong_encoding",
+      "expected_error": null,
+      "pr": "81626265",
+      "pr_input": "6853447743596b777031523069333363744437335767325f4f67306d4f427230363653706a717162546d6f"
+    }
+  ]
+}

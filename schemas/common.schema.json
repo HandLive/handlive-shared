@@ -54,6 +54,10 @@
       "description": "b64u của đúng 32 byte: 43 ký tự, ký tự cuối chỉ mang 2 bit dữ liệu (dạng chuẩn tắc).",
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$"
+    },
+    "ws-close-code": {
+      "description": "Mã đóng WebSocket (0.8.3): 1000 đóng bình thường, 4400 BAD_REQUEST, 4401 AUTH_FAILED, 4403 PAIR_REVOKED, 4408 bắt tay quá hạn, 4409 bị thay bởi kết nối mới hơn, 4410 REKEY_FAILED, 4411 IDLE_TIMEOUT, 4426 UNSUPPORTED_VERSION, 4429 RATE_LIMITED, 4500 INTERNAL.",
+      "enum": [1000, 4400, 4401, 4403, 4408, 4409, 4410, 4411, 4426, 4429, 4500]
     }
   }
 }

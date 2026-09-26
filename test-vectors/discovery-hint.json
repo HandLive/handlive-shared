@@ -1,0 +1,412 @@
+{
+  "description": "Gợi ý mDNS (TXT h) theo giờ. K_disc = HKDF-SHA256(PRK, salt rỗng, info \"handlive/v1/discovery\", L 32); giờ = floor(now_ms / 3 600 000) (làm tròn xuống, kể cả số âm); hint = 8 chữ số hex thường đầu của HMAC-SHA256(K_disc, \"HLDISC1\" ‖ giờ int64 BE). Điện thoại quảng bá gợi ý giờ hiện tại của mỗi cặp (≤ 8, nối bằng dấu phẩy, không dấu cách); client chấp nhận gợi ý của giờ trước, giờ hiện tại VÀ giờ sau theo đồng hồ của nó (accepted = [giờ trước, giờ này, giờ sau]), nên chịu lệch đồng hồ tới một giờ theo cả hai chiều. kind \"key\": K_disc, gợi ý từng giờ, và theo từng now_ms; kind \"match\": TXT h phải khớp (matched_as = previous, current hoặc next). Vector âm: TXT h không được coi là khớp (chỉ số giờ của điện thoại cách hai giờ, hoặc gợi ý tính sai).",
+  "source": "docs/detailed-design/00-common-specs.md 0.4.1; docs/detailed-design/03-connectivity.md CONN-01 bước 3, API 1–2; PRK của pair-prk.json",
+  "vectors": [
+    {
+      "name": "cặp 1",
+      "kind": "key",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "prk_source": "pair-prk.json",
+      "prk": "d9e9827d49f7db11a88ac107ed6fb22b761c723c35449fc798694867fe55c209",
+      "info": "handlive/v1/discovery",
+      "length": 32,
+      "k_disc": "8260d3f85773e4ce1c6047fa51bdc92bede9784df5e6311bb3068a5291ed448e",
+      "hours": [
+        {
+          "hour": -1,
+          "message": "484c4449534331ffffffffffffffff",
+          "mac": "ea914234b0feb61ea4d01fdc73efb185313465fd86d833addf6a2e0659e419d9",
+          "hint": "ea914234"
+        },
+        {
+          "hour": 0,
+          "message": "484c44495343310000000000000000",
+          "mac": "9b813dd81f4c32e6ef6298cf5707364e6b94f82ab55aed5008892d24cd8e9664",
+          "hint": "9b813dd8"
+        },
+        {
+          "hour": 1,
+          "message": "484c44495343310000000000000001",
+          "mac": "1786f385d0f417d675dfef61c91119e489532fbc5e79e0fe001e0763a5b91aa4",
+          "hint": "1786f385"
+        },
+        {
+          "hour": 2,
+          "message": "484c44495343310000000000000002",
+          "mac": "2116065b43489311ea80a755a39be097309fa21eb30a5eaf7c79cd020a357733",
+          "hint": "2116065b"
+        },
+        {
+          "hour": 479762,
+          "message": "484c44495343310000000000075212",
+          "mac": "99111c435962e042f2afac35c07c2ec1b8ea96b44c9d72db6f5e198d6d172a78",
+          "hint": "99111c43"
+        },
+        {
+          "hour": 479763,
+          "message": "484c44495343310000000000075213",
+          "mac": "c3782785dbb0cb8c7d05a072b3a89b7603199479cb420d71b7e5304191d29157",
+          "hint": "c3782785"
+        },
+        {
+          "hour": 479764,
+          "message": "484c44495343310000000000075214",
+          "mac": "307134108f07f568317040915d27d87924e1b1ed40d673b6ec9db4276ebcdaef",
+          "hint": "30713410"
+        },
+        {
+          "hour": 479765,
+          "message": "484c44495343310000000000075215",
+          "mac": "e0c3c2125837676603f830d2b0f10d6cba07fd3da3c94af60788a1426a61104b",
+          "hint": "e0c3c212"
+        }
+      ],
+      "clock": [
+        {
+          "now_ms": 0,
+          "hour": 0,
+          "advertised": "9b813dd8",
+          "accepted": [
+            "ea914234",
+            "9b813dd8",
+            "1786f385"
+          ]
+        },
+        {
+          "now_ms": 3599999,
+          "hour": 0,
+          "advertised": "9b813dd8",
+          "accepted": [
+            "ea914234",
+            "9b813dd8",
+            "1786f385"
+          ]
+        },
+        {
+          "now_ms": 3600000,
+          "hour": 1,
+          "advertised": "1786f385",
+          "accepted": [
+            "9b813dd8",
+            "1786f385",
+            "2116065b"
+          ]
+        },
+        {
+          "now_ms": 1727150000123,
+          "hour": 479763,
+          "advertised": "c3782785",
+          "accepted": [
+            "99111c43",
+            "c3782785",
+            "30713410"
+          ]
+        },
+        {
+          "now_ms": 1727150399999,
+          "hour": 479763,
+          "advertised": "c3782785",
+          "accepted": [
+            "99111c43",
+            "c3782785",
+            "30713410"
+          ]
+        },
+        {
+          "now_ms": 1727150400000,
+          "hour": 479764,
+          "advertised": "30713410",
+          "accepted": [
+            "c3782785",
+            "30713410",
+            "e0c3c212"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cặp 2",
+      "kind": "key",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "prk_source": "pair-prk.json",
+      "prk": "8d3109350469af80c3db25ff2c1867ab56112623020d829301236ed7251411cc",
+      "info": "handlive/v1/discovery",
+      "length": 32,
+      "k_disc": "1e2fb5e7a71ef9e8afc8a44365204f6aea3a14b5fdbbdff6b225661b0051ce6a",
+      "hours": [
+        {
+          "hour": -1,
+          "message": "484c4449534331ffffffffffffffff",
+          "mac": "5dd94832f5eb14e6a14995240d414960330fa9e7e8428c4e0282bacd2dc4634d",
+          "hint": "5dd94832"
+        },
+        {
+          "hour": 0,
+          "message": "484c44495343310000000000000000",
+          "mac": "56e8a69c6fc4145dbbcce66ff6bf611645e4337ae1238e62dbcebe26553bc2d9",
+          "hint": "56e8a69c"
+        },
+        {
+          "hour": 1,
+          "message": "484c44495343310000000000000001",
+          "mac": "9260b37d3caa88c24367f3e91274282e64ae03d99ec975354a539342f9cdec50",
+          "hint": "9260b37d"
+        },
+        {
+          "hour": 2,
+          "message": "484c44495343310000000000000002",
+          "mac": "1da3535d415ffe3e80422ca22e553526362c64bf184ac86985cd92c2fff804f9",
+          "hint": "1da3535d"
+        },
+        {
+          "hour": 479762,
+          "message": "484c44495343310000000000075212",
+          "mac": "cc68a4a93c5e2894b8f72442b6184daeecf24e0e977f0284b6706b71edbabf03",
+          "hint": "cc68a4a9"
+        },
+        {
+          "hour": 479763,
+          "message": "484c44495343310000000000075213",
+          "mac": "16075d636ea18b3cdb5fc5de26c8c0482501005f3adbea0abfb2f52da29cd0b4",
+          "hint": "16075d63"
+        },
+        {
+          "hour": 479764,
+          "message": "484c44495343310000000000075214",
+          "mac": "af957b249e9e5fc7c3b40ce30cec91f394eebc8f21f22b6469698b15e3cd9723",
+          "hint": "af957b24"
+        },
+        {
+          "hour": 479765,
+          "message": "484c44495343310000000000075215",
+          "mac": "4f6fd3a1530d3945634fce6029cbafb666c5b400b3d8ff64818a20b174e2d53c",
+          "hint": "4f6fd3a1"
+        }
+      ],
+      "clock": [
+        {
+          "now_ms": 0,
+          "hour": 0,
+          "advertised": "56e8a69c",
+          "accepted": [
+            "5dd94832",
+            "56e8a69c",
+            "9260b37d"
+          ]
+        },
+        {
+          "now_ms": 3599999,
+          "hour": 0,
+          "advertised": "56e8a69c",
+          "accepted": [
+            "5dd94832",
+            "56e8a69c",
+            "9260b37d"
+          ]
+        },
+        {
+          "now_ms": 3600000,
+          "hour": 1,
+          "advertised": "9260b37d",
+          "accepted": [
+            "56e8a69c",
+            "9260b37d",
+            "1da3535d"
+          ]
+        },
+        {
+          "now_ms": 1727150000123,
+          "hour": 479763,
+          "advertised": "16075d63",
+          "accepted": [
+            "cc68a4a9",
+            "16075d63",
+            "af957b24"
+          ]
+        },
+        {
+          "now_ms": 1727150399999,
+          "hour": 479763,
+          "advertised": "16075d63",
+          "accepted": [
+            "cc68a4a9",
+            "16075d63",
+            "af957b24"
+          ]
+        },
+        {
+          "now_ms": 1727150400000,
+          "hour": 479764,
+          "advertised": "af957b24",
+          "accepted": [
+            "16075d63",
+            "af957b24",
+            "4f6fd3a1"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "khớp giờ hiện tại, TXT h có gợi ý của hai cặp",
+      "kind": "match",
+      "phone_pairs": [
+        "cặp 1",
+        "cặp 2"
+      ],
+      "phone_now_ms": 1727150000123,
+      "phone_hour": 479763,
+      "txt_h": "c3782785,16075d63",
+      "client_pair": "cặp 1",
+      "client_now_ms": 1727150000123,
+      "client_hour": 479763,
+      "accepted": [
+        "99111c43",
+        "c3782785",
+        "30713410"
+      ],
+      "matched_hint": "c3782785",
+      "matched_as": "current"
+    },
+    {
+      "name": "đồng hồ điện thoại chậm hơn 1 ms qua mốc giờ: khớp gợi ý giờ trước",
+      "kind": "match",
+      "phone_pairs": [
+        "cặp 2",
+        "cặp 1"
+      ],
+      "phone_now_ms": 1727150399999,
+      "phone_hour": 479763,
+      "txt_h": "16075d63,c3782785",
+      "client_pair": "cặp 2",
+      "client_now_ms": 1727150400000,
+      "client_hour": 479764,
+      "accepted": [
+        "16075d63",
+        "af957b24",
+        "4f6fd3a1"
+      ],
+      "matched_hint": "16075d63",
+      "matched_as": "previous"
+    },
+    {
+      "name": "đồng hồ điện thoại nhanh hơn 1 ms qua mốc giờ: khớp gợi ý giờ sau",
+      "kind": "match",
+      "phone_pairs": [
+        "cặp 1",
+        "cặp 2"
+      ],
+      "phone_now_ms": 1727150400000,
+      "phone_hour": 479764,
+      "txt_h": "30713410,af957b24",
+      "client_pair": "cặp 1",
+      "client_now_ms": 1727150399999,
+      "client_hour": 479763,
+      "accepted": [
+        "99111c43",
+        "c3782785",
+        "30713410"
+      ],
+      "matched_hint": "30713410",
+      "matched_as": "next"
+    },
+    {
+      "name": "đồng hồ điện thoại chậm hơn đúng một giờ: khớp gợi ý giờ trước",
+      "kind": "match",
+      "phone_pairs": [
+        "cặp 1"
+      ],
+      "phone_now_ms": 1727150000123,
+      "phone_hour": 479763,
+      "txt_h": "c3782785",
+      "client_pair": "cặp 1",
+      "client_now_ms": 1727153600123,
+      "client_hour": 479764,
+      "accepted": [
+        "c3782785",
+        "30713410",
+        "e0c3c212"
+      ],
+      "matched_hint": "c3782785",
+      "matched_as": "previous"
+    },
+    {
+      "name": "đồng hồ điện thoại nhanh hơn đúng một giờ: khớp gợi ý giờ sau",
+      "kind": "match",
+      "phone_pairs": [
+        "cặp 2"
+      ],
+      "phone_now_ms": 1727153999999,
+      "phone_hour": 479764,
+      "txt_h": "af957b24",
+      "client_pair": "cặp 2",
+      "client_now_ms": 1727150399999,
+      "client_hour": 479763,
+      "accepted": [
+        "cc68a4a9",
+        "16075d63",
+        "af957b24"
+      ],
+      "matched_hint": "af957b24",
+      "matched_as": "next"
+    }
+  ],
+  "invalid_vectors": [
+    {
+      "name": "cặp 1 / đồng hồ điện thoại nhanh hơn một giờ và 1 ms, vượt hai mốc giờ",
+      "pair": "cặp 1",
+      "reason": "hint_outside_window",
+      "client_now_ms": 1727150399999,
+      "client_hour": 479763,
+      "txt_h": "e0c3c212",
+      "phone_now_ms": 1727154000000,
+      "phone_hour": 479765
+    },
+    {
+      "name": "cặp 1 / đồng hồ điện thoại chậm hơn đúng hai giờ",
+      "pair": "cặp 1",
+      "reason": "hint_outside_window",
+      "client_now_ms": 1727150400000,
+      "client_hour": 479764,
+      "txt_h": "99111c43",
+      "phone_now_ms": 1727143200000,
+      "phone_hour": 479762
+    },
+    {
+      "name": "cặp 1 / chỉ số giờ viết int64 little-endian",
+      "pair": "cặp 1",
+      "reason": "wrong_byte_order",
+      "client_now_ms": 1727150000123,
+      "client_hour": 479763,
+      "txt_h": "86b9061e",
+      "message": "484c44495343311352070000000000"
+    },
+    {
+      "name": "cặp 2 / chỉ số giờ viết int32 big-endian (4 byte)",
+      "pair": "cặp 2",
+      "reason": "wrong_encoding",
+      "client_now_ms": 1727150000123,
+      "client_hour": 479763,
+      "txt_h": "6e100292",
+      "message": "484c444953433100075213"
+    },
+    {
+      "name": "cặp 2 / nhãn \"HLDISC1|\" thêm dấu |",
+      "pair": "cặp 2",
+      "reason": "wrong_label",
+      "client_now_ms": 1727150000123,
+      "client_hour": 479763,
+      "txt_h": "63438422",
+      "message": "484c44495343317c0000000000075213"
+    },
+    {
+      "name": "cặp 1 / HMAC khóa bằng PRK thay vì K_disc",
+      "pair": "cặp 1",
+      "reason": "wrong_key",
+      "client_now_ms": 1727150000123,
+      "client_hour": 479763,
+      "txt_h": "8d9c9057",
+      "mac_key": "d9e9827d49f7db11a88ac107ed6fb22b761c723c35449fc798694867fe55c209",
+      "message": "484c44495343310000000000075213"
+    }
+  ]
+}
