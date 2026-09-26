@@ -2,7 +2,7 @@ English | [Tiếng Việt](README.vi.md)
 
 # handlive-shared
 
-This repository runs no app. It holds the contract that Android, Apple and the relay all check against: test vectors, JSON Schemas, design tokens and the UI string catalog. The other repositories read it through `../shared`.
+This repository runs no app. It holds the test vectors, JSON Schemas, design tokens and UI string catalog that Android, Apple and the relay share. The other repositories read it through `../shared`.
 
 Sources: `../docs/detailed-design/00-common-specs.md` and `../docs/design-system/` in the hub repository. The Python tools in `tools/` generate and check these files. See this repository's `CLAUDE.md`.
 

@@ -2,9 +2,9 @@
 
 # handlive-shared
 
-Kho này không chạy ứng dụng. Nó giữ test vector, JSON Schema, design token và catalog chuỗi giao diện để Android, Apple và relay đối chiếu cùng một hợp đồng. Các kho kia đọc qua `../shared`.
+Kho này không chạy ứng dụng. Kho lưu test vector, JSON Schema, design token và catalog chuỗi giao diện. Android, Apple và relay dùng chung các file này. Các kho kia đọc qua `../shared`.
 
-Nguồn: `../docs/detailed-design/00-common-specs.md` và `../docs/design-system/` của kho hub. Công cụ Python trong `tools/` sinh và kiểm các file này. Xem `CLAUDE.md` của kho này.
+Nguồn: `../docs/detailed-design/00-common-specs.md` và `../docs/design-system/` trên kho hub. Công cụ Python trong `tools/` sinh và kiểm các file này. Xem `CLAUDE.md` trong kho này.
 
 | Thư mục | Nội dung | Tài liệu |
 |---------|----------|----------|
