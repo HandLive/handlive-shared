@@ -9,7 +9,7 @@ Nguồn: `../docs/detailed-design/00-common-specs.md` và `../docs/design-system
 | Thư mục | Nội dung | Tài liệu |
 |---------|----------|----------|
 | `test-vectors/` | 18 file vector (RFC + tự sinh) và `envelope-roundtrip{,-apple}.json` liên nền tảng | `test-vectors/README.vi.md` |
-| `schemas/` | JSON Schema 2020-12: envelope, payload, ack, error, `session-*`, `capability-*` | `schemas/README.vi.md` |
+| `schemas/` | JSON Schema 2020-12: envelope, payload, ack, error, `session-*`, `capability-*`, `pair-*`, `ping-ping`, `clipboard-*`, `sms-*`; khung `relay-*` và thân `relay-rest` của relay; thân `push` | `schemas/README.vi.md` |
 | `design-tokens/` | `tokens.json` (giống byte với `../docs/design-system/tokens.json`), `type-extras.json` | `design-tokens/README.vi.md` |
 | `strings/` | `ui-strings.json`: mọi chuỗi hiển thị bằng tiếng Anh và tiếng Việt, kèm JSON Schema | `strings/README.vi.md` |
 | `tools/vectors/` | `generate_vectors.py` (`--check`), `verify_vectors.py` | `tools/vectors/README.vi.md` |
