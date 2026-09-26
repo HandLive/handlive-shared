@@ -552,15 +552,15 @@
       "vi": "Thiết bị đã bị xóa khỏi dịch vụ Internet",
       "comment": "Shown when the relay answers 410 DEVICE_REVOKED (CONN-03 E3); the internet connection stays off until the user turns it back on",
       "platforms": ["android", "macos", "ios"],
-      "specs": ["CONN-03"]
+      "specs": ["CONN-03", "SET-02"]
     },
     {
       "key": "error.relay_pin_mismatch",
       "en": "The server's certificate isn't trusted, so HandLive didn't connect over the internet.",
       "vi": "Chứng chỉ máy chủ không đáng tin cậy nên HandLive không kết nối qua Internet.",
-      "comment": "The relay certificate does not match the pinned keys; nothing was sent (CONN-03 E7, field 4)",
-      "platforms": ["macos", "ios"],
-      "specs": ["CONN-03"]
+      "comment": "The relay certificate does not match the pinned keys; nothing was sent (CONN-03 E7, field 4); Android shows it under Internet Connection (SET-02 field 21)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CONN-03", "SET-02"]
     },
     {
       "key": "error.relay_rate_limited",
@@ -808,9 +808,9 @@
     },
     {
       "key": "notification.permission_sms_read",
-      "en": "{device_name} needs permission to read SMS on this phone — tap to allow",
-      "vi": "{device_name} cần quyền đọc SMS trên điện thoại — chạm để cho phép",
-      "comment": "Android notification (channel permission) after answering PERMISSION_MISSING to a client; at most once per feature per 24 h; {device_name} is the client",
+      "en": "{device_name} needs SMS permission on this phone — tap to allow",
+      "vi": "{device_name} cần quyền SMS trên điện thoại — chạm để cho phép",
+      "comment": "Android notification (channel permission) after answering PERMISSION_MISSING to a client; covers any missing SMS permission (reading or sending); at most once per feature per 24 h; {device_name} is the client",
       "platforms": ["android"],
       "args": [{"name": "device_name", "type": "string"}],
       "specs": ["SET-01"]
