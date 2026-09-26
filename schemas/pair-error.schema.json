@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/pair-error.schema.json",
+  "title": "HandLive — pair/error (both ways)",
+  "description": "PAIR-01 API 6. Unencrypted payload; the sender closes the connection right after. attempts_left is present if and only if code = PIN_INVALID. AUTH_FAILED never tells which check failed.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "error" },
+    "data": {
+      "type": "object",
+      "required": ["code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "allOf": [
+            { "$ref": "error.schema.json#/$defs/code" },
+            { "enum": ["QR_INVALID", "PAIRING_CLOSED", "PIN_INVALID", "AUTH_FAILED", "INTERNAL"] }
+          ]
+        },
+        "message": { "type": "string" },
+        "attempts_left": {
+          "$ref": "common.schema.json#/$defs/int32",
+          "minimum": 0,
+          "maximum": 3
+        }
+      },
+      "if": {
+        "properties": { "code": { "const": "PIN_INVALID" } }
+      },
+      "then": {
+        "required": ["attempts_left"]
+      },
+      "else": {
+        "not": { "required": ["attempts_left"] }
+      }
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/ping-ping.schema.json",
+  "title": "HandLive — ping/ping (C→S through the relay, ack)",
+  "description": "CONN-02 API 2: end-to-end ping used only when the session goes through the relay; the ack echoes seq with Android's time: #/$defs/ack.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "ping" },
+    "data": {
+      "type": "object",
+      "required": ["seq"],
+      "additionalProperties": false,
+      "properties": {
+        "seq": {
+          "description": "Increasing per session.",
+          "$ref": "common.schema.json#/$defs/int64",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "ack": {
+      "allOf": [
+        { "$ref": "ack.schema.json#/$defs/success" },
+        {
+          "properties": {
+            "data": {
+              "type": "object",
+              "required": ["seq", "server_ts"],
+              "additionalProperties": false,
+              "properties": {
+                "seq": { "$ref": "common.schema.json#/$defs/int64", "minimum": 0 },
+                "server_ts": { "$ref": "common.schema.json#/$defs/timestamp" }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

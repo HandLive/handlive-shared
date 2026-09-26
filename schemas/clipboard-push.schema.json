@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/clipboard-push.schema.json",
+  "title": "HandLive — clipboard/push (both ways, ack)",
+  "description": "CLIP-01 API 5, shared by CLIP-01…04; transfer per CLIP-03 API 3. Exactly one of text and transfer. The success ack carries {clip_id, status, reason?}: #/$defs/ack.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "push" },
+    "data": {
+      "type": "object",
+      "required": ["clip_id", "kind", "mime", "sensitive", "origin_ts", "source", "origin_device_id"],
+      "additionalProperties": false,
+      "properties": {
+        "clip_id": {
+          "description": "UUIDv7 of the origin device; unchanged when Android forwards the clip or resends it.",
+          "$ref": "common.schema.json#/$defs/uuid-v7"
+        },
+        "kind": { "enum": ["text", "image"] },
+        "mime": { "enum": ["text/plain", "image/png", "image/jpeg"] },
+        "text": {
+          "description": "The whole text, inline; the plaintext stays within CLIP_INLINE_MAX.",
+          "type": "string"
+        },
+        "transfer": { "$ref": "#/$defs/transfer" },
+        "width": { "$ref": "common.schema.json#/$defs/int32", "minimum": 1 },
+        "height": { "$ref": "common.schema.json#/$defs/int32", "minimum": 1 },
+        "sensitive": {
+          "description": "true only when the user chose Send Anyway (QC3).",
+          "type": "boolean"
+        },
+        "origin_ts": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "source": { "enum": ["auto", "manual", "share", "mac", "ios"] },
+        "origin_device_id": { "$ref": "common.schema.json#/$defs/uuid-v8" }
+      },
+      "oneOf": [
+        { "required": ["text"], "not": { "required": ["transfer"] } },
+        { "required": ["transfer"], "not": { "required": ["text"] } }
+      ],
+      "if": {
+        "properties": { "kind": { "const": "image" } }
+      },
+      "then": {
+        "required": ["transfer", "width", "height"],
+        "properties": { "mime": { "enum": ["image/png", "image/jpeg"] } }
+      },
+      "else": {
+        "properties": { "mime": { "const": "text/plain" } },
+        "not": { "anyOf": [{ "required": ["width"] }, { "required": ["height"] }] }
+      }
+    }
+  },
+  "$defs": {
+    "transfer": {
+      "description": "Chunked transfer (CLIP-03 API 3): images and text above CLIP_INLINE_MAX.",
+      "type": "object",
+      "required": ["transfer_id", "size", "sha256", "chunk_size", "chunk_count"],
+      "additionalProperties": false,
+      "properties": {
+        "transfer_id": {
+          "description": "New for each transfer, resend and forwarding hop.",
+          "$ref": "common.schema.json#/$defs/uuid-v7"
+        },
+        "size": { "$ref": "common.schema.json#/$defs/int64", "minimum": 1 },
+        "sha256": { "$ref": "common.schema.json#/$defs/b64u-32" },
+        "chunk_size": {
+          "description": "CHUNK_SIZE = 65,536.",
+          "const": 65536
+        },
+        "chunk_count": {
+          "description": "ceil(size / chunk_size).",
+          "$ref": "common.schema.json#/$defs/int32",
+          "minimum": 1
+        }
+      }
+    },
+    "ack": {
+      "description": "Success ack of clipboard/push. Error acks use ack.schema.json#/$defs/failure with details {clip_id, status: \"rejected\", transfer_id?}.",
+      "allOf": [
+        { "$ref": "ack.schema.json#/$defs/success" },
+        { "properties": { "data": { "$ref": "#/$defs/ack-data" } } }
+      ]
+    },
+    "ack-data": {
+      "type": "object",
+      "required": ["clip_id", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "clip_id": { "$ref": "common.schema.json#/$defs/uuid-v7" },
+        "status": { "enum": ["applied", "ignored"] },
+        "reason": { "enum": ["conflict", "duplicate", "cancelled"] }
+      },
+      "if": {
+        "properties": { "status": { "const": "ignored" } }
+      },
+      "then": {
+        "required": ["reason"]
+      },
+      "else": {
+        "not": { "required": ["reason"] }
+      }
+    }
+  }
+}

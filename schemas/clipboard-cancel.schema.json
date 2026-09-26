@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/clipboard-cancel.schema.json",
+  "title": "HandLive — clipboard/cancel (both ways, no ack)",
+  "description": "CLIP-03 API 5: cancels a chunked transfer; the push of that transfer then gets the ack ignored/cancelled.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "cancel" },
+    "data": {
+      "type": "object",
+      "required": ["transfer_id", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "transfer_id": { "$ref": "common.schema.json#/$defs/uuid-v7" },
+        "reason": { "enum": ["superseded", "user", "timeout"] }
+      }
+    }
+  }
+}

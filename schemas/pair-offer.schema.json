@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/pair-offer.schema.json",
+  "title": "HandLive — pair/offer (S→C)",
+  "description": "PAIR-01 API 3. Unencrypted payload; mac = HMAC-SHA256(K_pa, T_offer) also protects tls_sha256, so a client pairing through the relay still pins the phone's certificate.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "offer" },
+    "data": {
+      "type": "object",
+      "required": ["device_id", "nonce", "name", "model", "os_version", "ik_sig_pub", "ik_dh_pub", "tls_sha256", "mac"],
+      "additionalProperties": false,
+      "properties": {
+        "device_id": {
+          "description": "The phone's device_id.",
+          "$ref": "common.schema.json#/$defs/uuid-v8"
+        },
+        "nonce": {
+          "description": "nonce_s.",
+          "$ref": "common.schema.json#/$defs/b64u-32"
+        },
+        "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "model": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "os_version": { "type": "string", "minLength": 1 },
+        "ik_sig_pub": { "$ref": "common.schema.json#/$defs/b64u-32" },
+        "ik_dh_pub": { "$ref": "common.schema.json#/$defs/b64u-32" },
+        "tls_sha256": {
+          "description": "SHA-256 of the DER certificate of A-SVC.",
+          "$ref": "common.schema.json#/$defs/b64u-32"
+        },
+        "mac": { "$ref": "common.schema.json#/$defs/b64u-32" }
+      }
+    }
+  }
+}
