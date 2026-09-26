@@ -278,9 +278,9 @@
       "key": "common.retry",
       "en": "Try Again",
       "vi": "Thử lại",
-      "comment": "Button of an error that the user can retry (service start, key creation)",
+      "comment": "Button of an error that the user can retry (service start, key creation, loading older messages, a failed SMS)",
       "platforms": ["android", "macos", "ios"],
-      "specs": ["SET-01", "SET-03"]
+      "specs": ["SET-01", "SET-03", "SMS-03", "SMS-04"]
     },
     {
       "key": "common.skip",
@@ -289,6 +289,14 @@
       "comment": "Skip button of a step that opens no system dialog (manufacturer autostart guide)",
       "platforms": ["android"],
       "specs": ["SET-01"]
+    },
+    {
+      "key": "common.view_instructions",
+      "en": "View Instructions",
+      "vi": "Xem hướng dẫn",
+      "comment": "Button next to a reason that needs a permission on the phone (SMS-01 E2); opens the instructions sheet",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01"]
     },
     {
       "key": "error.clip_image_no_space",
@@ -411,6 +419,70 @@
       "comment": "session/error AUTH_FAILED; status line on Mac/iPhone, no automatic retry for 5 minutes",
       "platforms": ["macos", "ios"],
       "specs": ["CONN-01"]
+    },
+    {
+      "key": "error.sms_generic_failure",
+      "en": "Couldn't send",
+      "vi": "Gửi không thành công",
+      "comment": "Reason of a failed SMS for SMS_GENERIC_FAILURE and any other code without its own text",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_invalid_address",
+      "en": "Invalid number",
+      "vi": "Số không hợp lệ",
+      "comment": "Reason of a failed SMS for SMS_INVALID_ADDRESS; also shown at the recipient field of New Message when the number is malformed",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_limit_exceeded",
+      "en": "Sending limit reached. Try again later.",
+      "vi": "Đã vượt giới hạn gửi, thử lại sau.",
+      "comment": "Reason of a failed SMS for SMS_LIMIT_EXCEEDED; shown in sms.status_failed_reason",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_no_service",
+      "en": "No service",
+      "vi": "Không có sóng",
+      "comment": "Reason of a failed SMS for SMS_NO_SERVICE; shown in sms.status_failed_reason",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_not_connected",
+      "en": "Couldn't connect to the phone",
+      "vi": "Không kết nối được điện thoại",
+      "comment": "Reason of a failed SMS with last_error NOT_CONNECTED: still waiting for the phone after 24 h (SMS-04 E1)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_radio_off",
+      "en": "The phone is in airplane mode",
+      "vi": "Điện thoại đang ở chế độ máy bay",
+      "comment": "Reason of a failed SMS for SMS_RADIO_OFF; shown in sms.status_failed_reason",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_sim_unavailable",
+      "en": "The SIM isn't active",
+      "vi": "SIM không hoạt động",
+      "comment": "Reason of a failed SMS for SMS_SIM_UNAVAILABLE; the SIM picker opens",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_thread_not_found",
+      "en": "This conversation is no longer on the phone",
+      "vi": "Hội thoại không còn trên điện thoại",
+      "comment": "Banner at the top of a conversation for SMS_THREAD_NOT_FOUND (SMS-03 E3); local messages stay, no more loading",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
     },
     {
       "key": "error.update_phone_app",
@@ -1540,6 +1612,285 @@
       "comment": "Title of the welcome screen (Onboarding, brand large title)",
       "platforms": ["android", "macos", "ios"],
       "specs": ["SET-01", "SET-03"]
+    },
+    {
+      "key": "sms.beginning_of_conversation",
+      "en": "Beginning of conversation",
+      "vi": "Đầu hội thoại",
+      "comment": "Line at the top of a conversation when the phone has no older messages (SMS-03 field 11)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.char_count",
+      "en": "{used}/{limit}",
+      "vi": "{used}/{limit}",
+      "comment": "Character counter under an empty compose field (“0/160”); {used} and {limit} are numbers formatted by the system",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "used", "type": "string"}, {"name": "limit", "type": "string"}],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.char_counter",
+      "en": "{used}/{limit} · {parts}",
+      "vi": "{used}/{limit} · {parts}",
+      "comment": "Character and part counter under the compose field (“120/160 · 1 message”); {used} and {limit} are formatted numbers, {parts} is sms.part_count",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "used", "type": "string"}, {"name": "limit", "type": "string"}, {"name": "parts", "type": "string"}],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.compose_placeholder",
+      "en": "SMS Message",
+      "vi": "Tin nhắn SMS",
+      "comment": "Placeholder of the compose field at the bottom of a conversation (MessageBubble); at most 1,600 characters",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.contacts_permission_hint",
+      "en": "Allow HandLive to read contacts on the phone to show names",
+      "vi": "Cho phép HandLive đọc danh bạ trên điện thoại để hiện tên",
+      "comment": "Hint in the Messages view when the phone reports READ_CONTACTS in permissions_missing (SMS-01 E3); numbers are shown instead of names",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.copy_number",
+      "en": "Copy Number",
+      "vi": "Sao chép số",
+      "comment": "Context menu item of a conversation in the Messages window sidebar (Mac)",
+      "platforms": ["macos"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.empty_title",
+      "en": "No Messages Yet",
+      "vi": "Chưa có tin nhắn",
+      "comment": "Empty state of the conversation list (SMS-03 E1), shown with the SMS-01 sync status",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.filter_all",
+      "en": "All",
+      "vi": "Tất cả",
+      "comment": "Segment of the All / Unread filter above the conversation list (iPhone, iPad)",
+      "platforms": ["ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.filter_unread",
+      "en": "Unread",
+      "vi": "Chưa đọc",
+      "comment": "Segment of the All / Unread filter above the conversation list (iPhone, iPad)",
+      "platforms": ["ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.group_reply_on_phone",
+      "en": "Reply to group conversations on the phone",
+      "vi": "Trả lời hội thoại nhóm trên điện thoại",
+      "comment": "Line shown instead of the compose field in a conversation with several recipients (SMS-04 E9)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.history_needs_connection",
+      "en": "Connect the phone to load older messages",
+      "vi": "Kết nối điện thoại để tải tin cũ hơn",
+      "comment": "Banner at the top of a conversation when older messages are needed and there is no session (SMS-03 E2); loading starts again by itself on reconnection",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.loading_older",
+      "en": "Loading older messages",
+      "vi": "Đang tải tin cũ hơn",
+      "comment": "Indicator at the top of a conversation while waiting for sms/history (SMS-03 field 10)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.mark_as_read",
+      "en": "Mark as Read",
+      "vi": "Đánh dấu đã đọc",
+      "comment": "HL_SMS_MARK_READ notification action; also the conversation context menu item (Mac) and swipe action (iPhone, iPad); marks read on this device only (SMS-05)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-02", "SMS-05"]
+    },
+    {
+      "key": "sms.new_message",
+      "en": "New Message",
+      "vi": "Tin nhắn mới",
+      "comment": "Toolbar button (⌘N) and title of the compose view for a new number (SMS-04 field 1)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.notification_hidden_body",
+      "en": "New SMS message",
+      "vi": "Tin nhắn SMS mới",
+      "comment": "Body of a new SMS notification when Show Content in Notifications (sms.preview) is off, and hiddenPreviewsBodyPlaceholder of the HL_SMS category; the APNs fallback uses push.sms_new",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-02"]
+    },
+    {
+      "key": "sms.part_count",
+      "en": {"one": "{count} message", "other": "{count} messages"},
+      "vi": {"other": "{count} tin"},
+      "comment": "Estimated number of SMS parts the text is split into (each part is billed as one SMS); used inside sms.char_counter",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "count", "type": "int"}],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.quick_reply_not_sent",
+      "en": "Not sent yet. Open HandLive to try again.",
+      "vi": "Chưa gửi được, mở HandLive để thử lại.",
+      "comment": "Body of the local notification when a quick reply from a notification got no ack within about 20 s (SMS-04 E8); no title",
+      "platforms": ["ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.reply",
+      "en": "Reply",
+      "vi": "Trả lời",
+      "comment": "Title of the HL_SMS_REPLY notification action (text input) of a new SMS notification; not offered for group conversations",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-02", "SMS-04"]
+    },
+    {
+      "key": "sms.resync",
+      "en": "Resync",
+      "vi": "Đồng bộ lại",
+      "comment": "Default button of the Resync All SMS alert (SMS-01 field 6); 1–2 words",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.resync_confirm_message",
+      "en": "Messages waiting to be sent are kept.",
+      "vi": "Tin đang chờ gửi được giữ lại.",
+      "comment": "Message of the alert confirming Resync All SMS, under sms.resync_confirm_title",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.resync_confirm_title",
+      "en": "Delete messages saved on {device_name} and download them again from the phone?",
+      "vi": "Xóa tin nhắn đã lưu trên {device_name} và tải lại từ điện thoại?",
+      "comment": "Title of the alert confirming Resync All SMS (SMS-01 field 6); {device_name} is this Mac, iPhone or iPad; message sms.resync_confirm_message, buttons common.cancel and sms.resync",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.send",
+      "en": "Send",
+      "vi": "Gửi",
+      "comment": "Send button of the quick-reply text field in the SMS notification, and accessibility label of the send button of the compose field (SMS-04 field 5)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-02", "SMS-04"]
+    },
+    {
+      "key": "sms.status_delivered",
+      "en": "Delivered",
+      "vi": "Đã nhận",
+      "comment": "Status under an outgoing message whose delivery report arrived for every part (state delivered)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03", "SMS-04"]
+    },
+    {
+      "key": "sms.status_failed",
+      "en": "Not sent",
+      "vi": "Gửi lỗi",
+      "comment": "Status of an outgoing message that failed (state failed), also the ThreadRow excerpt when the latest message failed; with a Try Again button",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03", "SMS-04"]
+    },
+    {
+      "key": "sms.status_failed_reason",
+      "en": "Not sent · {reason}",
+      "vi": "Gửi lỗi · {reason}",
+      "comment": "Status under a failed outgoing message (MessageBubble); {reason} is the error.sms_* text for last_error",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "reason", "type": "string"}],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.status_pending",
+      "en": "Waiting for phone",
+      "vi": "Đang chờ điện thoại",
+      "comment": "Status under an outgoing message queued until the phone is reachable (state pending)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03", "SMS-04"]
+    },
+    {
+      "key": "sms.status_sending",
+      "en": "Sending…",
+      "vi": "Đang gửi…",
+      "comment": "Status under an outgoing message the phone accepted and is sending (state sending)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03", "SMS-04"]
+    },
+    {
+      "key": "sms.status_sent",
+      "en": "Sent",
+      "vi": "Đã gửi",
+      "comment": "Status under an outgoing message every part of which left the phone (state sent)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03", "SMS-04"]
+    },
+    {
+      "key": "sms.sync_downloaded",
+      "en": {"one": "Downloaded {count} message", "other": "Downloaded {count} messages"},
+      "vi": {"other": "Đã tải {count} tin"},
+      "comment": "Progress under the sync banner, first sync only (SMS-01 field 2)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "count", "type": "int"}],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.sync_failed",
+      "en": "Couldn't sync — will try again when connected",
+      "vi": "Đồng bộ lỗi — sẽ thử lại khi kết nối",
+      "comment": "Status banner above the conversation list when SMS-01 stopped with an error (E4, E6, E7)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.syncing",
+      "en": "Syncing messages…",
+      "vi": "Đang đồng bộ tin nhắn…",
+      "comment": "Status banner above the conversation list while SMS-01 runs; hidden when idle or done",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.title",
+      "en": "Messages",
+      "vi": "Tin nhắn",
+      "comment": "Title of the Messages window (Mac), and of the Messages tab and its large title (iPhone, iPad)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.unread_count",
+      "en": {"one": "{count} unread message", "other": "{count} unread messages"},
+      "vi": {"other": "{count} tin chưa đọc"},
+      "comment": "Accessibility label of ThreadRow; the row itself shows only the unread dot (SMS-03 field 5)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "count", "type": "int"}],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.unread_divider",
+      "en": "Unread messages",
+      "vi": "Tin chưa đọc",
+      "comment": "Divider placed before the first unread incoming message when a conversation opens (SMS-05 field 3)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-05"]
     },
     {
       "key": "status.channel_internet",
