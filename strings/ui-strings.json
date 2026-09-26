@@ -306,7 +306,7 @@
       "key": "common.delete",
       "en": "Delete",
       "vi": "Xóa",
-      "comment": "Warning-colored confirm button of Remove Device from Server and Delete All HandLive Data (SET-02 field 28)",
+      "comment": "Destructive button of the alert “Couldn't connect to the server. Delete from this device anyway?” (SET-02 E7), next to common.cancel; the field 28 buttons are settings.remove_from_server_confirm and settings.delete_all_confirm",
       "platforms": ["android", "macos", "ios"],
       "specs": ["SET-02"]
     },
@@ -330,17 +330,17 @@
       "key": "common.off",
       "en": "Off",
       "vi": "Tắt",
-      "comment": "Off value: option of Auto-Clear Received Clipboard, state read by TalkBack/VoiceOver for a switch",
+      "comment": "Off value: option of Auto-Clear Received Clipboard, state read by TalkBack/VoiceOver for a switch, feature card state off (SET-01 field 10)",
       "platforms": ["android", "macos", "ios"],
-      "specs": ["SET-02", "CLIP-05"]
+      "specs": ["SET-02", "CLIP-05", "SET-01"]
     },
     {
       "key": "common.on",
       "en": "On",
       "vi": "Bật",
-      "comment": "On value: state read by TalkBack/VoiceOver for a switch, value of a permission row",
+      "comment": "On value: state read by TalkBack/VoiceOver for a switch, value of a permission row, feature card state ready (SET-01 field 10)",
       "platforms": ["android", "macos", "ios"],
-      "specs": ["SET-02"]
+      "specs": ["SET-02", "SET-01"]
     },
     {
       "key": "common.open_settings",
@@ -1032,7 +1032,7 @@
       "vi": "Thiếu quyền SMS trên điện thoại",
       "comment": "Reason under the SMS feature when the phone lacks READ_SMS",
       "platforms": ["android", "macos", "ios"],
-      "specs": ["PAIR-02"]
+      "specs": ["PAIR-02", "SMS-04"]
     },
     {
       "key": "pairing.reason_off_on_device",
@@ -1342,7 +1342,7 @@
       "vi": "Tự gửi khi sao chép",
       "comment": "Android switch for clip.auto_send; the first time it opens the Accessibility disclosure (also its title)",
       "platforms": ["android"],
-      "specs": ["SET-02", "CLIP-01"]
+      "specs": ["SET-02", "CLIP-01", "SET-01"]
     },
     {
       "key": "settings.auto_send_consented_at",
@@ -1389,9 +1389,9 @@
       "key": "settings.calls",
       "en": "Calls",
       "vi": "Cuộc gọi",
-      "comment": "Mac Settings pane title (toolbar item)",
-      "platforms": ["macos"],
-      "specs": ["SET-02"]
+      "comment": "Mac Settings pane title (toolbar item); the Calls feature card name on Android (SET-01 field 10)",
+      "platforms": ["android", "macos"],
+      "specs": ["SET-02", "SET-01"]
     },
     {
       "key": "settings.camera",
@@ -1662,9 +1662,9 @@
       "key": "settings.sms_messages",
       "en": "SMS Messages",
       "vi": "Tin nhắn SMS",
-      "comment": "Switch for feature.sms (SET-02 field 7): Android Settings tab, Mac Messages pane, iPhone Messages group",
+      "comment": "Switch for feature.sms (SET-02 field 7): Android Settings tab, Mac Messages pane, iPhone Messages group; also the SMS feature card name (SET-01 field 10)",
       "platforms": ["android", "macos", "ios"],
-      "specs": ["SET-02"]
+      "specs": ["SET-02", "SET-01"]
     },
     {
       "key": "settings.sms_notify",
@@ -1934,7 +1934,7 @@
       "key": "sms.char_count",
       "en": "{used}/{limit}",
       "vi": "{used}/{limit}",
-      "comment": "Character counter under an empty compose field (“0/160”); {used} and {limit} are numbers formatted by the system",
+      "comment": "Character counter under an empty compose field (“0/160”, SMS-04 field 3); {used} and {limit} as in sms.char_counter, formatted by the system",
       "platforms": ["macos", "ios"],
       "args": [{"name": "used", "type": "string"}, {"name": "limit", "type": "string"}],
       "specs": ["SMS-04"]
@@ -1943,7 +1943,7 @@
       "key": "sms.char_counter",
       "en": "{used}/{limit} · {parts}",
       "vi": "{used}/{limit} · {parts}",
-      "comment": "Character and part counter under the compose field (“120/160 · 1 message”); {used} and {limit} are formatted numbers, {parts} is sms.part_count",
+      "comment": "Character and part counter under the compose field (SMS-04 field 3: “120/160 · 1 message”, “230/306 · 2 messages”); {used} = characters in the message, {limit} = capacity of the current number of parts (160 for one GSM-7 part, 153 × parts when several; 70 for one part with a character outside GSM-7, 67 × parts when several), both formatted numbers; {parts} is sms.part_count",
       "platforms": ["macos", "ios"],
       "args": [{"name": "used", "type": "string"}, {"name": "limit", "type": "string"}, {"name": "parts", "type": "string"}],
       "specs": ["SMS-04"]
@@ -1952,9 +1952,9 @@
       "key": "sms.compose_placeholder",
       "en": "SMS Message",
       "vi": "Tin nhắn SMS",
-      "comment": "Placeholder of the compose field at the bottom of a conversation (MessageBubble); at most 1,600 characters",
+      "comment": "Placeholder of the compose field at the bottom of a conversation (MessageBubble) and of the quick-reply text field of the HL_SMS_REPLY notification action (SMS-02 API 4); at most 1,600 characters",
       "platforms": ["macos", "ios"],
-      "specs": ["SMS-04"]
+      "specs": ["SMS-04", "SMS-02"]
     },
     {
       "key": "sms.contacts_permission_hint",
@@ -2155,7 +2155,7 @@
       "key": "sms.sync_downloaded",
       "en": {"one": "Downloaded {count} message", "other": "Downloaded {count} messages"},
       "vi": {"other": "Đã tải {count} tin"},
-      "comment": "Progress under the sync banner, first sync only (SMS-01 field 2)",
+      "comment": "Progress under the sync banner, first sync only (SMS-01 field 2); count is printed without digit grouping (“Downloaded 1500 messages”, 0.12.1)",
       "platforms": ["macos", "ios"],
       "args": [{"name": "count", "type": "int"}],
       "specs": ["SMS-01"]
@@ -2191,7 +2191,7 @@
       "comment": "Accessibility label of ThreadRow; the row itself shows only the unread dot (SMS-03 field 5)",
       "platforms": ["macos", "ios"],
       "args": [{"name": "count", "type": "int"}],
-      "specs": ["SMS-03"]
+      "specs": ["SMS-03", "SMS-05"]
     },
     {
       "key": "sms.unread_divider",
