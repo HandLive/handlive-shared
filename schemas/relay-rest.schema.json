@@ -215,7 +215,7 @@
           "pattern": "^[\\x20-\\x7E]{1,64}$"
         },
         "ttl_s": {
-          "description": "0–86,400; default 60 (wake), 30 (call_incoming), 86,400 (sms_new, call_missed); FCM caps it at 60 s.",
+          "description": "0–86,400; default 60 (wake), 30 (call_incoming), 86,400 (sms_new, call_missed); FCM caps it at 60 s. The phone always sends 86,400 with sms_new (SMS-02 API 2), 30 with call_incoming (CALL-01 API 4) and 86,400 with call_missed (CALL-04 API 5).",
           "$ref": "common.schema.json#/$defs/int32",
           "minimum": 0,
           "maximum": 86400
@@ -234,15 +234,25 @@
         "allOf": [
           {
             "if": { "properties": { "reason": { "const": "sms_new" } } },
-            "then": { "properties": { "collapse_key": { "pattern": "^sms:[0-9]+$" } } }
+            "then": { "properties": { "collapse_key": { "pattern": "^sms:[0-9]+$" }, "ttl_s": { "const": 86400 } } }
           },
           {
             "if": { "properties": { "reason": { "const": "call_incoming" } } },
-            "then": { "properties": { "collapse_key": { "pattern": "^call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" } } }
+            "then": {
+              "properties": {
+                "collapse_key": { "pattern": "^call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+                "ttl_s": { "const": 30 }
+              }
+            }
           },
           {
             "if": { "properties": { "reason": { "const": "call_missed" } } },
-            "then": { "properties": { "collapse_key": { "pattern": "^(call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|calllog:[0-9]+)$" } } }
+            "then": {
+              "properties": {
+                "collapse_key": { "pattern": "^(call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|calllog:[0-9]+)$" },
+                "ttl_s": { "const": 86400 }
+              }
+            }
           }
         ]
       }
