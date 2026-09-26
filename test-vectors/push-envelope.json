@@ -1,0 +1,190 @@
+{
+  "description": "Push to an iPhone/iPad without a session: K_push = HKDF-SHA256(PRK, empty salt, info \"handlive/v1/push\", L = 32); the envelope is built as over a session and encrypted with K_push exactly as 0.5.1 (payload = b64(nonce(24) ‖ ciphertext ‖ tag(16)), AAD = UTF-8 \"<v>|<type>|<id>|<ts>\"); env_b64 = standard base64 (with padding) of the UTF-8 envelope JSON, sent as env_b64 of POST /v1/push and as hl of the APNs payload. I-NSE derives K_push from the PRK of pair p, decodes hl, rebuilds the AAD from the parsed envelope and decrypts.",
+  "source": "docs/detailed-design/00-common-specs.md 0.4.4, 0.5.1, 0.6.1; 03-connectivity.md CONN-04 step 5b, API 2, API 4; 05-sms.md SMS-02 API 2; 06-call-control.md CALL-01 API 4; PRK from pair-prk.json",
+  "vectors": [
+    {
+      "name": "pair 1 / K_push",
+      "kind": "key",
+      "pair_name": "cặp 1",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "prk_source": "pair-prk.json",
+      "prk": "d9e9827d49f7db11a88ac107ed6fb22b761c723c35449fc798694867fe55c209",
+      "salt": "",
+      "info": "handlive/v1/push",
+      "length": 32,
+      "k_push": "e82ec406f90fcfbddbf81ab58f357d815a9febf0dc247aad1e0783d6c98c1254"
+    },
+    {
+      "name": "pair 2 / K_push",
+      "kind": "key",
+      "pair_name": "cặp 2",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "prk_source": "pair-prk.json",
+      "prk": "8d3109350469af80c3db25ff2c1867ab56112623020d829301236ed7251411cc",
+      "salt": "",
+      "info": "handlive/v1/push",
+      "length": 32,
+      "k_push": "c7551cfba15da79059bb182d5cc51a1d605e031dd0f236b24edff6acf01f3b9b"
+    },
+    {
+      "name": "pair 2 / sms/new (Vietnamese content)",
+      "kind": "envelope",
+      "pair_name": "cặp 2",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "sender_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "recipient_device_id": "dac073e0-123b-8ea5-9dd9-b3bda9cf6037",
+      "k_push": "c7551cfba15da79059bb182d5cc51a1d605e031dd0f236b24edff6acf01f3b9b",
+      "v": 1,
+      "type": "sms",
+      "id": "0192f3e4-7a10-7b20-8c30-9d40ae50bf60",
+      "ts": 1727150060500,
+      "aad": "1|sms|0192f3e4-7a10-7b20-8c30-9d40ae50bf60|1727150060500",
+      "aad_hex": "317c736d737c30313932663365342d376131302d376232302d386333302d3964343061653530626636307c31373237313530303630353030",
+      "plaintext": "{\"op\":\"new\",\"data\":{\"message\":{\"message_key\":\"sms:12847\",\"thread_id\":42,\"address\":\"+84900000123\",\"body\":\"Nhớ mang theo tài liệu\",\"box\":\"inbox\",\"ts\":1727150060456,\"ts_sent\":1727150059000,\"read\":false,\"sub_id\":1},\"thread\":{\"thread_id\":42,\"addresses\":[\"+84900000123\"],\"display_name\":\"Nguyễn Văn A\",\"snippet\":\"Nhớ mang theo tài liệu\",\"last_ts\":1727150060456,\"unread_count\":2}}}",
+      "nonce": "7836d860ee7bb6552590861922ec517748ca99aec5c78ab4",
+      "ciphertext": "46cb722073e4739f19e40799faa82d49df2b0c87c9cf070fdf35f23aec4dc020295a5fa2da6cac7e30ee9a469cebfed155644ca690cc73890fea6937d712e0f38ae2d46ebfdade080d59284179b4349c9bd3f6ac996fd4b4efd337b099a4c8394618ebdc422a5bbb58e1eea8b888ce173cc4d344aa33e0b46fcf016d89917ca0f6bab30c2a5dbfb9617ccbbe4b068f92860e75bbb4303b54542a127854d0a5af27789404d3e2d6811e4f7bbddbcfb2ac0a3de4640c6a64cf5ce807516f1034526cba20b27ae4525245e702647568b5d33af0f65752e29d21f4530ed6464b41f826a9add0396c2362f5e180c3b47a623e7ec9dbd49108d9a404ddde2d0a195d1a254a943a598339a4694b3cd3846a297b01fec076cb5313825d97d2776dade014825e546cd38e007d24e6d9067b39d8d4b820d8a5d5813fb4c44bdac4af3d9cda43f8cbb2169ee01021e9942767534d45180be3b1a05b953409d5f019c20e5e8e0c57d6f42b80527d902c68f43cf2c7a62b31f3e31c8de041f970d7008e52be3b58c0",
+      "tag": "1c851a813a92c78169d57584b7b2fd64",
+      "payload_b64": "eDbYYO57tlUlkIYZIuxRd0jKma7Fx4q0RstyIHPkc58Z5AeZ+qgtSd8rDIfJzwcP3zXyOuxNwCApWl+i2mysfjDumkac6/7RVWRMppDMc4kP6mk31xLg84ri1G6/2t4IDVkoQXm0NJyb0/asmW/UtO/TN7CZpMg5Rhjr3EIqW7tY4e6ouIjOFzzE00SqM+C0b88BbYmRfKD2urMMKl2/uWF8y75LBo+Shg51u7QwO1RUKhJ4VNClryd4lATT4taBHk97vdvPsqwKPeRkDGpkz1zoB1FvEDRSbLogsnrkUlJF5wJkdWi10zrw9ldS4p0h9FMO1kZLQfgmqa3QOWwjYvXhgMO0emI+fsnb1JEI2aQE3d4tChldGiVKlDpZgzmkaUs804RqKXsB/sB2y1MTgl2X0ndtreAUgl5UbNOOAH0k5tkGeznY1Lgg2KXVgT+0xEvaxK89nNpD+MuyFp7gECHplCdnU01FGAvjsaBblTQJ1fAZwg5ejgxX1vQrgFJ9kCxo9Dzyx6YrMfPjHI3gQflw1wCOUr47WMAchRqBOpLHgWnVdYS3sv1k",
+      "envelope": "{\"v\":1,\"type\":\"sms\",\"id\":\"0192f3e4-7a10-7b20-8c30-9d40ae50bf60\",\"ts\":1727150060500,\"payload\":\"eDbYYO57tlUlkIYZIuxRd0jKma7Fx4q0RstyIHPkc58Z5AeZ+qgtSd8rDIfJzwcP3zXyOuxNwCApWl+i2mysfjDumkac6/7RVWRMppDMc4kP6mk31xLg84ri1G6/2t4IDVkoQXm0NJyb0/asmW/UtO/TN7CZpMg5Rhjr3EIqW7tY4e6ouIjOFzzE00SqM+C0b88BbYmRfKD2urMMKl2/uWF8y75LBo+Shg51u7QwO1RUKhJ4VNClryd4lATT4taBHk97vdvPsqwKPeRkDGpkz1zoB1FvEDRSbLogsnrkUlJF5wJkdWi10zrw9ldS4p0h9FMO1kZLQfgmqa3QOWwjYvXhgMO0emI+fsnb1JEI2aQE3d4tChldGiVKlDpZgzmkaUs804RqKXsB/sB2y1MTgl2X0ndtreAUgl5UbNOOAH0k5tkGeznY1Lgg2KXVgT+0xEvaxK89nNpD+MuyFp7gECHplCdnU01FGAvjsaBblTQJ1fAZwg5ejgxX1vQrgFJ9kCxo9Dzyx6YrMfPjHI3gQflw1wCOUr47WMAchRqBOpLHgWnVdYS3sv1k\"}",
+      "env_b64": "eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YTEwLTdiMjAtOGMzMC05ZDQwYWU1MGJmNjAiLCJ0cyI6MTcyNzE1MDA2MDUwMCwicGF5bG9hZCI6ImVEYllZTzU3dGxVbGtJWVpJdXhSZDBqS21hN0Z4NHEwUnN0eUlIUGtjNThaNUFlWitxZ3RTZDhyRElmSnp3Y1Azelh5T3V4TndDQXBXbCtpMm15c2ZqRHVta2FjNi83UlZXUk1wcERNYzRrUDZtazMxeExnODRyaTFHNi8ydDRJRFZrb1FYbTBOSnliMC9hc21XL1V0Ty9UTjdDWnBNZzVSaGpyM0VJcVc3dFk0ZTZvdUlqT0Z6ekUwMFNxTStDMGI4OEJiWW1SZktEMnVyTU1LbDIvdVdGOHk3NUxCbytTaGc1MXU3UXdPMVJVS2hKNFZOQ2xyeWQ0bEFUVDR0YUJIazk3dmR2UHNxd0tQZVJrREdwa3oxem9CMUZ2RURSU2JMb2dzbnJrVWxKRjV3SmtkV2kxMHpydzlsZFM0cDBoOUZNTzFrWkxRZmdtcWEzUU9Xd2pZdlhoZ01PMGVtSStmc25iMUpFSTJhUUUzZDR0Q2hsZEdpVktsRHBaZ3pta2FVczgwNFJxS1hzQi9zQjJ5MU1UZ2wyWDBuZHRyZUFVZ2w1VWJOT09BSDBrNXRrR2V6blkxTGdnMktYVmdUKzB4RXZheEs4OW5OcEQrTXV5RnA3Z0VDSHBsQ2RuVTAxRkdBdmpzYUJibFRRSjFmQVp3ZzVlamd4WDF2UXJnRko5a0N4bzlEenl4NllyTWZQakhJM2dRZmx3MXdDT1VyNDdXTUFjaFJxQk9wTEhnV25WZFlTM3N2MWsifQ==",
+      "reason": "sms_new",
+      "push_request": "{\"pair_id\":\"9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d\",\"to\":\"dac073e0-123b-8ea5-9dd9-b3bda9cf6037\",\"kind\":\"alert\",\"reason\":\"sms_new\",\"env_b64\":\"eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YTEwLTdiMjAtOGMzMC05ZDQwYWU1MGJmNjAiLCJ0cyI6MTcyNzE1MDA2MDUwMCwicGF5bG9hZCI6ImVEYllZTzU3dGxVbGtJWVpJdXhSZDBqS21hN0Z4NHEwUnN0eUlIUGtjNThaNUFlWitxZ3RTZDhyRElmSnp3Y1Azelh5T3V4TndDQXBXbCtpMm15c2ZqRHVta2FjNi83UlZXUk1wcERNYzRrUDZtazMxeExnODRyaTFHNi8ydDRJRFZrb1FYbTBOSnliMC9hc21XL1V0Ty9UTjdDWnBNZzVSaGpyM0VJcVc3dFk0ZTZvdUlqT0Z6ekUwMFNxTStDMGI4OEJiWW1SZktEMnVyTU1LbDIvdVdGOHk3NUxCbytTaGc1MXU3UXdPMVJVS2hKNFZOQ2xyeWQ0bEFUVDR0YUJIazk3dmR2UHNxd0tQZVJrREdwa3oxem9CMUZ2RURSU2JMb2dzbnJrVWxKRjV3SmtkV2kxMHpydzlsZFM0cDBoOUZNTzFrWkxRZmdtcWEzUU9Xd2pZdlhoZ01PMGVtSStmc25iMUpFSTJhUUUzZDR0Q2hsZEdpVktsRHBaZ3pta2FVczgwNFJxS1hzQi9zQjJ5MU1UZ2wyWDBuZHRyZUFVZ2w1VWJOT09BSDBrNXRrR2V6blkxTGdnMktYVmdUKzB4RXZheEs4OW5OcEQrTXV5RnA3Z0VDSHBsQ2RuVTAxRkdBdmpzYUJibFRRSjFmQVp3ZzVlamd4WDF2UXJnRko5a0N4bzlEenl4NllyTWZQakhJM2dRZmx3MXdDT1VyNDdXTUFjaFJxQk9wTEhnV25WZFlTM3N2MWsifQ==\",\"collapse_key\":\"sms:sms:12847\",\"ttl_s\":86400}",
+      "apns_payload": "{\"aps\":{\"alert\":{\"loc-key\":\"push.sms_new\"},\"mutable-content\":1,\"sound\":\"default\",\"thread-id\":\"sms:42\",\"interruption-level\":\"active\"},\"p\":\"9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d\",\"hl\":\"eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YTEwLTdiMjAtOGMzMC05ZDQwYWU1MGJmNjAiLCJ0cyI6MTcyNzE1MDA2MDUwMCwicGF5bG9hZCI6ImVEYllZTzU3dGxVbGtJWVpJdXhSZDBqS21hN0Z4NHEwUnN0eUlIUGtjNThaNUFlWitxZ3RTZDhyRElmSnp3Y1Azelh5T3V4TndDQXBXbCtpMm15c2ZqRHVta2FjNi83UlZXUk1wcERNYzRrUDZtazMxeExnODRyaTFHNi8ydDRJRFZrb1FYbTBOSnliMC9hc21XL1V0Ty9UTjdDWnBNZzVSaGpyM0VJcVc3dFk0ZTZvdUlqT0Z6ekUwMFNxTStDMGI4OEJiWW1SZktEMnVyTU1LbDIvdVdGOHk3NUxCbytTaGc1MXU3UXdPMVJVS2hKNFZOQ2xyeWQ0bEFUVDR0YUJIazk3dmR2UHNxd0tQZVJrREdwa3oxem9CMUZ2RURSU2JMb2dzbnJrVWxKRjV3SmtkV2kxMHpydzlsZFM0cDBoOUZNTzFrWkxRZmdtcWEzUU9Xd2pZdlhoZ01PMGVtSStmc25iMUpFSTJhUUUzZDR0Q2hsZEdpVktsRHBaZ3pta2FVczgwNFJxS1hzQi9zQjJ5MU1UZ2wyWDBuZHRyZUFVZ2w1VWJOT09BSDBrNXRrR2V6blkxTGdnMktYVmdUKzB4RXZheEs4OW5OcEQrTXV5RnA3Z0VDSHBsQ2RuVTAxRkdBdmpzYUJibFRRSjFmQVp3ZzVlamd4WDF2UXJnRko5a0N4bzlEenl4NllyTWZQakhJM2dRZmx3MXdDT1VyNDdXTUFjaFJxQk9wTEhnV25WZFlTM3N2MWsifQ==\"}",
+      "apns_headers": {
+        "apns-push-type": "alert",
+        "apns-topic": "app.handlive.ios",
+        "apns-priority": "10",
+        "apns-collapse-id": "sms:sms:12847"
+      }
+    },
+    {
+      "name": "pair 2 / sms/new from a sender name, no contact, no SIM",
+      "kind": "envelope",
+      "pair_name": "cặp 2",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "sender_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "recipient_device_id": "dac073e0-123b-8ea5-9dd9-b3bda9cf6037",
+      "k_push": "c7551cfba15da79059bb182d5cc51a1d605e031dd0f236b24edff6acf01f3b9b",
+      "v": 1,
+      "type": "sms",
+      "id": "0192f3e4-7c31-7d42-9e53-af64b075c186",
+      "ts": 1727150070050,
+      "aad": "1|sms|0192f3e4-7c31-7d42-9e53-af64b075c186|1727150070050",
+      "aad_hex": "317c736d737c30313932663365342d376333312d376434322d396535332d6166363462303735633138367c31373237313530303730303530",
+      "plaintext": "{\"op\":\"new\",\"data\":{\"message\":{\"message_key\":\"sms:12850\",\"thread_id\":57,\"address\":\"VIETTEL\",\"body\":\"Your data plan has been renewed until 26/10.\",\"box\":\"inbox\",\"ts\":1727150070000,\"ts_sent\":null,\"read\":false,\"sub_id\":null},\"thread\":{\"thread_id\":57,\"addresses\":[\"VIETTEL\"],\"display_name\":null,\"snippet\":\"Your data plan has been renewed until 26/10.\",\"last_ts\":1727150070000,\"unread_count\":1}}}",
+      "nonce": "2950ef6c51dcce7c670cf378bc6d61d16400fba14cfab3bf",
+      "ciphertext": "e7a233dc6003d61f65e4e74e04f531a3abc4469aba22b90c2acb1a0858664c17964015ce24a1e501895a5008121b7c52ace0b8afd4c927f9d0518a175e0c773d5264f1860062a958ff716dc781d3e19f6968d90ae4749535bdf6ba4eb78fe367799969d8b67cb8b605f51a6482d3c86831e7b53b714230b8f8c7e000138101cadd62b4aaeebf5604c97a65009a614d2c259eece73c72f08f8fc8ebcd0548d25b0414240bee044326e6ba463a9ad6eb34283dddbcf67f22430638e516c430bb2d2077689243f8212005f594e8ac1634d7d11b1ab369c974e8fcd04c625f7683dc4419039d144fdf1a2517ad8884d2053a65315edae9d35d2327b77e296659e5dc540f2815905d38ede98a396e1ebd9743bf07942009f1f9db62b5e0e27f622d9c013df96a7af10d2801643b366d82f542dfdda5dba5c0ff61bd011bf618dd3b2fef0c16f7e2525528dae50cc28e0142f143dbbcb7eea6d7820f61c69bd7d33913c1c089e55df110a3149f9e9683b2b61c3f9e32df88d328c39d32fe68d586156d414b651c0b0eab",
+      "tag": "26926ea7f2d041c3f3dd5d600bf4528d",
+      "payload_b64": "KVDvbFHcznxnDPN4vG1h0WQA+6FM+rO/56Iz3GAD1h9l5OdOBPUxo6vERpq6IrkMKssaCFhmTBeWQBXOJKHlAYlaUAgSG3xSrOC4r9TJJ/nQUYoXXgx3PVJk8YYAYqlY/3Ftx4HT4Z9paNkK5HSVNb32uk63j+NneZlp2LZ8uLYF9RpkgtPIaDHntTtxQjC4+MfgABOBAcrdYrSq7r9WBMl6ZQCaYU0sJZ7s5zxy8I+PyOvNBUjSWwQUJAvuBEMm5rpGOprW6zQoPd289n8iQwY45RbEMLstIHdokkP4ISAF9ZTorBY019EbGrNpyXTo/NBMYl92g9xEGQOdFE/fGiUXrYiE0gU6ZTFe2unTXSMnt34pZlnl3FQPKBWQXTjt6Yo5bh69l0O/B5QgCfH522K14OJ/Yi2cAT35anrxDSgBZDs2bYL1Qt/dpdulwP9hvQEb9hjdOy/vDBb34lJVKNrlDMKOAULxQ9u8t+6m14IPYcab19M5E8HAieVd8RCjFJ+eloOythw/njLfiNMow50y/mjVhhVtQUtlHAsOqyaSbqfy0EHD891dYAv0Uo0=",
+      "envelope": "{\"v\":1,\"type\":\"sms\",\"id\":\"0192f3e4-7c31-7d42-9e53-af64b075c186\",\"ts\":1727150070050,\"payload\":\"KVDvbFHcznxnDPN4vG1h0WQA+6FM+rO/56Iz3GAD1h9l5OdOBPUxo6vERpq6IrkMKssaCFhmTBeWQBXOJKHlAYlaUAgSG3xSrOC4r9TJJ/nQUYoXXgx3PVJk8YYAYqlY/3Ftx4HT4Z9paNkK5HSVNb32uk63j+NneZlp2LZ8uLYF9RpkgtPIaDHntTtxQjC4+MfgABOBAcrdYrSq7r9WBMl6ZQCaYU0sJZ7s5zxy8I+PyOvNBUjSWwQUJAvuBEMm5rpGOprW6zQoPd289n8iQwY45RbEMLstIHdokkP4ISAF9ZTorBY019EbGrNpyXTo/NBMYl92g9xEGQOdFE/fGiUXrYiE0gU6ZTFe2unTXSMnt34pZlnl3FQPKBWQXTjt6Yo5bh69l0O/B5QgCfH522K14OJ/Yi2cAT35anrxDSgBZDs2bYL1Qt/dpdulwP9hvQEb9hjdOy/vDBb34lJVKNrlDMKOAULxQ9u8t+6m14IPYcab19M5E8HAieVd8RCjFJ+eloOythw/njLfiNMow50y/mjVhhVtQUtlHAsOqyaSbqfy0EHD891dYAv0Uo0=\"}",
+      "env_b64": "eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YzMxLTdkNDItOWU1My1hZjY0YjA3NWMxODYiLCJ0cyI6MTcyNzE1MDA3MDA1MCwicGF5bG9hZCI6IktWRHZiRkhjem54bkRQTjR2RzFoMFdRQSs2Rk0rck8vNTZJejNHQUQxaDlsNU9kT0JQVXhvNnZFUnBxNklya01Lc3NhQ0ZobVRCZVdRQlhPSktIbEFZbGFVQWdTRzN4U3JPQzRyOVRKSi9uUVVZb1hYZ3gzUFZKazhZWUFZcWxZLzNGdHg0SFQ0WjlwYU5rSzVIU1ZOYjMydWs2M2orTm5lWmxwMkxaOHVMWUY5UnBrZ3RQSWFESG50VHR4UWpDNCtNZmdBQk9CQWNyZFlyU3E3cjlXQk1sNlpRQ2FZVTBzSlo3czV6eHk4SStQeU92TkJValNXd1FVSkF2dUJFTW01cnBHT3ByVzZ6UW9QZDI4OW44aVF3WTQ1UmJFTUxzdElIZG9ra1A0SVNBRjlaVG9yQlkwMTlFYkdyTnB5WFRvL05CTVlsOTJnOXhFR1FPZEZFL2ZHaVVYcllpRTBnVTZaVEZlMnVuVFhTTW50MzRwWmxubDNGUVBLQldRWFRqdDZZbzViaDY5bDBPL0I1UWdDZkg1MjJLMTRPSi9ZaTJjQVQzNWFucnhEU2dCWkRzMmJZTDFRdC9kcGR1bHdQOWh2UUViOWhqZE95L3ZEQmIzNGxKVktOcmxETUtPQVVMeFE5dTh0KzZtMTRJUFljYWIxOU01RThIQWllVmQ4UkNqRkorZWxvT3l0aHcvbmpMZmlOTW93NTB5L21qVmhoVnRRVXRsSEFzT3F5YVNicWZ5MEVIRDg5MWRZQXYwVW8wPSJ9",
+      "reason": "sms_new",
+      "push_request": "{\"pair_id\":\"9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d\",\"to\":\"dac073e0-123b-8ea5-9dd9-b3bda9cf6037\",\"kind\":\"alert\",\"reason\":\"sms_new\",\"env_b64\":\"eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YzMxLTdkNDItOWU1My1hZjY0YjA3NWMxODYiLCJ0cyI6MTcyNzE1MDA3MDA1MCwicGF5bG9hZCI6IktWRHZiRkhjem54bkRQTjR2RzFoMFdRQSs2Rk0rck8vNTZJejNHQUQxaDlsNU9kT0JQVXhvNnZFUnBxNklya01Lc3NhQ0ZobVRCZVdRQlhPSktIbEFZbGFVQWdTRzN4U3JPQzRyOVRKSi9uUVVZb1hYZ3gzUFZKazhZWUFZcWxZLzNGdHg0SFQ0WjlwYU5rSzVIU1ZOYjMydWs2M2orTm5lWmxwMkxaOHVMWUY5UnBrZ3RQSWFESG50VHR4UWpDNCtNZmdBQk9CQWNyZFlyU3E3cjlXQk1sNlpRQ2FZVTBzSlo3czV6eHk4SStQeU92TkJValNXd1FVSkF2dUJFTW01cnBHT3ByVzZ6UW9QZDI4OW44aVF3WTQ1UmJFTUxzdElIZG9ra1A0SVNBRjlaVG9yQlkwMTlFYkdyTnB5WFRvL05CTVlsOTJnOXhFR1FPZEZFL2ZHaVVYcllpRTBnVTZaVEZlMnVuVFhTTW50MzRwWmxubDNGUVBLQldRWFRqdDZZbzViaDY5bDBPL0I1UWdDZkg1MjJLMTRPSi9ZaTJjQVQzNWFucnhEU2dCWkRzMmJZTDFRdC9kcGR1bHdQOWh2UUViOWhqZE95L3ZEQmIzNGxKVktOcmxETUtPQVVMeFE5dTh0KzZtMTRJUFljYWIxOU01RThIQWllVmQ4UkNqRkorZWxvT3l0aHcvbmpMZmlOTW93NTB5L21qVmhoVnRRVXRsSEFzT3F5YVNicWZ5MEVIRDg5MWRZQXYwVW8wPSJ9\",\"collapse_key\":\"sms:sms:12850\",\"ttl_s\":86400}",
+      "apns_payload": "{\"aps\":{\"alert\":{\"loc-key\":\"push.sms_new\"},\"mutable-content\":1,\"sound\":\"default\",\"thread-id\":\"sms:57\",\"interruption-level\":\"active\"},\"p\":\"9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d\",\"hl\":\"eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YzMxLTdkNDItOWU1My1hZjY0YjA3NWMxODYiLCJ0cyI6MTcyNzE1MDA3MDA1MCwicGF5bG9hZCI6IktWRHZiRkhjem54bkRQTjR2RzFoMFdRQSs2Rk0rck8vNTZJejNHQUQxaDlsNU9kT0JQVXhvNnZFUnBxNklya01Lc3NhQ0ZobVRCZVdRQlhPSktIbEFZbGFVQWdTRzN4U3JPQzRyOVRKSi9uUVVZb1hYZ3gzUFZKazhZWUFZcWxZLzNGdHg0SFQ0WjlwYU5rSzVIU1ZOYjMydWs2M2orTm5lWmxwMkxaOHVMWUY5UnBrZ3RQSWFESG50VHR4UWpDNCtNZmdBQk9CQWNyZFlyU3E3cjlXQk1sNlpRQ2FZVTBzSlo3czV6eHk4SStQeU92TkJValNXd1FVSkF2dUJFTW01cnBHT3ByVzZ6UW9QZDI4OW44aVF3WTQ1UmJFTUxzdElIZG9ra1A0SVNBRjlaVG9yQlkwMTlFYkdyTnB5WFRvL05CTVlsOTJnOXhFR1FPZEZFL2ZHaVVYcllpRTBnVTZaVEZlMnVuVFhTTW50MzRwWmxubDNGUVBLQldRWFRqdDZZbzViaDY5bDBPL0I1UWdDZkg1MjJLMTRPSi9ZaTJjQVQzNWFucnhEU2dCWkRzMmJZTDFRdC9kcGR1bHdQOWh2UUViOWhqZE95L3ZEQmIzNGxKVktOcmxETUtPQVVMeFE5dTh0KzZtMTRJUFljYWIxOU01RThIQWllVmQ4UkNqRkorZWxvT3l0aHcvbmpMZmlOTW93NTB5L21qVmhoVnRRVXRsSEFzT3F5YVNicWZ5MEVIRDg5MWRZQXYwVW8wPSJ9\"}",
+      "apns_headers": {
+        "apns-push-type": "alert",
+        "apns-topic": "app.handlive.ios",
+        "apns-priority": "10",
+        "apns-collapse-id": "sms:sms:12850"
+      }
+    },
+    {
+      "name": "pair 2 / call_event/state ringing",
+      "kind": "envelope",
+      "pair_name": "cặp 2",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "sender_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "recipient_device_id": "dac073e0-123b-8ea5-9dd9-b3bda9cf6037",
+      "k_push": "c7551cfba15da79059bb182d5cc51a1d605e031dd0f236b24edff6acf01f3b9b",
+      "v": 1,
+      "type": "call_event",
+      "id": "0192f3f0-6a2c-7d3e-9f40-5a6b7c8d9eaf",
+      "ts": 1727150400400,
+      "aad": "1|call_event|0192f3f0-6a2c-7d3e-9f40-5a6b7c8d9eaf|1727150400400",
+      "aad_hex": "317c63616c6c5f6576656e747c30313932663366302d366132632d376433652d396634302d3561366237633864396561667c31373237313530343030343030",
+      "plaintext": "{\"op\":\"state\",\"data\":{\"call_id\":\"0192f3f0-6a1b-7c2d-8e3f-4a5b6c7d8e90\",\"direction\":\"incoming\",\"state\":\"ringing\",\"waiting\":false,\"number\":\"+84900000123\",\"display_name\":\"Nguyễn Văn A\",\"presentation\":\"allowed\",\"sub_id\":1,\"sim_label\":\"SIM 1\",\"waiting_number\":null,\"waiting_display_name\":null,\"started_at\":1727150400123,\"answered_at\":null,\"ended_at\":null,\"end_reason\":null,\"controls\":{\"answer\":true,\"reject\":true,\"end\":false,\"hold\":\"unavailable\",\"dtmf\":\"unavailable\",\"mute\":\"unavailable\"},\"hfp_connected\":false,\"audio_on\":\"phone\"}}",
+      "nonce": "b0104caf57846cb7b580e21f9c553cf7cf4753be02cb8e5e",
+      "ciphertext": "9318acc8ae827dc3f54c2319d6d7954de31620c4d060078d391865e7ba23fd0982e026814f4abb47bb122dbda5c71cfe2c35359319bfd79f433ae6d8f429d3b404edda100f9547ddfb15476325100f3135c2f33bdfb05a107161908623bdc458d183eaabedc7140066c87e05dce7be9bbbc655c479a13eeb0e5e93fb1c1e7559b3aecd2927535378e55cd593a6ea40f4708534321d6ecfc88d47d4261303f990fd705c6b537dd70e712836979782f7bc9a870ccd90c1dfe69572a29c5bbbe4735f11a5b5a4f4e83d1d444f85d1d23a72db6f73e8d1ef1763856603da963c12abe2d741f7eda44120406fa94e224ba1fc1daf78d171cf8a05ba134b5f03faa24ce8ba13d1b285b0bde0692fcfe2a0dbff8e41a05db3cb8b1b4ebbf334892901392641e5a5972233f11ce3b7cb1e5f6a25bf82f13e7bb58b27fb99d43e0f469d07f9152ad8f6adc9ca52df51bffd39da866351bcbd85e224aa0c880d8cffe256b7477d229149f8795d351d1937776fe47fb92f32920dc7f8ae9600c545e4e26c5d5484f2002ce342e2d686c8901c0201a2136836bd9c1aa03b2abe3c88d219d4f43ab9ba128b42d05befd2428d83202b4244bdbd2467057bda7d7e9b8707b1bccd1c8f9ff46294b688b71602677dfab9cc1de43286cff6f8086cb849a36c091f18bc1ef8d31e5886407fc63ce12fbee24c0199639b1ce9897f31b25018aa1cc40f227d6ce2955b4c02aa6e1cc1cc1e778342",
+      "tag": "39af7cb9181e9150c0a5901ca88110fc",
+      "payload_b64": "sBBMr1eEbLe1gOIfnFU8989HU74Cy45ekxisyK6CfcP1TCMZ1teVTeMWIMTQYAeNORhl57oj/QmC4CaBT0q7R7sSLb2lxxz+LDU1kxm/159DOubY9CnTtATt2hAPlUfd+xVHYyUQDzE1wvM737BaEHFhkIYjvcRY0YPqq+3HFABmyH4F3Oe+m7vGVcR5oT7rDl6T+xwedVmzrs0pJ1NTeOVc1ZOm6kD0cIU0Mh1uz8iNR9QmEwP5kP1wXGtTfdcOcSg2l5eC97yahwzNkMHf5pVyopxbu+RzXxGltaT06D0dRE+F0dI6cttvc+jR7xdjhWYD2pY8Eqvi10H37aRBIEBvqU4iS6H8Ha940XHPigW6E0tfA/qiTOi6E9GyhbC94Gkvz+Kg2/+OQaBds8uLG0678zSJKQE5JkHlpZciM/Ec47fLHl9qJb+C8T57tYsn+5nUPg9GnQf5FSrY9q3JylLfUb/9OdqGY1G8vYXiJKoMiA2M/+JWt0d9IpFJ+HldNR0ZN3dv5H+5LzKSDcf4rpYAxUXk4mxdVITyACzjQuLWhsiQHAIBohNoNr2cGqA7Kr48iNIZ1PQ6uboSi0LQW+/SQo2DICtCRL29JGcFe9p9fpuHB7G8zRyPn/RilLaItxYCZ336ucwd5DKGz/b4CGy4SaNsCR8YvB740x5YhkB/xjzhL77iTAGZY5sc6Yl/MbJQGKocxA8ifWzilVtMAqpuHMHMHneDQjmvfLkYHpFQwKWQHKiBEPw=",
+      "envelope": "{\"v\":1,\"type\":\"call_event\",\"id\":\"0192f3f0-6a2c-7d3e-9f40-5a6b7c8d9eaf\",\"ts\":1727150400400,\"payload\":\"sBBMr1eEbLe1gOIfnFU8989HU74Cy45ekxisyK6CfcP1TCMZ1teVTeMWIMTQYAeNORhl57oj/QmC4CaBT0q7R7sSLb2lxxz+LDU1kxm/159DOubY9CnTtATt2hAPlUfd+xVHYyUQDzE1wvM737BaEHFhkIYjvcRY0YPqq+3HFABmyH4F3Oe+m7vGVcR5oT7rDl6T+xwedVmzrs0pJ1NTeOVc1ZOm6kD0cIU0Mh1uz8iNR9QmEwP5kP1wXGtTfdcOcSg2l5eC97yahwzNkMHf5pVyopxbu+RzXxGltaT06D0dRE+F0dI6cttvc+jR7xdjhWYD2pY8Eqvi10H37aRBIEBvqU4iS6H8Ha940XHPigW6E0tfA/qiTOi6E9GyhbC94Gkvz+Kg2/+OQaBds8uLG0678zSJKQE5JkHlpZciM/Ec47fLHl9qJb+C8T57tYsn+5nUPg9GnQf5FSrY9q3JylLfUb/9OdqGY1G8vYXiJKoMiA2M/+JWt0d9IpFJ+HldNR0ZN3dv5H+5LzKSDcf4rpYAxUXk4mxdVITyACzjQuLWhsiQHAIBohNoNr2cGqA7Kr48iNIZ1PQ6uboSi0LQW+/SQo2DICtCRL29JGcFe9p9fpuHB7G8zRyPn/RilLaItxYCZ336ucwd5DKGz/b4CGy4SaNsCR8YvB740x5YhkB/xjzhL77iTAGZY5sc6Yl/MbJQGKocxA8ifWzilVtMAqpuHMHMHneDQjmvfLkYHpFQwKWQHKiBEPw=\"}",
+      "env_b64": "eyJ2IjoxLCJ0eXBlIjoiY2FsbF9ldmVudCIsImlkIjoiMDE5MmYzZjAtNmEyYy03ZDNlLTlmNDAtNWE2YjdjOGQ5ZWFmIiwidHMiOjE3MjcxNTA0MDA0MDAsInBheWxvYWQiOiJzQkJNcjFlRWJMZTFnT0lmbkZVODk4OUhVNzRDeTQ1ZWt4aXN5SzZDZmNQMVRDTVoxdGVWVGVNV0lNVFFZQWVOT1JobDU3b2ovUW1DNENhQlQwcTdSN3NTTGIybHh4eitMRFUxa3htLzE1OURPdWJZOUNuVHRBVHQyaEFQbFVmZCt4VkhZeVVRRHpFMXd2TTczN0JhRUhGaGtJWWp2Y1JZMFlQcXErM0hGQUJteUg0RjNPZSttN3ZHVmNSNW9UN3JEbDZUK3h3ZWRWbXpyczBwSjFOVGVPVmMxWk9tNmtEMGNJVTBNaDF1ejhpTlI5UW1Fd1A1a1Axd1hHdFRmZGNPY1NnMmw1ZUM5N3lhaHd6TmtNSGY1cFZ5b3B4YnUrUnpYeEdsdGFUMDZEMGRSRStGMGRJNmN0dHZjK2pSN3hkamhXWUQycFk4RXF2aTEwSDM3YVJCSUVCdnFVNGlTNkg4SGE5NDBYSFBpZ1c2RTB0ZkEvcWlUT2k2RTlHeWhiQzk0R2t2eitLZzIvK09RYUJkczh1TEcwNjc4elNKS1FFNUprSGxwWmNpTS9FYzQ3ZkxIbDlxSmIrQzhUNTd0WXNuKzVuVVBnOUduUWY1RlNyWTlxM0p5bExmVWIvOU9kcUdZMUc4dllYaUpLb01pQTJNLytKV3QwZDlJcEZKK0hsZE5SMFpOM2R2NUgrNUx6S1NEY2Y0cnBZQXhVWGs0bXhkVklUeUFDempRdUxXaHNpUUhBSUJvaE5vTnIyY0dxQTdLcjQ4aU5JWjFQUTZ1Ym9TaTBMUVcrL1NRbzJESUN0Q1JMMjlKR2NGZTlwOWZwdUhCN0c4elJ5UG4vUmlsTGFJdHhZQ1ozMzZ1Y3dkNURLR3ovYjRDR3k0U2FOc0NSOFl2Qjc0MHg1WWhrQi94anpoTDc3aVRBR1pZNXNjNllsL01iSlFHS29jeEE4aWZXemlsVnRNQXFwdUhNSE1IbmVEUWptdmZMa1lIcEZRd0tXUUhLaUJFUHc9In0=",
+      "reason": "call_incoming",
+      "push_request": "{\"pair_id\":\"9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d\",\"to\":\"dac073e0-123b-8ea5-9dd9-b3bda9cf6037\",\"kind\":\"alert\",\"reason\":\"call_incoming\",\"env_b64\":\"eyJ2IjoxLCJ0eXBlIjoiY2FsbF9ldmVudCIsImlkIjoiMDE5MmYzZjAtNmEyYy03ZDNlLTlmNDAtNWE2YjdjOGQ5ZWFmIiwidHMiOjE3MjcxNTA0MDA0MDAsInBheWxvYWQiOiJzQkJNcjFlRWJMZTFnT0lmbkZVODk4OUhVNzRDeTQ1ZWt4aXN5SzZDZmNQMVRDTVoxdGVWVGVNV0lNVFFZQWVOT1JobDU3b2ovUW1DNENhQlQwcTdSN3NTTGIybHh4eitMRFUxa3htLzE1OURPdWJZOUNuVHRBVHQyaEFQbFVmZCt4VkhZeVVRRHpFMXd2TTczN0JhRUhGaGtJWWp2Y1JZMFlQcXErM0hGQUJteUg0RjNPZSttN3ZHVmNSNW9UN3JEbDZUK3h3ZWRWbXpyczBwSjFOVGVPVmMxWk9tNmtEMGNJVTBNaDF1ejhpTlI5UW1Fd1A1a1Axd1hHdFRmZGNPY1NnMmw1ZUM5N3lhaHd6TmtNSGY1cFZ5b3B4YnUrUnpYeEdsdGFUMDZEMGRSRStGMGRJNmN0dHZjK2pSN3hkamhXWUQycFk4RXF2aTEwSDM3YVJCSUVCdnFVNGlTNkg4SGE5NDBYSFBpZ1c2RTB0ZkEvcWlUT2k2RTlHeWhiQzk0R2t2eitLZzIvK09RYUJkczh1TEcwNjc4elNKS1FFNUprSGxwWmNpTS9FYzQ3ZkxIbDlxSmIrQzhUNTd0WXNuKzVuVVBnOUduUWY1RlNyWTlxM0p5bExmVWIvOU9kcUdZMUc4dllYaUpLb01pQTJNLytKV3QwZDlJcEZKK0hsZE5SMFpOM2R2NUgrNUx6S1NEY2Y0cnBZQXhVWGs0bXhkVklUeUFDempRdUxXaHNpUUhBSUJvaE5vTnIyY0dxQTdLcjQ4aU5JWjFQUTZ1Ym9TaTBMUVcrL1NRbzJESUN0Q1JMMjlKR2NGZTlwOWZwdUhCN0c4elJ5UG4vUmlsTGFJdHhZQ1ozMzZ1Y3dkNURLR3ovYjRDR3k0U2FOc0NSOFl2Qjc0MHg1WWhrQi94anpoTDc3aVRBR1pZNXNjNllsL01iSlFHS29jeEE4aWZXemlsVnRNQXFwdUhNSE1IbmVEUWptdmZMa1lIcEZRd0tXUUhLaUJFUHc9In0=\",\"collapse_key\":\"call:0192f3f0-6a1b-7c2d-8e3f-4a5b6c7d8e90\",\"ttl_s\":30}",
+      "apns_payload": "{\"aps\":{\"alert\":{\"loc-key\":\"push.call_incoming\"},\"mutable-content\":1,\"sound\":\"default\",\"thread-id\":\"calls\",\"interruption-level\":\"time-sensitive\"},\"p\":\"9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d\",\"hl\":\"eyJ2IjoxLCJ0eXBlIjoiY2FsbF9ldmVudCIsImlkIjoiMDE5MmYzZjAtNmEyYy03ZDNlLTlmNDAtNWE2YjdjOGQ5ZWFmIiwidHMiOjE3MjcxNTA0MDA0MDAsInBheWxvYWQiOiJzQkJNcjFlRWJMZTFnT0lmbkZVODk4OUhVNzRDeTQ1ZWt4aXN5SzZDZmNQMVRDTVoxdGVWVGVNV0lNVFFZQWVOT1JobDU3b2ovUW1DNENhQlQwcTdSN3NTTGIybHh4eitMRFUxa3htLzE1OURPdWJZOUNuVHRBVHQyaEFQbFVmZCt4VkhZeVVRRHpFMXd2TTczN0JhRUhGaGtJWWp2Y1JZMFlQcXErM0hGQUJteUg0RjNPZSttN3ZHVmNSNW9UN3JEbDZUK3h3ZWRWbXpyczBwSjFOVGVPVmMxWk9tNmtEMGNJVTBNaDF1ejhpTlI5UW1Fd1A1a1Axd1hHdFRmZGNPY1NnMmw1ZUM5N3lhaHd6TmtNSGY1cFZ5b3B4YnUrUnpYeEdsdGFUMDZEMGRSRStGMGRJNmN0dHZjK2pSN3hkamhXWUQycFk4RXF2aTEwSDM3YVJCSUVCdnFVNGlTNkg4SGE5NDBYSFBpZ1c2RTB0ZkEvcWlUT2k2RTlHeWhiQzk0R2t2eitLZzIvK09RYUJkczh1TEcwNjc4elNKS1FFNUprSGxwWmNpTS9FYzQ3ZkxIbDlxSmIrQzhUNTd0WXNuKzVuVVBnOUduUWY1RlNyWTlxM0p5bExmVWIvOU9kcUdZMUc4dllYaUpLb01pQTJNLytKV3QwZDlJcEZKK0hsZE5SMFpOM2R2NUgrNUx6S1NEY2Y0cnBZQXhVWGs0bXhkVklUeUFDempRdUxXaHNpUUhBSUJvaE5vTnIyY0dxQTdLcjQ4aU5JWjFQUTZ1Ym9TaTBMUVcrL1NRbzJESUN0Q1JMMjlKR2NGZTlwOWZwdUhCN0c4elJ5UG4vUmlsTGFJdHhZQ1ozMzZ1Y3dkNURLR3ovYjRDR3k0U2FOc0NSOFl2Qjc0MHg1WWhrQi94anpoTDc3aVRBR1pZNXNjNllsL01iSlFHS29jeEE4aWZXemlsVnRNQXFwdUhNSE1IbmVEUWptdmZMa1lIcEZRd0tXUUhLaUJFUHc9In0=\"}",
+      "apns_headers": {
+        "apns-push-type": "alert",
+        "apns-topic": "app.handlive.ios",
+        "apns-priority": "10",
+        "apns-collapse-id": "call:0192f3f0-6a1b-7c2d-8e3f-4a5b6c7d8e90"
+      }
+    }
+  ],
+  "invalid_vectors": [
+    {
+      "name": "pair 2 / sms/new (Vietnamese content) / K_push of pair 1",
+      "reason": "wrong_key",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "key": "e82ec406f90fcfbddbf81ab58f357d815a9febf0dc247aad1e0783d6c98c1254",
+      "env_b64": "eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YTEwLTdiMjAtOGMzMC05ZDQwYWU1MGJmNjAiLCJ0cyI6MTcyNzE1MDA2MDUwMCwicGF5bG9hZCI6ImVEYllZTzU3dGxVbGtJWVpJdXhSZDBqS21hN0Z4NHEwUnN0eUlIUGtjNThaNUFlWitxZ3RTZDhyRElmSnp3Y1Azelh5T3V4TndDQXBXbCtpMm15c2ZqRHVta2FjNi83UlZXUk1wcERNYzRrUDZtazMxeExnODRyaTFHNi8ydDRJRFZrb1FYbTBOSnliMC9hc21XL1V0Ty9UTjdDWnBNZzVSaGpyM0VJcVc3dFk0ZTZvdUlqT0Z6ekUwMFNxTStDMGI4OEJiWW1SZktEMnVyTU1LbDIvdVdGOHk3NUxCbytTaGc1MXU3UXdPMVJVS2hKNFZOQ2xyeWQ0bEFUVDR0YUJIazk3dmR2UHNxd0tQZVJrREdwa3oxem9CMUZ2RURSU2JMb2dzbnJrVWxKRjV3SmtkV2kxMHpydzlsZFM0cDBoOUZNTzFrWkxRZmdtcWEzUU9Xd2pZdlhoZ01PMGVtSStmc25iMUpFSTJhUUUzZDR0Q2hsZEdpVktsRHBaZ3pta2FVczgwNFJxS1hzQi9zQjJ5MU1UZ2wyWDBuZHRyZUFVZ2w1VWJOT09BSDBrNXRrR2V6blkxTGdnMktYVmdUKzB4RXZheEs4OW5OcEQrTXV5RnA3Z0VDSHBsQ2RuVTAxRkdBdmpzYUJibFRRSjFmQVp3ZzVlamd4WDF2UXJnRko5a0N4bzlEenl4NllyTWZQakhJM2dRZmx3MXdDT1VyNDdXTUFjaFJxQk9wTEhnV25WZFlTM3N2MWsifQ=="
+    },
+    {
+      "name": "pair 2 / sms/new (Vietnamese content) / PRK used directly instead of K_push",
+      "reason": "wrong_key",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "key": "8d3109350469af80c3db25ff2c1867ab56112623020d829301236ed7251411cc",
+      "env_b64": "eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YTEwLTdiMjAtOGMzMC05ZDQwYWU1MGJmNjAiLCJ0cyI6MTcyNzE1MDA2MDUwMCwicGF5bG9hZCI6ImVEYllZTzU3dGxVbGtJWVpJdXhSZDBqS21hN0Z4NHEwUnN0eUlIUGtjNThaNUFlWitxZ3RTZDhyRElmSnp3Y1Azelh5T3V4TndDQXBXbCtpMm15c2ZqRHVta2FjNi83UlZXUk1wcERNYzRrUDZtazMxeExnODRyaTFHNi8ydDRJRFZrb1FYbTBOSnliMC9hc21XL1V0Ty9UTjdDWnBNZzVSaGpyM0VJcVc3dFk0ZTZvdUlqT0Z6ekUwMFNxTStDMGI4OEJiWW1SZktEMnVyTU1LbDIvdVdGOHk3NUxCbytTaGc1MXU3UXdPMVJVS2hKNFZOQ2xyeWQ0bEFUVDR0YUJIazk3dmR2UHNxd0tQZVJrREdwa3oxem9CMUZ2RURSU2JMb2dzbnJrVWxKRjV3SmtkV2kxMHpydzlsZFM0cDBoOUZNTzFrWkxRZmdtcWEzUU9Xd2pZdlhoZ01PMGVtSStmc25iMUpFSTJhUUUzZDR0Q2hsZEdpVktsRHBaZ3pta2FVczgwNFJxS1hzQi9zQjJ5MU1UZ2wyWDBuZHRyZUFVZ2w1VWJOT09BSDBrNXRrR2V6blkxTGdnMktYVmdUKzB4RXZheEs4OW5OcEQrTXV5RnA3Z0VDSHBsQ2RuVTAxRkdBdmpzYUJibFRRSjFmQVp3ZzVlamd4WDF2UXJnRko5a0N4bzlEenl4NllyTWZQakhJM2dRZmx3MXdDT1VyNDdXTUFjaFJxQk9wTEhnV25WZFlTM3N2MWsifQ=="
+    },
+    {
+      "name": "pair 2 / sms/new (Vietnamese content) / K_disc (info handlive/v1/discovery) instead of K_push",
+      "reason": "wrong_key",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "key": "1e2fb5e7a71ef9e8afc8a44365204f6aea3a14b5fdbbdff6b225661b0051ce6a",
+      "env_b64": "eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YTEwLTdiMjAtOGMzMC05ZDQwYWU1MGJmNjAiLCJ0cyI6MTcyNzE1MDA2MDUwMCwicGF5bG9hZCI6ImVEYllZTzU3dGxVbGtJWVpJdXhSZDBqS21hN0Z4NHEwUnN0eUlIUGtjNThaNUFlWitxZ3RTZDhyRElmSnp3Y1Azelh5T3V4TndDQXBXbCtpMm15c2ZqRHVta2FjNi83UlZXUk1wcERNYzRrUDZtazMxeExnODRyaTFHNi8ydDRJRFZrb1FYbTBOSnliMC9hc21XL1V0Ty9UTjdDWnBNZzVSaGpyM0VJcVc3dFk0ZTZvdUlqT0Z6ekUwMFNxTStDMGI4OEJiWW1SZktEMnVyTU1LbDIvdVdGOHk3NUxCbytTaGc1MXU3UXdPMVJVS2hKNFZOQ2xyeWQ0bEFUVDR0YUJIazk3dmR2UHNxd0tQZVJrREdwa3oxem9CMUZ2RURSU2JMb2dzbnJrVWxKRjV3SmtkV2kxMHpydzlsZFM0cDBoOUZNTzFrWkxRZmdtcWEzUU9Xd2pZdlhoZ01PMGVtSStmc25iMUpFSTJhUUUzZDR0Q2hsZEdpVktsRHBaZ3pta2FVczgwNFJxS1hzQi9zQjJ5MU1UZ2wyWDBuZHRyZUFVZ2w1VWJOT09BSDBrNXRrR2V6blkxTGdnMktYVmdUKzB4RXZheEs4OW5OcEQrTXV5RnA3Z0VDSHBsQ2RuVTAxRkdBdmpzYUJibFRRSjFmQVp3ZzVlamd4WDF2UXJnRko5a0N4bzlEenl4NllyTWZQakhJM2dRZmx3MXdDT1VyNDdXTUFjaFJxQk9wTEhnV25WZFlTM3N2MWsifQ=="
+    },
+    {
+      "name": "pair 2 / sms/new (Vietnamese content) / tag flipped",
+      "reason": "tag_mismatch",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "key": "c7551cfba15da79059bb182d5cc51a1d605e031dd0f236b24edff6acf01f3b9b",
+      "env_b64": "eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YTEwLTdiMjAtOGMzMC05ZDQwYWU1MGJmNjAiLCJ0cyI6MTcyNzE1MDA2MDUwMCwicGF5bG9hZCI6ImVEYllZTzU3dGxVbGtJWVpJdXhSZDBqS21hN0Z4NHEwUnN0eUlIUGtjNThaNUFlWitxZ3RTZDhyRElmSnp3Y1Azelh5T3V4TndDQXBXbCtpMm15c2ZqRHVta2FjNi83UlZXUk1wcERNYzRrUDZtazMxeExnODRyaTFHNi8ydDRJRFZrb1FYbTBOSnliMC9hc21XL1V0Ty9UTjdDWnBNZzVSaGpyM0VJcVc3dFk0ZTZvdUlqT0Z6ekUwMFNxTStDMGI4OEJiWW1SZktEMnVyTU1LbDIvdVdGOHk3NUxCbytTaGc1MXU3UXdPMVJVS2hKNFZOQ2xyeWQ0bEFUVDR0YUJIazk3dmR2UHNxd0tQZVJrREdwa3oxem9CMUZ2RURSU2JMb2dzbnJrVWxKRjV3SmtkV2kxMHpydzlsZFM0cDBoOUZNTzFrWkxRZmdtcWEzUU9Xd2pZdlhoZ01PMGVtSStmc25iMUpFSTJhUUUzZDR0Q2hsZEdpVktsRHBaZ3pta2FVczgwNFJxS1hzQi9zQjJ5MU1UZ2wyWDBuZHRyZUFVZ2w1VWJOT09BSDBrNXRrR2V6blkxTGdnMktYVmdUKzB4RXZheEs4OW5OcEQrTXV5RnA3Z0VDSHBsQ2RuVTAxRkdBdmpzYUJibFRRSjFmQVp3ZzVlamd4WDF2UXJnRko5a0N4bzlEenl4NllyTWZQakhJM2dRZmx3MXdDT1VyNDdXTUFjaFJxQk9wTEhnV25WZFlTM3N2MWwifQ=="
+    },
+    {
+      "name": "pair 2 / sms/new (Vietnamese content) / ts changed after encryption (AAD)",
+      "reason": "aad_mismatch",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "key": "c7551cfba15da79059bb182d5cc51a1d605e031dd0f236b24edff6acf01f3b9b",
+      "env_b64": "eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YTEwLTdiMjAtOGMzMC05ZDQwYWU1MGJmNjAiLCJ0cyI6MTcyNzE1MDA2MDUwMSwicGF5bG9hZCI6ImVEYllZTzU3dGxVbGtJWVpJdXhSZDBqS21hN0Z4NHEwUnN0eUlIUGtjNThaNUFlWitxZ3RTZDhyRElmSnp3Y1Azelh5T3V4TndDQXBXbCtpMm15c2ZqRHVta2FjNi83UlZXUk1wcERNYzRrUDZtazMxeExnODRyaTFHNi8ydDRJRFZrb1FYbTBOSnliMC9hc21XL1V0Ty9UTjdDWnBNZzVSaGpyM0VJcVc3dFk0ZTZvdUlqT0Z6ekUwMFNxTStDMGI4OEJiWW1SZktEMnVyTU1LbDIvdVdGOHk3NUxCbytTaGc1MXU3UXdPMVJVS2hKNFZOQ2xyeWQ0bEFUVDR0YUJIazk3dmR2UHNxd0tQZVJrREdwa3oxem9CMUZ2RURSU2JMb2dzbnJrVWxKRjV3SmtkV2kxMHpydzlsZFM0cDBoOUZNTzFrWkxRZmdtcWEzUU9Xd2pZdlhoZ01PMGVtSStmc25iMUpFSTJhUUUzZDR0Q2hsZEdpVktsRHBaZ3pta2FVczgwNFJxS1hzQi9zQjJ5MU1UZ2wyWDBuZHRyZUFVZ2w1VWJOT09BSDBrNXRrR2V6blkxTGdnMktYVmdUKzB4RXZheEs4OW5OcEQrTXV5RnA3Z0VDSHBsQ2RuVTAxRkdBdmpzYUJibFRRSjFmQVp3ZzVlamd4WDF2UXJnRko5a0N4bzlEenl4NllyTWZQakhJM2dRZmx3MXdDT1VyNDdXTUFjaFJxQk9wTEhnV25WZFlTM3N2MWsifQ=="
+    },
+    {
+      "name": "pair 2 / sms/new (Vietnamese content) / type changed to call_event after encryption (AAD)",
+      "reason": "aad_mismatch",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "key": "c7551cfba15da79059bb182d5cc51a1d605e031dd0f236b24edff6acf01f3b9b",
+      "env_b64": "eyJ2IjoxLCJ0eXBlIjoiY2FsbF9ldmVudCIsImlkIjoiMDE5MmYzZTQtN2ExMC03YjIwLThjMzAtOWQ0MGFlNTBiZjYwIiwidHMiOjE3MjcxNTAwNjA1MDAsInBheWxvYWQiOiJlRGJZWU81N3RsVWxrSVlaSXV4UmQwakttYTdGeDRxMFJzdHlJSFBrYzU4WjVBZVorcWd0U2Q4ckRJZkp6d2NQM3pYeU91eE53Q0FwV2wraTJteXNmakR1bWthYzYvN1JWV1JNcHBETWM0a1A2bWszMXhMZzg0cmkxRzYvMnQ0SURWa29RWG0wTkp5YjAvYXNtVy9VdE8vVE43Q1pwTWc1UmhqcjNFSXFXN3RZNGU2b3VJak9GenpFMDBTcU0rQzBiODhCYlltUmZLRDJ1ck1NS2wyL3VXRjh5NzVMQm8rU2hnNTF1N1F3TzFSVUtoSjRWTkNscnlkNGxBVFQ0dGFCSGs5N3ZkdlBzcXdLUGVSa0RHcGt6MXpvQjFGdkVEUlNiTG9nc25ya1VsSkY1d0prZFdpMTB6cnc5bGRTNHAwaDlGTU8xa1pMUWZnbXFhM1FPV3dqWXZYaGdNTzBlbUkrZnNuYjFKRUkyYVFFM2Q0dENobGRHaVZLbERwWmd6bWthVXM4MDRScUtYc0Ivc0IyeTFNVGdsMlgwbmR0cmVBVWdsNVViTk9PQUgwazV0a0dlem5ZMUxnZzJLWFZnVCsweEV2YXhLODluTnBEK011eUZwN2dFQ0hwbENkblUwMUZHQXZqc2FCYmxUUUoxZkFad2c1ZWpneFgxdlFyZ0ZKOWtDeG85RHp5eDZZck1mUGpISTNnUWZsdzF3Q09VcjQ3V01BY2hScUJPcExIZ1duVmRZUzNzdjFrIn0="
+    },
+    {
+      "name": "pair 2 / sms/new (Vietnamese content) / encrypted with the AAD written with spaces",
+      "reason": "aad_mismatch",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "key": "c7551cfba15da79059bb182d5cc51a1d605e031dd0f236b24edff6acf01f3b9b",
+      "env_b64": "eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YTEwLTdiMjAtOGMzMC05ZDQwYWU1MGJmNjAiLCJ0cyI6MTcyNzE1MDA2MDUwMCwicGF5bG9hZCI6ImVEYllZTzU3dGxVbGtJWVpJdXhSZDBqS21hN0Z4NHEwUnN0eUlIUGtjNThaNUFlWitxZ3RTZDhyRElmSnp3Y1Azelh5T3V4TndDQXBXbCtpMm15c2ZqRHVta2FjNi83UlZXUk1wcERNYzRrUDZtazMxeExnODRyaTFHNi8ydDRJRFZrb1FYbTBOSnliMC9hc21XL1V0Ty9UTjdDWnBNZzVSaGpyM0VJcVc3dFk0ZTZvdUlqT0Z6ekUwMFNxTStDMGI4OEJiWW1SZktEMnVyTU1LbDIvdVdGOHk3NUxCbytTaGc1MXU3UXdPMVJVS2hKNFZOQ2xyeWQ0bEFUVDR0YUJIazk3dmR2UHNxd0tQZVJrREdwa3oxem9CMUZ2RURSU2JMb2dzbnJrVWxKRjV3SmtkV2kxMHpydzlsZFM0cDBoOUZNTzFrWkxRZmdtcWEzUU9Xd2pZdlhoZ01PMGVtSStmc25iMUpFSTJhUUUzZDR0Q2hsZEdpVktsRHBaZ3pta2FVczgwNFJxS1hzQi9zQjJ5MU1UZ2wyWDBuZHRyZUFVZ2w1VWJOT09BSDBrNXRrR2V6blkxTGdnMktYVmdUKzB4RXZheEs4OW5OcEQrTXV5RnA3Z0VDSHBsQ2RuVTAxRkdBdmpzYUJibFRRSjFmQVp3ZzVlamd4WDF2UXJnRko5a0N4bzlEenl4NllyTWZQakhJM2dRZmx3MXdDT1VyNDdXTURtMll2SFNZMk5EeEYvTTJnOVJ5MnUifQ==",
+      "aad_used": "1 | sms | 0192f3e4-7a10-7b20-8c30-9d40ae50bf60 | 1727150060500"
+    },
+    {
+      "name": "pair 2 / sms/new (Vietnamese content) / received more than 24 h after ts",
+      "reason": "stale",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "key": "c7551cfba15da79059bb182d5cc51a1d605e031dd0f236b24edff6acf01f3b9b",
+      "env_b64": "eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YTEwLTdiMjAtOGMzMC05ZDQwYWU1MGJmNjAiLCJ0cyI6MTcyNzE1MDA2MDUwMCwicGF5bG9hZCI6ImVEYllZTzU3dGxVbGtJWVpJdXhSZDBqS21hN0Z4NHEwUnN0eUlIUGtjNThaNUFlWitxZ3RTZDhyRElmSnp3Y1Azelh5T3V4TndDQXBXbCtpMm15c2ZqRHVta2FjNi83UlZXUk1wcERNYzRrUDZtazMxeExnODRyaTFHNi8ydDRJRFZrb1FYbTBOSnliMC9hc21XL1V0Ty9UTjdDWnBNZzVSaGpyM0VJcVc3dFk0ZTZvdUlqT0Z6ekUwMFNxTStDMGI4OEJiWW1SZktEMnVyTU1LbDIvdVdGOHk3NUxCbytTaGc1MXU3UXdPMVJVS2hKNFZOQ2xyeWQ0bEFUVDR0YUJIazk3dmR2UHNxd0tQZVJrREdwa3oxem9CMUZ2RURSU2JMb2dzbnJrVWxKRjV3SmtkV2kxMHpydzlsZFM0cDBoOUZNTzFrWkxRZmdtcWEzUU9Xd2pZdlhoZ01PMGVtSStmc25iMUpFSTJhUUUzZDR0Q2hsZEdpVktsRHBaZ3pta2FVczgwNFJxS1hzQi9zQjJ5MU1UZ2wyWDBuZHRyZUFVZ2w1VWJOT09BSDBrNXRrR2V6blkxTGdnMktYVmdUKzB4RXZheEs4OW5OcEQrTXV5RnA3Z0VDSHBsQ2RuVTAxRkdBdmpzYUJibFRRSjFmQVp3ZzVlamd4WDF2UXJnRko5a0N4bzlEenl4NllyTWZQakhJM2dRZmx3MXdDT1VyNDdXTUFjaFJxQk9wTEhnV25WZFlTM3N2MWsifQ==",
+      "received_at_ms": 1727236460501
+    },
+    {
+      "name": "pair 2 / sms/new (Vietnamese content) / env_b64 written in base64url without padding",
+      "reason": "not_b64",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "key": "c7551cfba15da79059bb182d5cc51a1d605e031dd0f236b24edff6acf01f3b9b",
+      "env_b64": "eyJ2IjoxLCJ0eXBlIjoic21zIiwiaWQiOiIwMTkyZjNlNC03YTEwLTdiMjAtOGMzMC05ZDQwYWU1MGJmNjAiLCJ0cyI6MTcyNzE1MDA2MDUwMCwicGF5bG9hZCI6ImVEYllZTzU3dGxVbGtJWVpJdXhSZDBqS21hN0Z4NHEwUnN0eUlIUGtjNThaNUFlWitxZ3RTZDhyRElmSnp3Y1Azelh5T3V4TndDQXBXbCtpMm15c2ZqRHVta2FjNi83UlZXUk1wcERNYzRrUDZtazMxeExnODRyaTFHNi8ydDRJRFZrb1FYbTBOSnliMC9hc21XL1V0Ty9UTjdDWnBNZzVSaGpyM0VJcVc3dFk0ZTZvdUlqT0Z6ekUwMFNxTStDMGI4OEJiWW1SZktEMnVyTU1LbDIvdVdGOHk3NUxCbytTaGc1MXU3UXdPMVJVS2hKNFZOQ2xyeWQ0bEFUVDR0YUJIazk3dmR2UHNxd0tQZVJrREdwa3oxem9CMUZ2RURSU2JMb2dzbnJrVWxKRjV3SmtkV2kxMHpydzlsZFM0cDBoOUZNTzFrWkxRZmdtcWEzUU9Xd2pZdlhoZ01PMGVtSStmc25iMUpFSTJhUUUzZDR0Q2hsZEdpVktsRHBaZ3pta2FVczgwNFJxS1hzQi9zQjJ5MU1UZ2wyWDBuZHRyZUFVZ2w1VWJOT09BSDBrNXRrR2V6blkxTGdnMktYVmdUKzB4RXZheEs4OW5OcEQrTXV5RnA3Z0VDSHBsQ2RuVTAxRkdBdmpzYUJibFRRSjFmQVp3ZzVlamd4WDF2UXJnRko5a0N4bzlEenl4NllyTWZQakhJM2dRZmx3MXdDT1VyNDdXTUFjaFJxQk9wTEhnV25WZFlTM3N2MWsifQ"
+    }
+  ]
+}

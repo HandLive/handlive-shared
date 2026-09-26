@@ -1,0 +1,187 @@
+{
+  "description": "Relay routing: binary frame \"HR\" (0x48 0x52) ‖ ver 0x01 ‖ op 0x01 (forward) ‖ device_id (16 bytes: the destination in a frame a device sends, the source in a frame the relay delivers) ‖ the HL frame, intact. The relay only swaps the device_id; text frames {\"to\", \"env\"} become {\"from\", \"env\"} with env byte for byte as received. Invalid vectors: what the relay refuses, with the relay error it answers.",
+  "source": "docs/detailed-design/00-common-specs.md 0.4.3, 0.5.2; 03-connectivity.md CONN-03 API 6; inner frames from hl-frame.json, device_ids of pair 1 (pair-prk.json), env from envelope.json",
+  "vectors": [
+    {
+      "name": "Mac → relay: call-audio frame for the phone",
+      "kind": "frame",
+      "direction": "device_to_relay",
+      "magic": "4852",
+      "ver": 1,
+      "op": 1,
+      "op_name": "forward",
+      "device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "device_id_hex": "39f713d0a644853f84529421b9f51b9b",
+      "header": "4852010139f713d0a644853f84529421b9f51b9b",
+      "inner_source": "hl-frame.json / call-audio Mac→Android seq 1",
+      "inner": "484c01000000010000001443faafc5d2439927997d1a66aa111e6e2ee5165320fca4d2673ca1778ca1091fe686384831c3ccd2936b88d8550157d18fdd0d564b2cd2bf435f0998b67155a406dcb92f69ea230113",
+      "frame": "4852010139f713d0a644853f84529421b9f51b9b484c01000000010000001443faafc5d2439927997d1a66aa111e6e2ee5165320fca4d2673ca1778ca1091fe686384831c3ccd2936b88d8550157d18fdd0d564b2cd2bf435f0998b67155a406dcb92f69ea230113",
+      "length": 104
+    },
+    {
+      "name": "relay → phone: the same frame from the Mac",
+      "kind": "frame",
+      "direction": "relay_to_device",
+      "magic": "4852",
+      "ver": 1,
+      "op": 1,
+      "op_name": "forward",
+      "device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "device_id_hex": "21fe31dfa1548261a26bf854046fd227",
+      "header": "4852010121fe31dfa1548261a26bf854046fd227",
+      "inner_source": "hl-frame.json / call-audio Mac→Android seq 1",
+      "inner": "484c01000000010000001443faafc5d2439927997d1a66aa111e6e2ee5165320fca4d2673ca1778ca1091fe686384831c3ccd2936b88d8550157d18fdd0d564b2cd2bf435f0998b67155a406dcb92f69ea230113",
+      "frame": "4852010121fe31dfa1548261a26bf854046fd227484c01000000010000001443faafc5d2439927997d1a66aa111e6e2ee5165320fca4d2673ca1778ca1091fe686384831c3ccd2936b88d8550157d18fdd0d564b2cd2bf435f0998b67155a406dcb92f69ea230113",
+      "length": 104
+    },
+    {
+      "name": "phone → relay: call-audio frame for the Mac",
+      "kind": "frame",
+      "direction": "device_to_relay",
+      "magic": "4852",
+      "ver": 1,
+      "op": 1,
+      "op_name": "forward",
+      "device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "device_id_hex": "21fe31dfa1548261a26bf854046fd227",
+      "header": "4852010121fe31dfa1548261a26bf854046fd227",
+      "inner_source": "hl-frame.json / call-audio Android→Mac seq 0",
+      "inner": "484c0100000000000000004799739b38ee8262a3ef9cac03988364f11c5fd002b277162f6c4fc3f2eb7094d2b80821c0c239c650f237a8908884008ed8e7fce96291f131f2a97a485387089725ca84b19dd464c7f5aa0be4f43ca6",
+      "frame": "4852010121fe31dfa1548261a26bf854046fd227484c0100000000000000004799739b38ee8262a3ef9cac03988364f11c5fd002b277162f6c4fc3f2eb7094d2b80821c0c239c650f237a8908884008ed8e7fce96291f131f2a97a485387089725ca84b19dd464c7f5aa0be4f43ca6",
+      "length": 111
+    },
+    {
+      "name": "relay → Mac: the same frame from the phone",
+      "kind": "frame",
+      "direction": "relay_to_device",
+      "magic": "4852",
+      "ver": 1,
+      "op": 1,
+      "op_name": "forward",
+      "device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "device_id_hex": "39f713d0a644853f84529421b9f51b9b",
+      "header": "4852010139f713d0a644853f84529421b9f51b9b",
+      "inner_source": "hl-frame.json / call-audio Android→Mac seq 0",
+      "inner": "484c0100000000000000004799739b38ee8262a3ef9cac03988364f11c5fd002b277162f6c4fc3f2eb7094d2b80821c0c239c650f237a8908884008ed8e7fce96291f131f2a97a485387089725ca84b19dd464c7f5aa0be4f43ca6",
+      "frame": "4852010139f713d0a644853f84529421b9f51b9b484c0100000000000000004799739b38ee8262a3ef9cac03988364f11c5fd002b277162f6c4fc3f2eb7094d2b80821c0c239c650f237a8908884008ed8e7fce96291f131f2a97a485387089725ca84b19dd464c7f5aa0be4f43ca6",
+      "length": 111
+    },
+    {
+      "name": "rewrite: Mac → relay: call-audio frame for the phone ⇒ relay → phone: the same frame from the Mac",
+      "kind": "rewrite",
+      "sender_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "recipient_device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "outbound": "4852010139f713d0a644853f84529421b9f51b9b484c01000000010000001443faafc5d2439927997d1a66aa111e6e2ee5165320fca4d2673ca1778ca1091fe686384831c3ccd2936b88d8550157d18fdd0d564b2cd2bf435f0998b67155a406dcb92f69ea230113",
+      "inbound": "4852010121fe31dfa1548261a26bf854046fd227484c01000000010000001443faafc5d2439927997d1a66aa111e6e2ee5165320fca4d2673ca1778ca1091fe686384831c3ccd2936b88d8550157d18fdd0d564b2cd2bf435f0998b67155a406dcb92f69ea230113"
+    },
+    {
+      "name": "rewrite: phone → relay: call-audio frame for the Mac ⇒ relay → Mac: the same frame from the phone",
+      "kind": "rewrite",
+      "sender_device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "recipient_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "outbound": "4852010121fe31dfa1548261a26bf854046fd227484c0100000000000000004799739b38ee8262a3ef9cac03988364f11c5fd002b277162f6c4fc3f2eb7094d2b80821c0c239c650f237a8908884008ed8e7fce96291f131f2a97a485387089725ca84b19dd464c7f5aa0be4f43ca6",
+      "inbound": "4852010139f713d0a644853f84529421b9f51b9b484c0100000000000000004799739b38ee8262a3ef9cac03988364f11c5fd002b277162f6c4fc3f2eb7094d2b80821c0c239c650f237a8908884008ed8e7fce96291f131f2a97a485387089725ca84b19dd464c7f5aa0be4f43ca6"
+    },
+    {
+      "name": "text wrapper Mac → phone (compact)",
+      "kind": "text_rewrite",
+      "sender_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "recipient_device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "env": "{\"v\":1,\"type\":\"sms\",\"id\":\"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\"ts\":1727150170000,\"payload\":\"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"}",
+      "outbound": "{\"to\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"env\":{\"v\":1,\"type\":\"sms\",\"id\":\"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\"ts\":1727150170000,\"payload\":\"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"}}",
+      "inbound": "{\"from\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"env\":{\"v\":1,\"type\":\"sms\",\"id\":\"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\"ts\":1727150170000,\"payload\":\"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"}}"
+    },
+    {
+      "name": "text wrapper with env first, spaces and an indented env",
+      "kind": "text_rewrite",
+      "sender_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "recipient_device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "env": "{\n \"v\": 1,\n \"type\": \"sms\",\n \"id\": \"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\n \"ts\": 1727150170000,\n \"payload\": \"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"\n}",
+      "outbound": "{ \"env\" : {\n \"v\": 1,\n \"type\": \"sms\",\n \"id\": \"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\n \"ts\": 1727150170000,\n \"payload\": \"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"\n} , \"to\" : \"39f713d0-a644-853f-8452-9421b9f51b9b\" }",
+      "inbound": "{\"from\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"env\":{\n \"v\": 1,\n \"type\": \"sms\",\n \"id\": \"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\n \"ts\": 1727150170000,\n \"payload\": \"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"\n}}"
+    }
+  ],
+  "invalid_vectors": [
+    {
+      "name": "magic HL instead of HR",
+      "reason": "bad_magic",
+      "kind": "frame",
+      "frame": "484c010139f713d0a644853f84529421b9f51b9b484c01000000010000001443faafc5d2439927997d1a66aa111e6e2ee5165320fca4d2673ca1778ca1091fe686384831c3ccd2936b88d8550157d18fdd0d564b2cd2bf435f0998b67155a406dcb92f69ea230113",
+      "expected_error": "BAD_REQUEST"
+    },
+    {
+      "name": "version 0x02",
+      "reason": "unsupported_version",
+      "kind": "frame",
+      "frame": "4852020139f713d0a644853f84529421b9f51b9b484c01000000010000001443faafc5d2439927997d1a66aa111e6e2ee5165320fca4d2673ca1778ca1091fe686384831c3ccd2936b88d8550157d18fdd0d564b2cd2bf435f0998b67155a406dcb92f69ea230113",
+      "expected_error": "BAD_REQUEST"
+    },
+    {
+      "name": "op 0x02",
+      "reason": "unknown_op",
+      "kind": "frame",
+      "frame": "4852010239f713d0a644853f84529421b9f51b9b484c01000000010000001443faafc5d2439927997d1a66aa111e6e2ee5165320fca4d2673ca1778ca1091fe686384831c3ccd2936b88d8550157d18fdd0d564b2cd2bf435f0998b67155a406dcb92f69ea230113",
+      "expected_error": "BAD_REQUEST"
+    },
+    {
+      "name": "header cut to 19 bytes",
+      "reason": "truncated",
+      "kind": "frame",
+      "frame": "4852010139f713d0a644853f84529421b9f51b",
+      "expected_error": "BAD_REQUEST"
+    },
+    {
+      "name": "header only, no HL frame",
+      "reason": "truncated",
+      "kind": "frame",
+      "frame": "4852010139f713d0a644853f84529421b9f51b9b",
+      "expected_error": "BAD_REQUEST"
+    },
+    {
+      "name": "inner frame is not HL",
+      "reason": "inner_not_hl",
+      "kind": "frame",
+      "frame": "4852010139f713d0a644853f84529421b9f51b9b485201000000010000001443faafc5d2439927997d1a66aa111e6e2ee5165320fca4d2673ca1778ca1091fe686384831c3ccd2936b88d8550157d18fdd0d564b2cd2bf435f0998b67155a406dcb92f69ea230113",
+      "expected_error": "BAD_REQUEST"
+    },
+    {
+      "name": "inner HL frame shorter than 11 + 24 + 16 bytes",
+      "reason": "inner_too_short",
+      "kind": "frame",
+      "frame": "4852010139f713d0a644853f84529421b9f51b9b484c01000000010000001443faafc5d2439927997d1a66aa111e6e2ee5165320fca4d2673ca1778ca1091fe686384831c3cc",
+      "expected_error": "BAD_REQUEST"
+    },
+    {
+      "name": "wrapper with both to and from",
+      "reason": "bad_wrapper",
+      "kind": "text",
+      "sender_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "outbound": "{\"to\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"from\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"env\":{\"v\":1,\"type\":\"sms\",\"id\":\"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\"ts\":1727150170000,\"payload\":\"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"}}",
+      "expected_error": "BAD_REQUEST"
+    },
+    {
+      "name": "to is not a device_id",
+      "reason": "bad_wrapper",
+      "kind": "text",
+      "sender_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "outbound": "{\"to\":\"phone\",\"env\":{\"v\":1,\"type\":\"sms\",\"id\":\"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\"ts\":1727150170000,\"payload\":\"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"}}",
+      "expected_error": "BAD_REQUEST"
+    },
+    {
+      "name": "wrapper without env",
+      "reason": "bad_wrapper",
+      "kind": "text",
+      "sender_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "outbound": "{\"to\":\"39f713d0-a644-853f-8452-9421b9f51b9b\"}",
+      "expected_error": "BAD_REQUEST"
+    },
+    {
+      "name": "to is the sender itself",
+      "reason": "not_paired",
+      "kind": "text",
+      "sender_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "outbound": "{\"to\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"env\":{\"v\":1,\"type\":\"sms\",\"id\":\"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\"ts\":1727150170000,\"payload\":\"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"}}",
+      "expected_error": "NOT_PAIRED"
+    }
+  ]
+}
