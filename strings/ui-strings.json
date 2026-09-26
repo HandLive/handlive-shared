@@ -513,6 +513,14 @@
       "specs": ["PAIR-01"]
     },
     {
+      "key": "error.relay_device_revoked",
+      "en": "This device was removed from the internet service",
+      "vi": "Thiết bị đã bị xóa khỏi dịch vụ Internet",
+      "comment": "Shown when the relay answers 410 DEVICE_REVOKED (CONN-03 E3); the internet connection stays off until the user turns it back on",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CONN-03"]
+    },
+    {
       "key": "error.server_unreachable",
       "en": "Couldn't connect to the server. Try again later.",
       "vi": "Không kết nối được máy chủ, hãy thử lại sau.",
@@ -1106,8 +1114,8 @@
       "key": "pairing.unpaired",
       "en": "Unpaired",
       "vi": "Đã hủy ghép nối",
-      "comment": "PAIR-03 field 4, result done: both devices cleaned up (HUD). Proposed text",
-      "platforms": ["android"],
+      "comment": "PAIR-03 field 4, result done: both devices cleaned up (HUD)",
+      "platforms": ["android", "macos", "ios"],
       "specs": ["PAIR-03"]
     },
     {
@@ -1123,8 +1131,8 @@
       "key": "pairing.unpaired_pending",
       "en": "Unpaired; {device_name} will clean up when it reconnects",
       "vi": "Đã hủy ghép nối; {device_name} sẽ tự dọn khi kết nối lại",
-      "comment": "PAIR-03 field 4, result done_pending_remote: the other device was not connected. Proposed text",
-      "platforms": ["android"],
+      "comment": "PAIR-03 field 4, result done_pending_remote (flow B): cleaned up here, {device_name} was not connected and cleans up when it reconnects",
+      "platforms": ["android", "macos", "ios"],
       "args": [{"name": "device_name", "type": "string"}],
       "specs": ["PAIR-03"]
     },
@@ -2167,7 +2175,7 @@
       "vi": "Qua Internet",
       "comment": "Short channel label (pill) of a device connected through the HandLive server",
       "platforms": ["android", "macos", "ios"],
-      "specs": ["PAIR-02"]
+      "specs": ["PAIR-02", "CONN-03"]
     },
     {
       "key": "status.channel_lan",
@@ -2191,7 +2199,7 @@
       "vi": "Đã kết nối qua Internet",
       "comment": "State Connected while the session goes through the relay",
       "platforms": ["android", "macos", "ios"],
-      "specs": ["0.11", "PAIR-02"]
+      "specs": ["0.11", "PAIR-02", "CONN-03"]
     },
     {
       "key": "status.connected_internet_to",
@@ -2275,7 +2283,7 @@
       "vi": "Điện thoại ngoại tuyến",
       "comment": "State WaitingPeer: the server is reachable but the phone is not",
       "platforms": ["macos", "ios"],
-      "specs": ["0.11", "PAIR-02"]
+      "specs": ["0.11", "PAIR-02", "CONN-03"]
     },
     {
       "key": "status.peer_offline_since",
