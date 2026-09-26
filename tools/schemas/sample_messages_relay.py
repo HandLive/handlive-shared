@@ -124,6 +124,7 @@ NEGATIVE_SPECS = [
      lambda m: m.update({"data": {"pair_id": m.pop("pair_id")}})),
     ("relay error HTTP-only code", "relay-error", "relay error with to", _set(["code"], "TOKEN_EXPIRED")),
     ("relay error without message", "relay-error", "relay error with to", _drop(["message"])),
+    ("relay error BAD_REQUEST echoing to", "relay-error", "relay error with to", _set(["code"], "BAD_REQUEST")),
     ("rv_join rv_id 32 bytes", "relay-rv_join", "rv_join", _set(["rv_id"], B64U_32)),
     ("rv_join rv_id not canonical", "relay-rv_join", "rv_join", _set(["rv_id"], B64U_16[:-1] + "B")),
     ("rv_joined without peer_present", "relay-rv_joined", "rv_joined", _drop(["peer_present"])),

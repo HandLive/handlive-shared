@@ -9,13 +9,19 @@
   "properties": {
     "op": { "const": "error" },
     "code": {
-      "description": "NOT_PAIRED (0.8.2): the destination is not the peer of a valid pair; NOT_CONNECTED (0.8.1): the peer has no relay connection; PAYLOAD_TOO_LARGE: frame > 256 KiB; RATE_LIMITED; BAD_REQUEST: malformed frame, or a rendezvous that is full or expired.",
+      "description": "NOT_PAIRED (0.8.2): the destination is not the peer of a registered, unrevoked pair (also the sender itself); NOT_CONNECTED (0.8.1): no receiver on dev:<to>, the frame could not be published, or an rv_msg without another member; PAYLOAD_TOO_LARGE: frame > 256 KiB; RATE_LIMITED; BAD_REQUEST: malformed wrapper or HR frame (a destination that is not a UUIDv8 included), or a full rendezvous.",
       "enum": ["NOT_PAIRED", "NOT_CONNECTED", "PAYLOAD_TOO_LARGE", "RATE_LIMITED", "BAD_REQUEST"]
     },
     "message": { "type": "string" },
     "to": {
-      "description": "Destination of the refused frame, when there is one.",
+      "description": "Destination of the refused frame, when there is one; never with BAD_REQUEST, so a malformed id is never echoed (CONN-03 API 6 logic 1).",
       "$ref": "common.schema.json#/$defs/uuid-v8"
     }
+  },
+  "if": {
+    "properties": { "code": { "const": "BAD_REQUEST" } }
+  },
+  "then": {
+    "not": { "required": ["to"] }
   }
 }
