@@ -18,7 +18,7 @@ Exits 0 when green (it prints `XANH`). Steps:
    - A ```json block that does not parse as a whole is parsed line by line; a line that does not parse is a documentation error. In a ```http block every line starting with `{` is a JSON body. Inline code counts only when it is valid JSON.
 3. Hand-written positive samples (`sample_messages.py`, `sample_messages_sms.py`, `sample_messages_relay.py`) must pass; negative samples (each breaks exactly one thing: a missing field, a wrong `v`, an unknown `type`, an unknown error code, a malformed uuid, bad b64, a wake push with content…) must be rejected.
 4. The UI string catalog excerpt quoted in 0.12.1 (the ```jsonc block with `strings`) passes `strings/ui-strings.schema.json` and the rules of `tools/strings/catalog_rules.py`, except the key order.
-5. The wire messages inside `shared/test-vectors` pass their schemas: the `request` of `relay-auth.json`, and the `pairs_request` and the `pair/*` plaintexts of `pair-handshake.json`.
+5. The wire messages inside `shared/test-vectors` pass their schemas: the `request` of `relay-auth.json`; the `pairs_request` and the `pair/*` plaintexts of `pair-handshake.json`; the `push_request`, `apns_payload` and `sms/new` plaintexts of `push-envelope.json` (with `env_b64`/`hl` decoded into an envelope); the text wrappers of `relay-frame.json`, whose malformed ones must also fail `relay-wrapper`.
 
 ## Placeholder substitution
 

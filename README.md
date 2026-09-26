@@ -8,7 +8,7 @@ Sources: `../docs/detailed-design/00-common-specs.md` and `../docs/design-system
 
 | Folder | Contents | Docs |
 |--------|----------|------|
-| `test-vectors/` | 18 vector files (RFC and generated) plus the cross-platform `envelope-roundtrip{,-apple}.json` | `test-vectors/README.md` |
+| `test-vectors/` | 20 vector files (RFC and generated, including `push-envelope.json` and `relay-frame.json`) plus the cross-platform `envelope-roundtrip{,-apple}.json` | `test-vectors/README.md` |
 | `schemas/` | JSON Schema 2020-12: envelope, payload, ack, error, `session-*`, `capability-*`, `pair-*`, `ping-ping`, `clipboard-*`, `sms-*`; the relay's `relay-*` frames and `relay-rest` bodies; `push` bodies | `schemas/README.md` |
 | `design-tokens/` | `tokens.json` (byte-identical to `../docs/design-system/tokens.json`), `type-extras.json` | `design-tokens/README.md` |
 | `strings/` | `ui-strings.json`: every user-facing string in English and Vietnamese, with its JSON Schema | `strings/README.md` |

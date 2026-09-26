@@ -18,7 +18,7 @@ Thoát 0 khi xanh (in `XANH`). Các bước:
    - Khối ```json không parse cả khối thì parse từng dòng; dòng không parse được là lỗi tài liệu. Trong khối ```http, mỗi dòng bắt đầu bằng `{` là một thân JSON. Inline code chỉ tính khi là JSON hợp lệ.
 3. Mẫu dương tự viết (`sample_messages.py`, `sample_messages_sms.py`, `sample_messages_relay.py`) phải qua; mẫu âm (mỗi mẫu làm hỏng đúng một chỗ: thiếu trường, sai `v`, `type` lạ, mã lỗi lạ, uuid sai dạng, b64 sai, push đánh thức kèm nội dung…) phải bị từ chối.
 4. Đoạn catalog chuỗi giao diện trích trong 0.12.1 (khối ```jsonc có `strings`) qua `strings/ui-strings.schema.json` và các quy tắc của `tools/strings/catalog_rules.py`, trừ thứ tự khóa.
-5. Tin trên dây trong `shared/test-vectors` qua schema của chúng: `request` của `relay-auth.json`, `pairs_request` và plaintext `pair/*` của `pair-handshake.json`.
+5. Tin trên dây trong `shared/test-vectors` qua schema của chúng: `request` của `relay-auth.json`; `pairs_request` và plaintext `pair/*` của `pair-handshake.json`; `push_request`, `apns_payload` và plaintext `sms/new` của `push-envelope.json` (giải `env_b64`/`hl` ra envelope); lớp bọc văn bản của `relay-frame.json`, trong đó lớp bọc sai dạng cũng phải trượt `relay-wrapper`.
 
 ## Quy tắc thay placeholder
 
