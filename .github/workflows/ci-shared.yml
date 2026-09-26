@@ -82,9 +82,10 @@ jobs:
             shared/tools/vectors/requirements.txt
             shared/tools/schemas/requirements.txt
             shared/tools/strings/requirements.txt
+            shared/tools/bench/requirements-load.txt
 
       - name: Cài phụ thuộc (phiên bản ghim)
-        run: python -m pip install -r shared/tools/vectors/requirements.txt -r shared/tools/schemas/requirements.txt -r shared/tools/strings/requirements.txt
+        run: python -m pip install -r shared/tools/vectors/requirements.txt -r shared/tools/schemas/requirements.txt -r shared/tools/strings/requirements.txt -r shared/tools/bench/requirements-load.txt
 
       - name: Kiểm test vector
         run: python shared/tools/vectors/verify_vectors.py
@@ -102,3 +103,6 @@ jobs:
 
       - name: Benchmark scripts on synthetic logs
         run: python shared/tools/bench/self_test.py
+
+      - name: Relay load test against the in-process fake relay
+        run: python shared/tools/bench/relay_load_self_test.py
