@@ -15,6 +15,7 @@ import verify_discovery_hint_checks  # noqa: E402
 import verify_message_checks  # noqa: E402
 import verify_pair_handshake_checks  # noqa: E402
 import verify_primitive_checks  # noqa: E402
+import verify_push_relay_checks  # noqa: E402
 import verify_session_checks  # noqa: E402
 import verify_signature_checks  # noqa: E402
 from verify_common import Checker  # noqa: E402
@@ -27,7 +28,7 @@ def main() -> int:
     docs = {p.name: json.loads(p.read_text(encoding="utf-8")) for p in sorted(VEC_DIR.glob("*.json"))}
     checks = {**verify_primitive_checks.CHECKS, **verify_session_checks.CHECKS, **verify_message_checks.CHECKS,
               **verify_signature_checks.CHECKS, **verify_pair_handshake_checks.CHECKS,
-              **verify_discovery_hint_checks.CHECKS}
+              **verify_discovery_hint_checks.CHECKS, **verify_push_relay_checks.CHECKS}
     c = Checker()
     for name in checks:
         c.true(f"{name} tồn tại", name in docs)
