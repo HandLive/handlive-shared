@@ -36,16 +36,19 @@
             "data": { "$ref": "#/$defs/fcm-data" },
             "android": {
               "type": "object",
-              "required": ["priority", "ttl"],
+              "required": ["priority", "ttl", "collapse_key"],
               "additionalProperties": false,
               "properties": {
                 "priority": { "const": "HIGH" },
                 "ttl": {
-                  "description": "Duration in seconds, \"60s\" by default.",
+                  "description": "min(ttl_s, 60) seconds (0.4.4, CONN-04 API 3), \"60s\" by default.",
                   "type": "string",
-                  "pattern": "^[0-9]+s$"
+                  "pattern": "^([0-9]|[1-5][0-9]|60)s$"
                 },
-                "collapse_key": { "type": "string", "minLength": 1, "maxLength": 64 }
+                "collapse_key": {
+                  "description": "Always wake (CONN-04 API 3).",
+                  "const": "wake"
+                }
               }
             }
           }
@@ -86,9 +89,8 @@
             "mutable-content": { "const": 1 },
             "sound": { "const": "default" },
             "thread-id": {
-              "description": "sms:<thread_id> for SMS, calls for calls.",
-              "type": "string",
-              "pattern": "^(sms:[0-9]+|calls)$"
+              "description": "Generic group: sms for SMS, calls for calls (the conversation is inside the encrypted envelope; I-NSE sets threadIdentifier after decrypting, CONN-04 API 4 logic 3).",
+              "enum": ["sms", "calls"]
             },
             "interruption-level": { "enum": ["active", "time-sensitive"] }
           },
@@ -99,7 +101,7 @@
               },
               "then": {
                 "properties": {
-                  "thread-id": { "pattern": "^sms:[0-9]+$" },
+                  "thread-id": { "const": "sms" },
                   "interruption-level": { "const": "active" }
                 }
               }

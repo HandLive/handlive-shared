@@ -79,7 +79,7 @@
       }
     },
     "push-token-request": {
-      "description": "PUT /v1/devices/me/push-token (CONN-04 API 1); response 204 without a body. fcm only for android, apns and apns_sandbox (development builds) only for ios/ipados; topic (the I-APP bundle id) exactly with APNs.",
+      "description": "PUT /v1/devices/me/push-token (CONN-04 API 1); response 204 without a body. fcm only for android, apns and apns_sandbox (development builds) only for ios/ipados, never macos; topic (the I-APP bundle id, equal to the relay's RELAY_APNS_TOPIC) exactly with APNs. Senders send APNs tokens in lowercase hex and no topic with fcm (the relay ignores it there and stores tokens lowercase).",
       "type": "object",
       "required": ["provider", "token"],
       "additionalProperties": false,
@@ -209,11 +209,16 @@
           "minLength": 4,
           "maxLength": 3000
         },
-        "collapse_key": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "collapse_key": {
+          "description": "Printable ASCII, it becomes the apns-collapse-id header: the message_key of an SMS (sms:12847), call:<call_id> for a call, calllog:<entry_id> for a missed call whose call_id is unknown (CONN-04 step 5b); FCM wakes always use wake (API 3).",
+          "type": "string",
+          "pattern": "^[\\x20-\\x7E]{1,64}$"
+        },
         "ttl_s": {
-          "description": "Default 60 (wake, call_incoming), 86,400 (sms_new, call_missed).",
+          "description": "0–86,400; default 60 (wake), 30 (call_incoming), 86,400 (sms_new, call_missed); FCM caps it at 60 s.",
           "$ref": "common.schema.json#/$defs/int32",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 86400
         }
       },
       "if": {
@@ -225,7 +230,21 @@
       },
       "else": {
         "required": ["env_b64"],
-        "properties": { "reason": { "enum": ["sms_new", "call_incoming", "call_missed"] } }
+        "properties": { "reason": { "enum": ["sms_new", "call_incoming", "call_missed"] } },
+        "allOf": [
+          {
+            "if": { "properties": { "reason": { "const": "sms_new" } } },
+            "then": { "properties": { "collapse_key": { "pattern": "^sms:[0-9]+$" } } }
+          },
+          {
+            "if": { "properties": { "reason": { "const": "call_incoming" } } },
+            "then": { "properties": { "collapse_key": { "pattern": "^call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" } } }
+          },
+          {
+            "if": { "properties": { "reason": { "const": "call_missed" } } },
+            "then": { "properties": { "collapse_key": { "pattern": "^(call:[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|calllog:[0-9]+)$" } } }
+          }
+        ]
       }
     },
     "push-response": {

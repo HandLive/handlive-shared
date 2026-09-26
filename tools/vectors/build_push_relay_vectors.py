@@ -55,9 +55,9 @@ CALL_RINGING = {"op": "state", "data": {
 # (name, envelope type, id, ts, plaintext, push reason, collapse_key, ttl_s, APNs thread-id)
 ENVELOPES = [
     ("pair 2 / sms/new (Vietnamese content)", "sms", "0192f3e4-7a10-7b20-8c30-9d40ae50bf60", 1727150060500,
-     SMS_NEW_VI, "sms_new", "sms:sms:12847", 86_400, "sms:42"),
+     SMS_NEW_VI, "sms_new", "sms:12847", 86_400, "sms"),
     ("pair 2 / sms/new from a sender name, no contact, no SIM", "sms", "0192f3e4-7c31-7d42-9e53-af64b075c186",
-     1727150070050, SMS_NEW_SHORT_CODE, "sms_new", "sms:sms:12850", 86_400, "sms:57"),
+     1727150070050, SMS_NEW_SHORT_CODE, "sms_new", "sms:12850", 86_400, "sms"),
     ("pair 2 / call_event/state ringing", "call_event", "0192f3f0-6a2c-7d3e-9f40-5a6b7c8d9eaf", 1727150400400,
      CALL_RINGING, "call_incoming", "call:0192f3f0-6a1b-7c2d-8e3f-4a5b6c7d8e90", 30, "calls"),
 ]
@@ -148,7 +148,9 @@ def push_file(ctx) -> dict:
                            "K_push exactly as 0.5.1 (payload = b64(nonce(24) ‖ ciphertext ‖ tag(16)), AAD = UTF-8 "
                            "\"<v>|<type>|<id>|<ts>\"); env_b64 = standard base64 (with padding) of the UTF-8 envelope "
                            "JSON, sent as env_b64 of POST /v1/push and as hl of the APNs payload. I-NSE derives K_push "
-                           "from the PRK of pair p, decodes hl, rebuilds the AAD from the parsed envelope and decrypts.",
+                           "from the PRK of pair p, decodes hl, rebuilds the AAD from the parsed envelope and "
+                           "decrypts. APNs thread-id is the generic sms or calls; collapse_key is the message_key of "
+                           "an SMS, call:<call_id> for a call.",
             "source": f"{SPEC} 0.4.4, 0.5.1, 0.6.1; 03-connectivity.md CONN-04 step 5b, API 2, API 4; 05-sms.md SMS-02 "
                       "API 2; 06-call-control.md CALL-01 API 4; PRK from pair-prk.json",
             "vectors": [_key_vector(p) for p in ctx["pairs"]] + envelopes,

@@ -68,14 +68,15 @@ def _check_envelope(c, n: str, v: dict, keys: dict, pair_prk: dict) -> None:
     if body["op"] == "new":
         c.true(f"{n} push envelope carries no local_id", "local_id" not in body["data"]["message"])
     req = json.loads(v["push_request"])
-    collapse = (f"sms:{body['data']['message']['message_key']}" if v["type"] == "sms"
-                else f"call:{body['data']['call_id']}")
+    # SMS-02 API 2: the message_key itself (already sms:<_id>); CONN-04 step 5b: call:<call_id> for a call.
+    collapse = body["data"]["message"]["message_key"] if v["type"] == "sms" else f"call:{body['data']['call_id']}"
     c.eq(f"{n} POST /v1/push body", req, {"pair_id": v["pair_id"], "to": v["recipient_device_id"], "kind": "alert",
                                          "reason": reason, "env_b64": v["env_b64"], "collapse_key": collapse,
                                          "ttl_s": TTL[reason]})
     c.true(f"{n} env_b64 ≤ 3,000 characters", len(v["env_b64"]) <= 3000)
     apns = json.loads(v["apns_payload"])
-    thread = f"sms:{body['data']['thread']['thread_id']}" if v["type"] == "sms" else "calls"
+    # CONN-04 API 4 logic 3: the relay cannot see the conversation, so the group is generic.
+    thread = "sms" if v["type"] == "sms" else "calls"
     level = "time-sensitive" if reason == "call_incoming" else "active"
     c.eq(f"{n} APNs payload", apns, {"aps": {"alert": {"loc-key": f"push.{reason}"}, "mutable-content": 1,
                                              "sound": "default", "thread-id": thread, "interruption-level": level},
