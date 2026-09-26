@@ -2,12 +2,17 @@
 
 Chạy: tools/.venv/bin/python tools/schemas/check_schemas.py
 1. Mọi schema hợp lệ theo metaschema draft 2020-12, $id khớp tên file, mọi $ref phân giải được;
-   enum mã lỗi, mã đóng WebSocket và type khớp bảng 0.8.1, 0.8.3 và 0.7.1.
-2. Ví dụ JSON trong 00-common-specs.md (bắt buộc, mọi khối ```json phải được phân loại) và
-   ví dụ envelope/ack/session/capability trong 01–08 phải qua schema tương ứng.
+   enum mã lỗi, mã đóng WebSocket và type khớp bảng 0.8.1, 0.8.3 và 0.7.1; op sms, op điều khiển relay,
+   endpoint REST, mã lỗi relay, reason và loc-key push khớp 0.7.1, 0.7.3, 0.7.4, 0.8.2, CONN-04
+   (relay_sms_spec_checks.py).
+2. Ví dụ JSON trong 00-common-specs.md (bắt buộc, mọi khối ```json phải được phân loại) và ví dụ trong
+   01–08 (khối ```json, thân JSON trong khối ```http, inline) có schema thì phải qua schema tương ứng:
+   envelope/ack/session/capability/sms/clipboard, bọc định tuyến và tin điều khiển relay, thân REST relay,
+   thân push; env_b64/hl phải giải ra một envelope hợp lệ.
 3. Mẫu dương tự viết phải qua; mẫu âm phải bị từ chối.
 4. Ví dụ catalog chuỗi giao diện (khối ```jsonc có "strings" trong 00-common-specs, mục 0.12.1) qua
    strings/ui-strings.schema.json và các quy tắc của tools/strings/catalog_rules.py (trừ thứ tự khóa).
+5. Tin trên dây trong shared/test-vectors (yêu cầu relay-auth, pairs_request) qua schema relay REST.
 Thoát 0 khi mọi mục xanh.
 """
 
@@ -26,7 +31,10 @@ from referencing import Registry, Resource
 sys.dont_write_bytecode = True  # không để lại __pycache__ trong kho
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import doc_examples  # noqa: E402
+import relay_sms_spec_checks  # noqa: E402
 import sample_messages  # noqa: E402
+import sample_messages_relay  # noqa: E402
+import sample_messages_sms  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "strings"))
 import catalog_rules  # noqa: E402
@@ -40,6 +48,9 @@ COMMON_SPECS = DOCS_DIR / "00-common-specs.md"
 if not COMMON_SPECS.is_file():
     sys.exit(f"Không thấy {COMMON_SPECS}: đặt HANDLIVE_DOCS_DIR trỏ tới docs/detailed-design của kho hub")
 ID_BASE = "https://handlive.app/schemas/v1/"
+VECTORS_DIR = SHARED_ROOT / "test-vectors"
+CATALOG = SHARED_ROOT / "strings" / "ui-strings.json"
+SAMPLE_MODULES = (sample_messages, sample_messages_sms, sample_messages_relay)
 
 
 class Report:
@@ -120,15 +131,17 @@ def check_enums_match_spec(schemas: dict[str, dict], report: Report) -> None:
         report.ok("enum khớp bảng spec")
     else:
         report.fail(f"envelope.type lệch 0.7.1: spec {sorted(spec_types)}, schema {sorted(schema_types)}")
+    relay_sms_spec_checks.check_tables(schemas, COMMON_SPECS, DOCS_DIR, CATALOG, report)
 
 
 def make_validators(schemas: dict[str, dict], registry: Registry) -> dict[str, Draft202012Validator]:
     validators = {n: Draft202012Validator(s, registry=registry) for n, s in schemas.items()}
-    # Ack của op có data riêng: "<schema>#ack" trỏ tới $defs/ack của schema đó.
+    # Mỗi $defs có validator "<schema>#<def>": ack của op có data riêng ("sms-sync#ack"), thân REST relay
+    # ("relay-rest#push-request"), thân push ("push#apns-payload").
     for name, schema in schemas.items():
-        if "ack" in schema.get("$defs", {}):
-            ack_ref = {"$ref": schema["$id"] + "#/$defs/ack"}
-            validators[f"{name}#ack"] = Draft202012Validator(ack_ref, registry=registry)
+        for definition in schema.get("$defs", {}):
+            ref = {"$ref": schema["$id"] + "#/$defs/" + definition}
+            validators[f"{name}#{definition}"] = Draft202012Validator(ref, registry=registry)
     return validators
 
 
@@ -149,7 +162,7 @@ def _check_example(ex, strict: bool, validators, report: Report) -> None:
         else:
             report.fail(f"{ex.where}: khối ```json không parse được: {ex.parse_error}")
         return
-    schema = doc_examples.classify(ex, strict_payload=strict)
+    schema = doc_examples.classify(ex, strict_payload=strict, known=set(validators))
     if schema is None:
         if strict and ex.source == "block":
             report.fail(f"{ex.where}: khối ```json trong 00-common-specs không phân loại được")
@@ -164,6 +177,7 @@ def _check_example(ex, strict: bool, validators, report: Report) -> None:
     _validate_one(f"{ex.where} [{schema}]", schema, instance, validators, report, known,
                   bucket="ví dụ 00-common-specs" if strict else "ví dụ 01–08",
                   subs=ex.substitutions)
+    relay_sms_spec_checks.validate_embedded_envelope(schema, instance, validators, report, ex.where)
     if schema == "envelope":
         inner = doc_examples.decode_handshake_payload(instance)
         if inner is not None:
@@ -194,13 +208,16 @@ def _validate_one(label, schema, instance, validators, report, known, bucket, su
 
 
 def validate_samples(validators, report: Report) -> None:
-    for name, schema, instance in sample_messages.POSITIVE:
+    positive = [sample for module in SAMPLE_MODULES for sample in module.POSITIVE]
+    negative = [sample for module in SAMPLE_MODULES for sample in module.NEGATIVE]
+    for name, schema, instance in positive:
         error = best_match(validators[schema].iter_errors(instance))
         if error is None:
             report.ok("mẫu dương tự viết")
+            relay_sms_spec_checks.validate_embedded_envelope(schema, instance, validators, report, name)
         else:
             report.fail(f"mẫu dương '{name}' bị từ chối: {error.message}")
-    for name, schema, instance in sample_messages.NEGATIVE:
+    for name, schema, instance in negative:
         error = best_match(validators[schema].iter_errors(instance))
         if error is None:
             report.fail(f"mẫu âm '{name}' lại được chấp nhận")
@@ -263,6 +280,8 @@ def main() -> int:
     validate_samples(validators, report)
     print("== 4. Ví dụ catalog chuỗi giao diện (0.12.1)")
     validate_catalog_examples(report)
+    print("== 5. Tin trên dây trong test-vectors")
+    relay_sms_spec_checks.validate_vector_messages(VECTORS_DIR, validators, report)
     print("== Tổng kết")
     for bucket, count in report.counts.items():
         print(f"  {bucket}: {count}")
