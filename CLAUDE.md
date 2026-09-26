@@ -1,6 +1,6 @@
 # CLAUDE.md — handlive-shared
 
-The cross-platform contract data of HandLive: test vectors, JSON schemas, design tokens and the Python tools that generate and check them. One part of the HandLive **workspace**: the hub repository `handlive` is this directory's parent, holds the specs these files are derived from, and its `CLAUDE.md` applies here in full.
+The shared data of HandLive: test vectors, JSON schemas, design tokens, the UI string catalog and the Python tools that generate and check them. Android, Apple and the relay all read it. One part of the HandLive **workspace**: the hub repository `handlive` is this directory's parent, holds the specs these files are derived from, and its `CLAUDE.md` applies here in full.
 
 ## Workspace layout (mandatory)
 
