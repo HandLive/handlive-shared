@@ -1,6 +1,7 @@
 """Check push-envelope.json and relay-frame.json independently of the generator.
 
 - K_push: HKDF with hashlib/hmac (verify_common), chained to the PRK of pair-prk.json.
+- SMS text cut (verify_push_truncation_checks): every sms/new push is run through the CONN-04 step 5b rule again.
 - Envelopes: decoded as I-NSE does (strict standard base64 → UTF-8 JSON → AAD rebuilt from the parsed fields) and
   decrypted two ways (libsodium, and HChaCha20 + ChaCha20-Poly1305 as on Apple); every negative vector must fail for
   its stated reason and only for it.
@@ -13,6 +14,7 @@ import json
 import re
 import struct
 
+import verify_push_truncation_checks
 from verify_common import H, b64_decode_strict, hkdf, uuid16, uuid_str, xchacha_open_both, xchacha_seal_apple
 
 PUSH_INFO = b"handlive/v1/push"
@@ -46,7 +48,8 @@ def _check_key(c, n: str, v: dict, pair_prk: dict) -> None:
          ("", PUSH_INFO.decode(), 32, k_push(H(v["prk"])).hex()))
 
 
-def _check_envelope(c, n: str, v: dict, keys: dict, pair_prk: dict) -> None:
+def _check_envelope(c, n: str, v: dict, keys: dict, pair_prk: dict) -> list[str] | None:
+    """All checks of one envelope; returns the steps of its SMS text cut (None for a call)."""
     pv = pair_prk[v["pair_name"]]
     c.eq(f"{n} K_push of its pair", v["k_push"], keys[v["pair_name"]])
     c.eq(f"{n} devices of the pair", (v["pair_id"], v["sender_device_id"], v["recipient_device_id"]),
@@ -84,6 +87,7 @@ def _check_envelope(c, n: str, v: dict, keys: dict, pair_prk: dict) -> None:
     c.true(f"{n} APNs payload ≤ 4 KB", len(v["apns_payload"].encode()) <= 4096)
     c.eq(f"{n} APNs headers", v["apns_headers"], {"apns-push-type": "alert", "apns-topic": "app.handlive.ios",
                                                   "apns-priority": "10", "apns-collapse-id": collapse})
+    return verify_push_truncation_checks.check_cut(c, n, v) if v["type"] == "sms" else None
 
 
 def _check_push_negative(c, n: str, v: dict, keys_by_pair_id: dict) -> None:
@@ -127,9 +131,13 @@ def check_push_envelope(c, doc, all_docs) -> None:
         if v["kind"] == "key":
             _check_key(c, f"push-envelope/{v['name']}", v, pair_prk)
             keys[v["pair_name"]] = k_push(H(pair_prk[v["pair_name"]]["prk"])).hex()
+    cuts = []
     for v in doc["vectors"]:
         if v["kind"] == "envelope":
-            _check_envelope(c, f"push-envelope/{v['name']}", v, keys, pair_prk)
+            steps = _check_envelope(c, f"push-envelope/{v['name']}", v, keys, pair_prk)
+            if steps is not None:
+                cuts.append((v, steps))
+    verify_push_truncation_checks.check_coverage(c, cuts)
     c.true("push-envelope: K_push for every pair of pair-prk.json", set(keys) == set(pair_prk))
     c.true("push-envelope: sms and call_event envelopes",
            {v["type"] for v in doc["vectors"] if v["kind"] == "envelope"} == {"sms", "call_event"})
