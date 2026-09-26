@@ -1031,7 +1031,7 @@
       "en": "Missing SMS permission on the phone",
       "vi": "Thiếu quyền SMS trên điện thoại",
       "comment": "Reason under the SMS feature when the phone lacks READ_SMS",
-      "platforms": ["macos", "ios"],
+      "platforms": ["android", "macos", "ios"],
       "specs": ["PAIR-02"]
     },
     {
@@ -1237,6 +1237,38 @@
       "en": "To view and reply to SMS messages on your Mac or iPhone, HandLive needs to read and send SMS, read your contacts to show sender names, and read the phone state to choose a SIM.",
       "vi": "Để xem và trả lời SMS trên Mac hoặc iPhone, HandLive cần đọc và gửi SMS, đọc danh bạ để hiện tên người gửi và đọc trạng thái điện thoại để chọn SIM.",
       "comment": "Android explanation before the SMS permission dialogs (feature card Grant Permission)",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "permission.sms_primer_title",
+      "en": "Use SMS on Your Mac and iPhone",
+      "vi": "Dùng SMS trên Mac và iPhone",
+      "comment": "Title of the Android PermissionPrimer before the SMS permissions (SET-01 field 12, step 10); body permission.sms_primer",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "permission.status_denied",
+      "en": "Permission denied",
+      "vi": "Quyền bị từ chối",
+      "comment": "Status of an Android feature card whose permission is permanently denied (SET-01 field 10), shown with common.open_settings",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "permission.status_needs_permission",
+      "en": "Needs permission",
+      "vi": "Cần cấp quyền",
+      "comment": "Status of an Android feature card whose permission is missing (SET-01 field 10), shown with permission.grant",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "permission.status_unsupported",
+      "en": "Not supported on this phone",
+      "vi": "Điện thoại này không hỗ trợ",
+      "comment": "Status of an Android feature card on a phone without the hardware, e.g. no telephony for SMS (SET-01 field 10)",
       "platforms": ["android"],
       "specs": ["SET-01"]
     },
