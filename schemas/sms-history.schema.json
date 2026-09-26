@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/sms-history.schema.json",
+  "title": "HandLive — sms/history (C→S, ack with data)",
+  "description": "SMS-03 API 1: older messages of one conversation, newest first. The success ack carries {messages, has_more}: #/$defs/ack.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "history" },
+    "data": {
+      "type": "object",
+      "required": ["thread_id", "before_ts", "limit"],
+      "additionalProperties": false,
+      "properties": {
+        "thread_id": { "$ref": "sms-common.schema.json#/$defs/thread-id" },
+        "before_ts": {
+          "description": "Only messages whose date is smaller than this value.",
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "limit": {
+          "description": "SMS_HISTORY_PAGE = 50; Android accepts 1–200.",
+          "$ref": "common.schema.json#/$defs/int32",
+          "minimum": 1,
+          "maximum": 200
+        }
+      }
+    }
+  },
+  "$defs": {
+    "ack": {
+      "description": "Success ack of sms/history. Error acks use ack.schema.json#/$defs/failure (SMS_THREAD_NOT_FOUND, FEATURE_DISABLED, PERMISSION_MISSING, BAD_REQUEST, INTERNAL).",
+      "allOf": [
+        { "$ref": "ack.schema.json#/$defs/success" },
+        { "properties": { "data": { "$ref": "#/$defs/ack-data" } } }
+      ]
+    },
+    "ack-data": {
+      "type": "object",
+      "required": ["messages", "has_more"],
+      "additionalProperties": false,
+      "properties": {
+        "messages": {
+          "description": "Newest first by date; a page may exceed limit to finish a group of messages sharing the same millisecond.",
+          "type": "array",
+          "items": { "$ref": "sms-common.schema.json#/$defs/synced-message" }
+        },
+        "has_more": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/sms-notification.schema.json",
+  "title": "HandLive — new SMS notification content (Mac, iPhone, iPad)",
+  "description": "SMS-02 API 4: the UNNotificationRequest content of a new SMS, written as JSON. Not a wire message: it fixes the identifiers and the userInfo that M-APP, I-APP and I-NSE share (SMS-05 API 2 removes notifications by userInfo).",
+  "type": "object",
+  "required": ["identifier", "title", "subtitle", "body", "threadIdentifier", "categoryIdentifier", "userInfo"],
+  "additionalProperties": false,
+  "properties": {
+    "identifier": {
+      "description": "sms:<pair_id>:<message_key>; a notification created by a push has an identifier set by the system.",
+      "type": "string",
+      "pattern": "^sms:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:sms:[0-9]+$"
+    },
+    "title": {
+      "description": "display_name, or the number in national format; group conversations: the names joined with \", \".",
+      "type": "string",
+      "minLength": 1
+    },
+    "subtitle": {
+      "description": "Label of the SIM of sub_id; empty when the phone has 1 SIM.",
+      "type": "string"
+    },
+    "body": {
+      "description": "The message body, or sms.notification_hidden_body when sms.preview = false.",
+      "type": "string"
+    },
+    "threadIdentifier": {
+      "description": "sms:<pair_id>:<thread_id>: groups the notifications of one conversation.",
+      "type": "string",
+      "pattern": "^sms:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:[0-9]+$"
+    },
+    "categoryIdentifier": {
+      "description": "HL_SMS (actions HL_SMS_REPLY, HL_SMS_MARK_READ); conversations with several addresses use a category without HL_SMS_REPLY, whose name SMS-02 does not give yet.",
+      "type": "string",
+      "pattern": "^HL_SMS(_[A-Z0-9_]+)?$"
+    },
+    "sound": { "const": "default" },
+    "userInfo": {
+      "type": "object",
+      "required": ["pair_id", "thread_id", "message_key", "ts", "address", "sub_id"],
+      "additionalProperties": false,
+      "properties": {
+        "pair_id": { "$ref": "common.schema.json#/$defs/uuid-v4" },
+        "thread_id": { "$ref": "sms-common.schema.json#/$defs/thread-id" },
+        "message_key": { "$ref": "sms-common.schema.json#/$defs/message-key" },
+        "ts": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "address": { "$ref": "sms-common.schema.json#/$defs/address" },
+        "sub_id": { "$ref": "sms-common.schema.json#/$defs/sub-id" }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/sms-read_changed.schema.json",
+  "title": "HandLive — sms/read_changed (S→C, no ack)",
+  "description": "SMS-05 API 1: one envelope per conversation whose unread state changed on the phone. read_up_to_ts: unread_count = 0 → the time of the event; otherwise the date of the oldest unread message minus 1.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "read_changed" },
+    "data": { "$ref": "sms-common.schema.json#/$defs/unread-entry" }
+  }
+}

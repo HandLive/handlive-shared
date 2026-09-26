@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/sms-sync.schema.json",
+  "title": "HandLive — sms/sync (C→S, ack with data)",
+  "description": "SMS-01 API 1. The client loops on page_token until has_more = false, sending the same cursor on every page. The success ack carries a page: #/$defs/ack.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "sync" },
+    "data": {
+      "type": "object",
+      "required": ["thread_limit", "per_thread_limit"],
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "description": "Cursor received at the previous sync; absent on the first sync.",
+          "$ref": "#/$defs/cursor"
+        },
+        "page_token": {
+          "description": "page_token of the previous page's ack; only while looping.",
+          "$ref": "#/$defs/page-token"
+        },
+        "thread_limit": {
+          "description": "SMS_SYNC_THREADS = 200; Android accepts 1–500.",
+          "$ref": "common.schema.json#/$defs/int32",
+          "minimum": 1,
+          "maximum": 500
+        },
+        "per_thread_limit": {
+          "description": "SMS_SYNC_PER_THREAD = 50; Android accepts 1–200.",
+          "$ref": "common.schema.json#/$defs/int32",
+          "minimum": 1,
+          "maximum": 200
+        }
+      }
+    }
+  },
+  "$defs": {
+    "cursor": {
+      "description": "Opaque to the client; Android writes b64u of the JSON {\"v\":1,\"id\":…,\"t\":…}.",
+      "$ref": "common.schema.json#/$defs/b64u",
+      "minLength": 2
+    },
+    "page-token": {
+      "description": "Opaque to the client; Android writes b64u of a stateless JSON page position.",
+      "$ref": "common.schema.json#/$defs/b64u",
+      "minLength": 2
+    },
+    "ack": {
+      "description": "Success ack of sms/sync. Error acks use ack.schema.json#/$defs/failure (FEATURE_DISABLED, PERMISSION_MISSING, BAD_REQUEST, SMS_CURSOR_INVALID, INTERNAL).",
+      "allOf": [
+        { "$ref": "ack.schema.json#/$defs/success" },
+        { "properties": { "data": { "$ref": "#/$defs/ack-data" } } }
+      ]
+    },
+    "ack-data": {
+      "description": "One page: at most SMS_PAGE_MAX = 500 messages and 180 KiB of plaintext. page_token only while has_more = true; unread only on the last page.",
+      "type": "object",
+      "required": ["threads", "messages", "cursor", "has_more"],
+      "additionalProperties": false,
+      "properties": {
+        "threads": {
+          "type": "array",
+          "items": { "$ref": "sms-common.schema.json#/$defs/thread" }
+        },
+        "messages": {
+          "type": "array",
+          "maxItems": 500,
+          "items": { "$ref": "sms-common.schema.json#/$defs/synced-message" }
+        },
+        "cursor": {
+          "description": "Cursor after the whole sync; the client saves it only when has_more = false.",
+          "$ref": "#/$defs/cursor"
+        },
+        "page_token": { "$ref": "#/$defs/page-token" },
+        "has_more": { "type": "boolean" },
+        "unread": {
+          "description": "Every conversation with unread messages on the phone; absent conversations are fully read.",
+          "type": "array",
+          "items": {
+            "allOf": [
+              { "$ref": "sms-common.schema.json#/$defs/unread-entry" },
+              { "properties": { "unread_count": { "minimum": 1 } } }
+            ]
+          }
+        }
+      },
+      "if": {
+        "properties": { "has_more": { "const": true } }
+      },
+      "then": {
+        "required": ["page_token"],
+        "not": { "required": ["unread"] }
+      },
+      "else": {
+        "required": ["unread"],
+        "not": { "required": ["page_token"] }
+      }
+    }
+  }
+}
