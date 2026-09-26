@@ -210,9 +210,9 @@
           "maxLength": 3000
         },
         "collapse_key": {
-          "description": "Printable ASCII, it becomes the apns-collapse-id header: the message_key of an SMS (sms:12847), call:<call_id> for a call, calllog:<entry_id> for a missed call whose call_id is unknown (CONN-04 step 5b); FCM wakes always use wake (API 3).",
+          "description": "Printable ASCII without spaces (0x21–0x7E, as the relay checks: it becomes the apns-collapse-id header, and HTTP/2 forbids a header value that starts or ends with a space): the message_key of an SMS (sms:12847), call:<call_id> for a call, calllog:<entry_id> for a missed call whose call_id is unknown (CONN-04 step 5b); FCM wakes always use wake (API 3).",
           "type": "string",
-          "pattern": "^[\\x20-\\x7E]{1,64}$"
+          "pattern": "^[\\x21-\\x7E]{1,64}$"
         },
         "ttl_s": {
           "description": "0–86,400; default 60 (wake), 30 (call_incoming), 86,400 (sms_new, call_missed); FCM caps it at 60 s. The phone always sends 86,400 with sms_new (SMS-02 API 2), 30 with call_incoming (CALL-01 API 4) and 86,400 with call_missed (CALL-04 API 5).",

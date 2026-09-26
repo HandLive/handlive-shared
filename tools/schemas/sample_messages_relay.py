@@ -171,6 +171,8 @@ NEGATIVE_SPECS = [
      _set(["collapse_key"], "x" * 65)),
     ("push collapse_key not printable ASCII", "relay-rest#push-request", "POST /v1/push wake with a collapse key",
      _set(["collapse_key"], "đánh thức")),
+    ("push collapse_key with a space", "relay-rest#push-request", "POST /v1/push wake with a collapse key",
+     _set(["collapse_key"], "wake up")),
     ("push collapse_key with a control character", "relay-rest#push-request",
      "POST /v1/push wake with a collapse key", _set(["collapse_key"], "wake\tup")),
     ("push SMS collapse_key with a doubled prefix", "relay-rest#push-request", "POST /v1/push alert",
