@@ -1,4 +1,4 @@
-"""Tests of the bench scripts on synthetic logs whose true timings are known.
+"""Tests of the bench scripts on synthetic logs whose true timings are known (SMS: sms_self_test.py).
 
     python3 tools/bench/self_test.py
 
@@ -19,6 +19,7 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import clip_latency  # noqa: E402
 import reconnect_time  # noqa: E402
+import sms_self_test  # noqa: E402
 from bench_log import load, parse_line, percentile  # noqa: E402
 from clock_sync import ClockModel, exchanges  # noqa: E402
 
@@ -181,6 +182,7 @@ def main() -> int:
         manual = ClockModel([], {(MAC, PHONE): 1000.0})
         t.check("manual offset used without exchanges", manual.offset(PHONE, MAC, T0).value == -1000.0)
         t.check("no data: offset assumed 0", ClockModel([]).offset(MAC, PHONE, T0).method == "assumed 0")
+    sms_self_test.run_checks(t, line, run, close, MAC, PHONE, IPAD)
     print(f"bench self-test: {t.passed} passed, {len(t.failed)} failed")
     return 1 if t.failed else 0
 
