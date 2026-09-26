@@ -12,8 +12,10 @@ relay-frame.json (00-common-specs 0.4.3; CONN-03 API 6):
 - kind "frame": the binary routing frame "HR" ‖ ver 0x01 ‖ op 0x01 (forward) ‖ device_id (16 bytes: destination
   from a device, source towards a device) ‖ the intact HL frame (inner frames from hl-frame.json).
 - kind "rewrite": the relay replaces the destination device_id by the sender's and changes nothing else.
-- kind "text_rewrite": the text wrapper {"to", "env"} becomes {"from", "env"} with env byte for byte as received.
-- invalid_vectors: frames and wrappers the relay must refuse.
+- kind "text_rewrite": the text wrapper {"to", "env"} becomes {"from", "env"} with env byte for byte as received; a
+  "from" sent by the device is ignored like any unknown field (0.5.1 rule 6) and never trusted.
+- invalid_vectors: frames and wrappers the relay must refuse. The relay checks only the 20-byte HR header and that an
+  HL frame follows; it never inspects the HL frame itself (the receiving device does, 0.5.2).
 
 Generator side: `cryptography` HKDF and pynacl XChaCha20-Poly1305 through handlive_protocol_derivations.
 """
@@ -195,6 +197,9 @@ def relay_file(ctx, hl_doc: dict, envelope_doc: dict) -> dict:
                       '{"to":' + json.dumps(phone) + ',"env":' + env_text + "}"),
         _text_rewrite("text wrapper with env first, spaces and an indented env", mac, phone, spaced_env,
                       '{ "env" : ' + spaced_env + ' , "to" : ' + json.dumps(phone) + " }"),
+        {**_text_rewrite("a from sent by the device is ignored and replaced by the sender", mac, phone, env_text,
+                         '{"to":' + json.dumps(phone) + ',"from":' + json.dumps(phone) + ',"env":' + env_text + "}"),
+         "spoofed_from": phone},
     ]
     good = H(frames[0]["frame"])
     neg_frames = [
@@ -203,14 +208,10 @@ def relay_file(ctx, hl_doc: dict, envelope_doc: dict) -> dict:
         ("op 0x02", "unknown_op", good[:3] + b"\x02" + good[4:]),
         ("header cut to 19 bytes", "truncated", good[:19]),
         ("header only, no HL frame", "truncated", good[:20]),
-        ("inner frame is not HL", "inner_not_hl", good[:20] + b"HR" + good[22:]),
-        ("inner HL frame shorter than 11 + 24 + 16 bytes", "inner_too_short", good[:20 + 50]),
     ]
     negatives = [{"name": n, "reason": r, "kind": "frame", "frame": f.hex(), "expected_error": "BAD_REQUEST"}
                  for n, r, f in neg_frames]
     neg_texts = [
-        ("wrapper with both to and from", "bad_wrapper", "BAD_REQUEST",
-         '{"to":' + json.dumps(phone) + ',"from":' + json.dumps(mac) + ',"env":' + env_text + "}"),
         ("to is not a device_id", "bad_wrapper", "BAD_REQUEST", '{"to":"phone","env":' + env_text + "}"),
         ("wrapper without env", "bad_wrapper", "BAD_REQUEST", '{"to":' + json.dumps(phone) + "}"),
         ("to is the sender itself", "not_paired", "NOT_PAIRED", '{"to":' + json.dumps(mac) + ',"env":' + env_text + "}"),
@@ -220,8 +221,10 @@ def relay_file(ctx, hl_doc: dict, envelope_doc: dict) -> dict:
     return {"description": "Relay routing: binary frame \"HR\" (0x48 0x52) ‖ ver 0x01 ‖ op 0x01 (forward) ‖ device_id "
                            "(16 bytes: the destination in a frame a device sends, the source in a frame the relay "
                            "delivers) ‖ the HL frame, intact. The relay only swaps the device_id; text frames "
-                           "{\"to\", \"env\"} become {\"from\", \"env\"} with env byte for byte as received. Invalid "
-                           "vectors: what the relay refuses, with the relay error it answers.",
+                           "{\"to\", \"env\"} become {\"from\", \"env\"} with env byte for byte as received, and a "
+                           "from sent by the device is ignored. The relay checks only the HR header and that an HL "
+                           "frame follows, never the HL frame itself. Invalid vectors: what the relay refuses, with "
+                           "the relay error it answers.",
             "source": f"{SPEC} 0.4.3, 0.5.2; 03-connectivity.md CONN-03 API 6; inner frames from hl-frame.json, "
                       "device_ids of pair 1 (pair-prk.json), env from envelope.json",
             "vectors": frames + rewrites + texts, "invalid_vectors": negatives}

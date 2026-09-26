@@ -1,5 +1,5 @@
 {
-  "description": "Relay routing: binary frame \"HR\" (0x48 0x52) ‖ ver 0x01 ‖ op 0x01 (forward) ‖ device_id (16 bytes: the destination in a frame a device sends, the source in a frame the relay delivers) ‖ the HL frame, intact. The relay only swaps the device_id; text frames {\"to\", \"env\"} become {\"from\", \"env\"} with env byte for byte as received. Invalid vectors: what the relay refuses, with the relay error it answers.",
+  "description": "Relay routing: binary frame \"HR\" (0x48 0x52) ‖ ver 0x01 ‖ op 0x01 (forward) ‖ device_id (16 bytes: the destination in a frame a device sends, the source in a frame the relay delivers) ‖ the HL frame, intact. The relay only swaps the device_id; text frames {\"to\", \"env\"} become {\"from\", \"env\"} with env byte for byte as received, and a from sent by the device is ignored. The relay checks only the HR header and that an HL frame follows, never the HL frame itself. Invalid vectors: what the relay refuses, with the relay error it answers.",
   "source": "docs/detailed-design/00-common-specs.md 0.4.3, 0.5.2; 03-connectivity.md CONN-03 API 6; inner frames from hl-frame.json, device_ids of pair 1 (pair-prk.json), env from envelope.json",
   "vectors": [
     {
@@ -99,6 +99,16 @@
       "env": "{\n \"v\": 1,\n \"type\": \"sms\",\n \"id\": \"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\n \"ts\": 1727150170000,\n \"payload\": \"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"\n}",
       "outbound": "{ \"env\" : {\n \"v\": 1,\n \"type\": \"sms\",\n \"id\": \"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\n \"ts\": 1727150170000,\n \"payload\": \"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"\n} , \"to\" : \"39f713d0-a644-853f-8452-9421b9f51b9b\" }",
       "inbound": "{\"from\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"env\":{\n \"v\": 1,\n \"type\": \"sms\",\n \"id\": \"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\n \"ts\": 1727150170000,\n \"payload\": \"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"\n}}"
+    },
+    {
+      "name": "a from sent by the device is ignored and replaced by the sender",
+      "kind": "text_rewrite",
+      "sender_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "recipient_device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "env": "{\"v\":1,\"type\":\"sms\",\"id\":\"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\"ts\":1727150170000,\"payload\":\"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"}",
+      "outbound": "{\"to\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"from\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"env\":{\"v\":1,\"type\":\"sms\",\"id\":\"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\"ts\":1727150170000,\"payload\":\"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"}}",
+      "inbound": "{\"from\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"env\":{\"v\":1,\"type\":\"sms\",\"id\":\"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\"ts\":1727150170000,\"payload\":\"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"}}",
+      "spoofed_from": "39f713d0-a644-853f-8452-9421b9f51b9b"
     }
   ],
   "invalid_vectors": [
@@ -135,28 +145,6 @@
       "reason": "truncated",
       "kind": "frame",
       "frame": "4852010139f713d0a644853f84529421b9f51b9b",
-      "expected_error": "BAD_REQUEST"
-    },
-    {
-      "name": "inner frame is not HL",
-      "reason": "inner_not_hl",
-      "kind": "frame",
-      "frame": "4852010139f713d0a644853f84529421b9f51b9b485201000000010000001443faafc5d2439927997d1a66aa111e6e2ee5165320fca4d2673ca1778ca1091fe686384831c3ccd2936b88d8550157d18fdd0d564b2cd2bf435f0998b67155a406dcb92f69ea230113",
-      "expected_error": "BAD_REQUEST"
-    },
-    {
-      "name": "inner HL frame shorter than 11 + 24 + 16 bytes",
-      "reason": "inner_too_short",
-      "kind": "frame",
-      "frame": "4852010139f713d0a644853f84529421b9f51b9b484c01000000010000001443faafc5d2439927997d1a66aa111e6e2ee5165320fca4d2673ca1778ca1091fe686384831c3cc",
-      "expected_error": "BAD_REQUEST"
-    },
-    {
-      "name": "wrapper with both to and from",
-      "reason": "bad_wrapper",
-      "kind": "text",
-      "sender_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
-      "outbound": "{\"to\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"from\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"env\":{\"v\":1,\"type\":\"sms\",\"id\":\"0192f3e2-4b5d-7e6f-8a70-9b0c1d2e3f40\",\"ts\":1727150170000,\"payload\":\"9Wk6jrMZA6Jizh+TQn6lQSeLYrSgJPDaO3oWlmJ/nrjk5byramaqwK+qFHxickoLhtGtHHEC2G7uuTp2D0y4mlenSi1j7GhqHu47yCzK3C/dEspeHl10EZ58aWiVSoIMAr+uqlS1D01PAxFW3nEx21RzzzfC9kJNP6Y+dsmhwNP7I9M+nd/K3QquPzwNqm14+CjNp8gKfGDLRs6kJG8Y8hOOmx0Ph67NDqAjp6OBhlnE2iRvDZYat9u3l1q1UxBVGWTotwAGMg==\"}}",
       "expected_error": "BAD_REQUEST"
     },
     {

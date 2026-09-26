@@ -46,7 +46,8 @@ VECTOR_MESSAGES = [
     ("push-envelope.json", "push_request", "relay-rest#push-request"),
     ("push-envelope.json", "apns_payload", "push#apns-payload"),
     ("push-envelope.json", "plaintext", lambda v: "sms-new" if v.get("type") == "sms" else None),
-    ("relay-frame.json", "outbound", lambda v: "relay-wrapper" if v.get("kind") == "text_rewrite" else None),
+    ("relay-frame.json", "outbound",
+     lambda v: "relay-wrapper" if v.get("kind") == "text_rewrite" and "spoofed_from" not in v else None),
     ("relay-frame.json", "inbound", lambda v: "relay-wrapper" if v.get("kind") == "text_rewrite" else None),
 ]
 EMBEDDED_ENVELOPE = {"relay-rest#push-request": "env_b64", "push#apns-payload": "hl"}

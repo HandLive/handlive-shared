@@ -18,7 +18,7 @@ from verify_common import H, b64_decode_strict, hkdf, uuid16, uuid_str, xchacha_
 PUSH_INFO = b"handlive/v1/push"
 DAY_MS = 86_400_000
 PUSH_REASONS = {"wrong_key", "tag_mismatch", "aad_mismatch", "stale", "not_b64"}
-FRAME_REASONS = {"bad_magic", "unsupported_version", "unknown_op", "truncated", "inner_not_hl", "inner_too_short"}
+FRAME_REASONS = {"bad_magic", "unsupported_version", "unknown_op", "truncated"}
 TEXT_REASONS = {"bad_wrapper": "BAD_REQUEST", "not_paired": "NOT_PAIRED"}
 UUID_V8 = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 REASON_OF_TYPE = {("sms", "new"): "sms_new", ("call_event", "state"): "call_incoming"}
@@ -140,7 +140,8 @@ def check_push_envelope(c, doc, all_docs) -> None:
 
 
 def parse_hr(frame: bytes):
-    """Returns (ver, op, device_id, inner) or the reason the relay refuses the frame."""
+    """Returns (ver, op, device_id, inner) or the reason the relay refuses the frame. The relay checks only the
+    header and that an HL frame follows; the HL frame itself is the receiving device's business (0.5.2)."""
     if len(frame) < 20:
         return "truncated"
     if frame[:2] != b"HR":
@@ -153,10 +154,6 @@ def parse_hr(frame: bytes):
     inner = frame[20:]
     if not inner:
         return "truncated"
-    if inner[:2] != b"HL":
-        return "inner_not_hl"
-    if len(inner) < 11 + 24 + 16:
-        return "inner_too_short"
     return ver, op, uuid_str(frame[4:20]), inner
 
 
@@ -194,7 +191,7 @@ def relay_text(sender: str, outbound: str, peers: set):
         raw = top_level_raw(outbound)
     except ValueError:
         return "BAD_REQUEST"
-    if set(raw) != {"to", "env"}:
+    if not {"to", "env"} <= set(raw):  # other fields (a "from" included) are ignored, 0.5.1 rule 6
         return "BAD_REQUEST"
     to = json.loads(raw["to"])
     env = json.loads(raw["env"])
@@ -224,6 +221,7 @@ def check_relay_frame(c, doc, all_docs) -> None:
                  ("4852", ver, op, "forward", device_id, uuid16(device_id).hex(), frame[:20].hex(), inner.hex(),
                   len(frame)))
             src = hl[v["inner_source"].removeprefix("hl-frame.json / ")]
+            c.eq(f"{n} inner frame is an HL frame", (inner[:3], len(inner) >= 11 + 24 + 16), (b"HL\x01", True))
             c.eq(f"{n} inner frame intact", v["inner"], src["frame"])
             n12 = H(src["frame"])
             sodium, apple = xchacha_open_both(H(src["key"]), n12[11:35], n12[:11], n12[35:-16], n12[-16:])
@@ -243,8 +241,11 @@ def check_relay_frame(c, doc, all_docs) -> None:
             c.eq(f"{n} inbound text", got, v["inbound"])
             c.eq(f"{n} env kept byte for byte", top_level_raw(v["inbound"])["env"], v["env"])
             c.eq(f"{n} env is an envelope", list(json.loads(v["env"])), ["v", "type", "id", "ts", "payload"])
+            if "spoofed_from" in v:
+                c.true(f"{n} the device's from is not kept", json.loads(v["inbound"])["from"] != v["spoofed_from"])
     kinds = {v["kind"] for v in doc["vectors"]}
     c.true("relay-frame: frame, rewrite and text_rewrite vectors", kinds == {"frame", "rewrite", "text_rewrite"})
+    c.true("relay-frame: a spoofed from is covered", any("spoofed_from" in v for v in doc["vectors"]))
     for v in doc["invalid_vectors"]:
         n = f"relay-frame/{v['name']}"
         if v["kind"] == "frame":
