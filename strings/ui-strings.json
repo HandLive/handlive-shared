@@ -16,17 +16,17 @@
       "en": "That device just copied something new.",
       "vi": "Thiết bị này vừa có nội dung sao chép mới.",
       "comment": "Body of the conflict notification; the device is the one named in the title",
-      "platforms": ["android", "macos"],
-      "specs": ["CLIP-01", "CLIP-02"]
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CLIP-01", "CLIP-02", "CLIP-04"]
     },
     {
       "key": "clipboard.conflict_title",
       "en": "Clipboard Not Updated on {device_name}",
       "vi": "Chưa ghi lên {device_name}",
-      "comment": "Title of the conflict notification on the sending device; action clipboard.send_again",
-      "platforms": ["android", "macos"],
+      "comment": "Title of the conflict notification on the sending device (iPhone: reported on the send card while the app is open); action clipboard.send_again",
+      "platforms": ["android", "macos", "ios"],
       "args": [{"name": "device_name", "type": "string"}],
-      "specs": ["CLIP-01", "CLIP-02"]
+      "specs": ["CLIP-01", "CLIP-02", "CLIP-04"]
     },
     {
       "key": "clipboard.consent_events",
@@ -69,6 +69,14 @@
       "specs": ["CLIP-01", "SET-01"]
     },
     {
+      "key": "clipboard.copy",
+      "en": "Copy",
+      "vi": "Sao chép",
+      "comment": "Button that copies the last received content again (PasteCard)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
       "key": "clipboard.empty_or_not_text",
       "en": "The clipboard is empty or doesn't contain text",
       "vi": "Bảng nhớ tạm trống hoặc không phải văn bản",
@@ -80,19 +88,45 @@
       "key": "clipboard.image_receiving",
       "en": "Receiving image from {device_name} — {percent}",
       "vi": "Đang nhận ảnh từ {device_name} — {percent}",
-      "comment": "Progress of an incoming image over 1 MiB (Android notification, Mac menu bar menu); {percent} is formatted by the system",
-      "platforms": ["android", "macos"],
+      "comment": "Progress of an incoming image over 1 MiB (Android notification, Mac menu bar menu, iPhone Clipboard tab); {percent} is formatted by the system",
+      "platforms": ["android", "macos", "ios"],
       "args": [{"name": "device_name", "type": "string"}, {"name": "percent", "type": "string"}],
-      "specs": ["CLIP-03"]
+      "specs": ["CLIP-03", "CLIP-04"]
     },
     {
       "key": "clipboard.image_sending",
       "en": "Sending image to {device_name} — {percent}",
       "vi": "Đang gửi ảnh tới {device_name} — {percent}",
-      "comment": "Progress of an image over 1 MiB (Android notification, Mac menu bar menu) with a Cancel button; {percent} is formatted by the system",
-      "platforms": ["android", "macos"],
+      "comment": "Progress of an image over 1 MiB (Android notification, Mac menu bar menu, iPhone send card) with a Cancel button; {percent} is formatted by the system",
+      "platforms": ["android", "macos", "ios"],
       "args": [{"name": "device_name", "type": "string"}, {"name": "percent", "type": "string"}],
-      "specs": ["CLIP-03"]
+      "specs": ["CLIP-03", "CLIP-04"]
+    },
+    {
+      "key": "clipboard.new_content_banner",
+      "en": "The {device_type} clipboard has new content — paste to send it to {device_name}",
+      "vi": "Bảng nhớ tạm trên {device_type} có nội dung mới — dán để gửi sang {device_name}",
+      "comment": "Suggestion banner with a close button when changeCount shows unsent local text (CLIP-04 field 3); {device_type} is “iPhone” or “iPad” (never translated), {device_name} is the phone",
+      "platforms": ["ios"],
+      "args": [{"name": "device_type", "type": "string"}, {"name": "device_name", "type": "string"}],
+      "specs": ["CLIP-04"]
+    },
+    {
+      "key": "clipboard.new_image_banner",
+      "en": "The {device_type} clipboard has a new image — paste to send it to {device_name}",
+      "vi": "Bảng nhớ tạm trên {device_type} có ảnh mới — dán để gửi sang {device_name}",
+      "comment": "Suggestion banner when changeCount changed and hasImages is true (CLIP-04 API 2); {device_type} is “iPhone” or “iPad” (never translated), {device_name} is the phone",
+      "platforms": ["ios"],
+      "args": [{"name": "device_type", "type": "string"}, {"name": "device_name", "type": "string"}],
+      "specs": ["CLIP-04"]
+    },
+    {
+      "key": "clipboard.not_connected_to_phone",
+      "en": "Not connected to the phone",
+      "vi": "Chưa kết nối với điện thoại",
+      "comment": "Line on the send card while there is no session; the Paste button is disabled (CLIP-04 E5)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
     },
     {
       "key": "clipboard.not_connected_will_send",
@@ -101,6 +135,23 @@
       "comment": "Result of a manual send while no device is connected (Android toast, Mac menu bar status line)",
       "platforms": ["android", "macos"],
       "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "clipboard.nothing_received",
+      "en": "Nothing Received Yet",
+      "vi": "Chưa nhận gì",
+      "comment": "Empty state title of the last received content on the Clipboard tab (PasteCard)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
+      "key": "clipboard.received_from",
+      "en": "From {device_name} · {time}",
+      "vi": "Từ {device_name} · {time}",
+      "comment": "Line under the last received content on the Clipboard tab (PasteCard); {time} is formatted by the system",
+      "platforms": ["ios"],
+      "args": [{"name": "device_name", "type": "string"}, {"name": "time", "type": "string"}],
+      "specs": ["CLIP-04"]
     },
     {
       "key": "clipboard.send",
@@ -115,8 +166,8 @@
       "en": "Send Again",
       "vi": "Gửi lại",
       "comment": "Action of the conflict notification; valid for 2 minutes",
-      "platforms": ["android", "macos"],
-      "specs": ["CLIP-01", "CLIP-02"]
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CLIP-01", "CLIP-02", "CLIP-04"]
     },
     {
       "key": "clipboard.send_anyway",
@@ -125,6 +176,15 @@
       "comment": "Action of the sensitive content notification; valid for 2 minutes",
       "platforms": ["android", "macos"],
       "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "clipboard.send_to_phone_title",
+      "en": "Send to {device_name}",
+      "vi": "Gửi sang {device_name}",
+      "comment": "Title of the send card with the system Paste button on the Clipboard tab (CLIP-04 field 1); {device_name} is the phone",
+      "platforms": ["ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["CLIP-04"]
     },
     {
       "key": "clipboard.sensitive_blocked_body",
@@ -141,6 +201,14 @@
       "comment": "Title of the sensitive content notification; action clipboard.send_anyway",
       "platforms": ["android", "macos"],
       "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "clipboard.sensitive_hidden",
+      "en": "Sensitive content hidden",
+      "vi": "Nội dung nhạy cảm đã được ẩn",
+      "comment": "Shown instead of the last received content when it was marked sensitive (PasteCard)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
     },
     {
       "key": "clipboard.sent_to",
@@ -193,6 +261,14 @@
       "platforms": ["android"],
       "args": [{"name": "device_name", "type": "string"}],
       "specs": ["CLIP-01"]
+    },
+    {
+      "key": "clipboard.title",
+      "en": "Clipboard",
+      "vi": "Bảng nhớ tạm",
+      "comment": "Title of the Clipboard tab and its large title (iPhone, iPad)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
     },
     {
       "key": "common.agree",
@@ -307,20 +383,28 @@
       "specs": ["SMS-01"]
     },
     {
+      "key": "error.clip_content_too_large",
+      "en": "Content is too large to send (up to 1 MB of text, 10 MB for images)",
+      "vi": "Nội dung quá lớn để gửi (tối đa 1 MB văn bản, 10 MB ảnh)",
+      "comment": "Shown when the pasted text or image exceeds the limits (CLIP_TOO_LARGE, CLIP-04 E4)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
       "key": "error.clip_image_no_space",
       "en": "Not enough storage to receive the image",
       "vi": "Không đủ bộ nhớ để nhận ảnh",
-      "comment": "Receiver of an image transfer cannot write the temporary file (acks INTERNAL); Android toast, Mac menu bar status line",
-      "platforms": ["android", "macos"],
-      "specs": ["CLIP-03"]
+      "comment": "Receiver of an image transfer cannot write the temporary file (acks INTERNAL); Android toast, Mac menu bar status line, iPhone Clipboard tab",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CLIP-03", "CLIP-04"]
     },
     {
       "key": "error.clip_image_send_failed",
       "en": "Couldn't send the image",
       "vi": "Không gửi được ảnh",
-      "comment": "Sender after the second CLIP_CHECKSUM_MISMATCH of one image; notification",
-      "platforms": ["android", "macos"],
-      "specs": ["CLIP-03"]
+      "comment": "Sender after the second CLIP_CHECKSUM_MISMATCH of one image; shown in place (Android toast, Mac menu bar status line, iPhone send card)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CLIP-03", "CLIP-04"]
     },
     {
       "key": "error.clip_image_too_large",
@@ -339,12 +423,28 @@
       "specs": ["CLIP-03"]
     },
     {
+      "key": "error.clip_send_failed",
+      "en": "Couldn't send. Try again.",
+      "vi": "Gửi không thành công, thử lại.",
+      "comment": "Send result on the Clipboard tab when no ack arrives within 10 s (CLIP-04 E9); not replayed automatically",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
       "key": "error.clip_text_too_large",
       "en": "Content is too large to send (up to 1 MB of text)",
       "vi": "Nội dung quá lớn để gửi (tối đa 1 MB văn bản)",
       "comment": "CLIP_TOO_LARGE for text; shown in place (Android toast, Mac menu bar status line), never as a notification",
       "platforms": ["android", "macos"],
       "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "error.clip_unsupported_mime",
+      "en": "Only text or images can be sent",
+      "vi": "Chỉ gửi được văn bản hoặc ảnh",
+      "comment": "Shown when the pasted content is not text, a URL or a supported image (CLIP_UNSUPPORTED_MIME, CLIP-04 E3)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
     },
     {
       "key": "error.clip_write_failed_on_device",
