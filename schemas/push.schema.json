@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/push.schema.json",
+  "title": "HandLive — push bodies sent by the relay",
+  "description": "00-common-specs 0.4.4, CONN-04 API 3 and API 4: what the relay sends to FCM and APNs. $defs only. FCM carries no content; the APNs alert carries only a loc-key of the push group of the UI string catalog and the envelope encrypted with K_push (hl).",
+  "$defs": {
+    "fcm-data": {
+      "description": "FCM data map of a wake (0.4.4): string values only, no content.",
+      "type": "object",
+      "required": ["t", "p", "r"],
+      "additionalProperties": false,
+      "properties": {
+        "t": { "const": "wake" },
+        "p": {
+          "description": "pair_id.",
+          "$ref": "common.schema.json#/$defs/uuid-v4"
+        },
+        "r": {
+          "description": "Reason of the wake (CONN-04 step 5a).",
+          "enum": ["user_open", "sms_send", "call_action"]
+        }
+      }
+    },
+    "fcm-request": {
+      "description": "Body of POST https://fcm.googleapis.com/v1/projects/{project_id}/messages:send (CONN-04 API 3): a high-priority data message without a notification block.",
+      "type": "object",
+      "required": ["message"],
+      "additionalProperties": false,
+      "properties": {
+        "message": {
+          "type": "object",
+          "required": ["token", "data", "android"],
+          "additionalProperties": false,
+          "properties": {
+            "token": { "type": "string", "minLength": 1, "maxLength": 4096 },
+            "data": { "$ref": "#/$defs/fcm-data" },
+            "android": {
+              "type": "object",
+              "required": ["priority", "ttl"],
+              "additionalProperties": false,
+              "properties": {
+                "priority": { "const": "HIGH" },
+                "ttl": {
+                  "description": "Duration in seconds, \"60s\" by default.",
+                  "type": "string",
+                  "pattern": "^[0-9]+s$"
+                },
+                "collapse_key": { "type": "string", "minLength": 1, "maxLength": 64 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "fcm-response": {
+      "description": "200 of FCM messages:send.",
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "pattern": "^projects/[^/]+/messages/.+$" }
+      }
+    },
+    "apns-payload": {
+      "description": "APNs alert payload (CONN-04 API 4), sent with apns-push-type alert, apns-priority 10 and apns-collapse-id = collapse_key; total ≤ 4 KB. The alert has no title and no text: only a loc-key the iPhone translates (0.12.4); I-NSE replaces the content after decrypting hl.",
+      "type": "object",
+      "required": ["aps", "p", "hl"],
+      "additionalProperties": false,
+      "properties": {
+        "aps": {
+          "type": "object",
+          "required": ["alert", "mutable-content", "sound", "thread-id", "interruption-level"],
+          "additionalProperties": false,
+          "properties": {
+            "alert": {
+              "type": "object",
+              "required": ["loc-key"],
+              "additionalProperties": false,
+              "properties": {
+                "loc-key": {
+                  "description": "Catalog key of the push group, by reason (CONN-04 API 4 table).",
+                  "enum": ["push.sms_new", "push.call_incoming", "push.call_missed"]
+                }
+              }
+            },
+            "mutable-content": { "const": 1 },
+            "sound": { "const": "default" },
+            "thread-id": {
+              "description": "sms:<thread_id> for SMS, calls for calls.",
+              "type": "string",
+              "pattern": "^(sms:[0-9]+|calls)$"
+            },
+            "interruption-level": { "enum": ["active", "time-sensitive"] }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": { "alert": { "properties": { "loc-key": { "const": "push.sms_new" } } } }
+              },
+              "then": {
+                "properties": {
+                  "thread-id": { "pattern": "^sms:[0-9]+$" },
+                  "interruption-level": { "const": "active" }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": { "alert": { "properties": { "loc-key": { "const": "push.call_incoming" } } } }
+              },
+              "then": {
+                "properties": {
+                  "thread-id": { "const": "calls" },
+                  "interruption-level": { "const": "time-sensitive" }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": { "alert": { "properties": { "loc-key": { "const": "push.call_missed" } } } }
+              },
+              "then": {
+                "properties": {
+                  "thread-id": { "const": "calls" },
+                  "interruption-level": { "const": "active" }
+                }
+              }
+            }
+          ]
+        },
+        "p": {
+          "description": "pair_id: tells I-NSE which PRK derives K_push.",
+          "$ref": "common.schema.json#/$defs/uuid-v4"
+        },
+        "hl": {
+          "description": "env_b64 of POST /v1/push: b64 of the JSON envelope encrypted with K_push.",
+          "$ref": "common.schema.json#/$defs/b64",
+          "minLength": 4,
+          "maxLength": 3000
+        }
+      }
+    }
+  }
+}

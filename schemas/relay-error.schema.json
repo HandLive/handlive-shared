@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/relay-error.schema.json",
+  "title": "HandLive — relay op error (relay → device)",
+  "description": "0.7.3, CONN-03 API 5, PAIR-01 API 7: a frame the relay refused. message is an English diagnostic for logs, never shown (0.12.4). The HTTP error body of the REST API is relay-rest.schema.json#/$defs/error-response.",
+  "type": "object",
+  "required": ["op", "code", "message"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "error" },
+    "code": {
+      "description": "NOT_PAIRED (0.8.2): the destination is not the peer of a valid pair; NOT_CONNECTED (0.8.1): the peer has no relay connection; PAYLOAD_TOO_LARGE: frame > 256 KiB; RATE_LIMITED; BAD_REQUEST: malformed frame, or a rendezvous that is full or expired.",
+      "enum": ["NOT_PAIRED", "NOT_CONNECTED", "PAYLOAD_TOO_LARGE", "RATE_LIMITED", "BAD_REQUEST"]
+    },
+    "message": { "type": "string" },
+    "to": {
+      "description": "Destination of the refused frame, when there is one.",
+      "$ref": "common.schema.json#/$defs/uuid-v8"
+    }
+  }
+}

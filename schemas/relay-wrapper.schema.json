@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/relay-wrapper.schema.json",
+  "title": "HandLive — relay routing wrapper (WS text frame on /v1/relay)",
+  "description": "00-common-specs 0.4.3, CONN-03 API 6: the device sends {to, env}; the relay turns it into {from, env} for the destination. env is the intact 0.5.1 envelope; the relay never decrypts it. Binary frames use the HR frame instead (test-vectors/relay-frame.json).",
+  "oneOf": [
+    { "$ref": "#/$defs/outbound" },
+    { "$ref": "#/$defs/inbound" }
+  ],
+  "$defs": {
+    "outbound": {
+      "description": "Device → relay.",
+      "type": "object",
+      "required": ["to", "env"],
+      "additionalProperties": false,
+      "properties": {
+        "to": {
+          "description": "device_id of the destination: the peer in a valid pair with the sender.",
+          "$ref": "common.schema.json#/$defs/uuid-v8"
+        },
+        "env": { "$ref": "envelope.schema.json" }
+      }
+    },
+    "inbound": {
+      "description": "Relay → destination device.",
+      "type": "object",
+      "required": ["from", "env"],
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "description": "device_id of the sender, taken from its JWT.",
+          "$ref": "common.schema.json#/$defs/uuid-v8"
+        },
+        "env": { "$ref": "envelope.schema.json" }
+      }
+    }
+  }
+}

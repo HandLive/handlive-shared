@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/relay-presence.schema.json",
+  "title": "HandLive — relay op presence (relay → device)",
+  "description": "0.7.3, CONN-03 API 5: sent for every pair right after the device connects, then on every change. A hint only: the session exists once the E2E handshake succeeds.",
+  "type": "object",
+  "required": ["op", "pair_id", "peer_device_id", "online"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "presence" },
+    "pair_id": { "$ref": "common.schema.json#/$defs/uuid-v4" },
+    "peer_device_id": { "$ref": "common.schema.json#/$defs/uuid-v8" },
+    "online": { "type": "boolean" }
+  }
+}

@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/relay-rest.schema.json",
+  "title": "HandLive — relay REST bodies",
+  "description": "00-common-specs 0.7.4 and 0.8.2: JSON bodies of https://{RELAY_HOST}/v1/…. $defs only, one per request or response body; DELETE /v1/devices/me, PUT /v1/devices/me/push-token (response), POST /v1/pairs/{pair_id}/revoke (response) and GET /v1/relay have no JSON body. Every error response is #/$defs/error-response with the HTTP status of the 0.8.2 table.",
+  "$defs": {
+    "devices-request": {
+      "description": "POST /v1/devices (CONN-03 API 1). sig = Ed25519(ik_sig, \"HLREG1\" ‖ device_id (16) ‖ ik_sig_pub (32) ‖ UTF-8(platform) ‖ ts (int64 BE)); ts within 5 minutes of the relay clock.",
+      "type": "object",
+      "required": ["device_id", "platform", "app_version", "ik_sig_pub", "ts", "sig"],
+      "additionalProperties": false,
+      "properties": {
+        "device_id": {
+          "description": "UUIDv8 of SHA-256(ik_sig_pub) (0.2).",
+          "$ref": "common.schema.json#/$defs/uuid-v8"
+        },
+        "platform": { "$ref": "common.schema.json#/$defs/platform" },
+        "app_version": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "ik_sig_pub": { "$ref": "common.schema.json#/$defs/b64u-32" },
+        "ts": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "sig": { "$ref": "common.schema.json#/$defs/b64u-64" }
+      }
+    },
+    "devices-response": {
+      "description": "201 (new registration) or 200 (already registered) of POST /v1/devices.",
+      "type": "object",
+      "required": ["device_id", "created_at"],
+      "additionalProperties": false,
+      "properties": {
+        "device_id": { "$ref": "common.schema.json#/$defs/uuid-v8" },
+        "created_at": { "$ref": "common.schema.json#/$defs/timestamp" }
+      }
+    },
+    "auth-challenge-request": {
+      "description": "POST /v1/auth/challenge (0.6.4 step 1, CONN-03 API 2).",
+      "type": "object",
+      "required": ["device_id"],
+      "additionalProperties": false,
+      "properties": {
+        "device_id": { "$ref": "common.schema.json#/$defs/uuid-v8" }
+      }
+    },
+    "auth-challenge-response": {
+      "description": "200 of POST /v1/auth/challenge: 32 random bytes, valid CHALLENGE_TTL = 60 s.",
+      "type": "object",
+      "required": ["challenge", "expires_at"],
+      "additionalProperties": false,
+      "properties": {
+        "challenge": { "$ref": "common.schema.json#/$defs/b64u-32" },
+        "expires_at": { "$ref": "common.schema.json#/$defs/timestamp" }
+      }
+    },
+    "auth-token-request": {
+      "description": "POST /v1/auth/token (0.6.4 step 2, CONN-03 API 3). sig = Ed25519(ik_sig, \"HLAUTH1\" ‖ challenge (32 raw bytes) ‖ device_id (16)).",
+      "type": "object",
+      "required": ["device_id", "challenge", "sig"],
+      "additionalProperties": false,
+      "properties": {
+        "device_id": { "$ref": "common.schema.json#/$defs/uuid-v8" },
+        "challenge": { "$ref": "common.schema.json#/$defs/b64u-32" },
+        "sig": { "$ref": "common.schema.json#/$defs/b64u-64" }
+      }
+    },
+    "auth-token-response": {
+      "description": "200 of POST /v1/auth/token: an HS256 JWT with sub = device_id, valid JWT_TTL = 15 minutes.",
+      "type": "object",
+      "required": ["access_token", "expires_in"],
+      "additionalProperties": false,
+      "properties": {
+        "access_token": {
+          "description": "Compact JWS: three b64u parts joined by dots.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"
+        },
+        "expires_in": {
+          "description": "Seconds: JWT_TTL = 900.",
+          "const": 900
+        }
+      }
+    },
+    "push-token-request": {
+      "description": "PUT /v1/devices/me/push-token (CONN-04 API 1); response 204 without a body. fcm only for android, apns and apns_sandbox (development builds) only for ios/ipados; topic (the I-APP bundle id) exactly with APNs.",
+      "type": "object",
+      "required": ["provider", "token"],
+      "additionalProperties": false,
+      "properties": {
+        "provider": { "enum": ["fcm", "apns", "apns_sandbox"] },
+        "token": {
+          "description": "FCM registration token, or APNs device token in hex.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "topic": { "type": "string", "minLength": 1, "maxLength": 255 }
+      },
+      "if": {
+        "properties": { "provider": { "const": "fcm" } }
+      },
+      "then": {
+        "not": { "required": ["topic"] }
+      },
+      "else": {
+        "required": ["topic"],
+        "properties": { "token": { "pattern": "^[0-9a-f]+$" } }
+      }
+    },
+    "pairs-request": {
+      "description": "POST /v1/pairs (PAIR-01 API 8): the attestation of 0.6.2 signed by both sides.",
+      "type": "object",
+      "required": ["pair_id", "device_a", "device_b", "created_at", "attestation", "sig_a", "sig_b"],
+      "additionalProperties": false,
+      "properties": {
+        "pair_id": { "$ref": "common.schema.json#/$defs/uuid-v4" },
+        "device_a": {
+          "description": "The Android phone.",
+          "$ref": "common.schema.json#/$defs/uuid-v8"
+        },
+        "device_b": {
+          "description": "The Mac, iPhone or iPad.",
+          "$ref": "common.schema.json#/$defs/uuid-v8"
+        },
+        "created_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "attestation": {
+          "description": "b64u of the 127 bytes \"HLPAIR1\" ‖ pair_id (16) ‖ device_id Android (16) ‖ device_id client (16) ‖ ik_sig_pub Android (32) ‖ ik_sig_pub client (32) ‖ created_at (int64 BE).",
+          "type": "string",
+          "pattern": "^SExQQUlSM[Q-Za-f][A-Za-z0-9_-]{159}[AQgw]$"
+        },
+        "sig_a": {
+          "description": "Android's Ed25519 signature of the attestation.",
+          "$ref": "common.schema.json#/$defs/b64u-64"
+        },
+        "sig_b": {
+          "description": "The client's Ed25519 signature of the attestation.",
+          "$ref": "common.schema.json#/$defs/b64u-64"
+        }
+      }
+    },
+    "pairs-response": {
+      "description": "201 (created) or 200 (identical repeat) of POST /v1/pairs.",
+      "type": "object",
+      "required": ["pair_id", "created_at"],
+      "additionalProperties": false,
+      "properties": {
+        "pair_id": { "$ref": "common.schema.json#/$defs/uuid-v4" },
+        "created_at": { "$ref": "common.schema.json#/$defs/timestamp" }
+      }
+    },
+    "pairs-list-response": {
+      "description": "200 of GET /v1/pairs (PAIR-02 API 1): the pairs the calling device is a member of.",
+      "type": "object",
+      "required": ["pairs"],
+      "additionalProperties": false,
+      "properties": {
+        "pairs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["pair_id", "peer_device_id", "peer_platform", "created_at", "revoked_at", "peer_online"],
+            "additionalProperties": false,
+            "properties": {
+              "pair_id": { "$ref": "common.schema.json#/$defs/uuid-v4" },
+              "peer_device_id": { "$ref": "common.schema.json#/$defs/uuid-v8" },
+              "peer_platform": { "$ref": "common.schema.json#/$defs/platform" },
+              "created_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+              "revoked_at": {
+                "description": "Non-null means revoked.",
+                "oneOf": [
+                  { "$ref": "common.schema.json#/$defs/timestamp" },
+                  { "type": "null" }
+                ]
+              },
+              "peer_online": {
+                "description": "The peer is connected to the relay (presence).",
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "pair-revoke-request": {
+      "description": "POST /v1/pairs/{pair_id}/revoke (PAIR-03 API 3); response 204 without a body.",
+      "type": "object",
+      "required": ["reason"],
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "description": "lost_device when the user unpairs remotely while the peer is offline.",
+          "enum": ["user", "reinstall", "lost_device"]
+        }
+      }
+    },
+    "push-request": {
+      "description": "POST /v1/push (CONN-04 API 2): wake only to Android (FCM), alert only to iOS/iPadOS (APNs) with env_b64 = b64 of the UTF-8 JSON envelope encrypted with K_push (test-vectors/push-envelope.json).",
+      "type": "object",
+      "required": ["pair_id", "to", "kind", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "pair_id": { "$ref": "common.schema.json#/$defs/uuid-v4" },
+        "to": {
+          "description": "device_id of the target, the other member of pair_id.",
+          "$ref": "common.schema.json#/$defs/uuid-v8"
+        },
+        "kind": { "enum": ["wake", "alert"] },
+        "reason": { "enum": ["user_open", "sms_send", "call_action", "sms_new", "call_incoming", "call_missed"] },
+        "env_b64": {
+          "description": "At most 3,000 characters, so the APNs payload stays within 4 KB.",
+          "$ref": "common.schema.json#/$defs/b64",
+          "minLength": 4,
+          "maxLength": 3000
+        },
+        "collapse_key": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "ttl_s": {
+          "description": "Default 60 (wake, call_incoming), 86,400 (sms_new, call_missed).",
+          "$ref": "common.schema.json#/$defs/int32",
+          "minimum": 0
+        }
+      },
+      "if": {
+        "properties": { "kind": { "const": "wake" } }
+      },
+      "then": {
+        "properties": { "reason": { "enum": ["user_open", "sms_send", "call_action"] } },
+        "not": { "required": ["env_b64"] }
+      },
+      "else": {
+        "required": ["env_b64"],
+        "properties": { "reason": { "enum": ["sms_new", "call_incoming", "call_missed"] } }
+      }
+    },
+    "push-response": {
+      "description": "202 of POST /v1/push (also for a coalesced wake).",
+      "type": "object",
+      "required": ["accepted"],
+      "additionalProperties": false,
+      "properties": {
+        "accepted": { "const": true }
+      }
+    },
+    "error-response": {
+      "description": "Body of every relay REST error (0.4.3, 0.8.2); message is an English diagnostic for logs, never shown (0.12.4).",
+      "type": "object",
+      "required": ["error"],
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "additionalProperties": false,
+          "properties": {
+            "code": { "$ref": "#/$defs/error-code" },
+            "message": { "type": "string" }
+          }
+        }
+      }
+    },
+    "error-code": {
+      "description": "Relay error codes, exactly the table of 0.8.2 (HTTP status in the table).",
+      "enum": [
+        "BAD_REQUEST",
+        "CHALLENGE_EXPIRED",
+        "SIGNATURE_INVALID",
+        "TOKEN_EXPIRED",
+        "NOT_PAIRED",
+        "DEVICE_NOT_FOUND",
+        "PAIR_EXISTS",
+        "PUSH_TOKEN_MISSING",
+        "DEVICE_REVOKED",
+        "PAYLOAD_TOO_LARGE",
+        "RATE_LIMITED",
+        "INTERNAL",
+        "PUSH_PROVIDER_ERROR"
+      ]
+    }
+  }
+}

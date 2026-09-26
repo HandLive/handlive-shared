@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/relay-rv_join.schema.json",
+  "title": "HandLive — relay op rv_join (device → relay)",
+  "description": "0.7.3, PAIR-01 API 7: join the pairing rendezvous whose rv_id travels in the QR code (rv). A rendezvous lives 180 s and has at most 2 members.",
+  "type": "object",
+  "required": ["op", "rv_id"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "rv_join" },
+    "rv_id": { "$ref": "common.schema.json#/$defs/b64u-16" }
+  }
+}
