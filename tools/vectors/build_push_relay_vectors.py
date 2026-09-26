@@ -5,6 +5,8 @@ push-envelope.json (00-common-specs 0.4.4, 0.5.1, 0.6.1; CONN-04 step 5b and API
 - kind "envelope": what the phone sends for an iPhone/iPad without a session: an envelope built as over a session
   but encrypted with K_push (nonce 24 bytes, AAD "<v>|<type>|<id>|<ts>" as in 0.5.1), its env_b64 (standard base64
   of the UTF-8 envelope JSON), the POST /v1/push body, and the APNs payload and headers the relay derives from it.
+- the last five envelopes pin the SMS text cut of CONN-04 step 5b (push_sms_truncation): each carries a truncation
+  object with the texts before the cut, the steps applied and the env_b64 lengths.
 - invalid_vectors: what I-NSE must refuse — another key, a tampered tag, a wrong AAD, an envelope older than 24 h,
   an env_b64 that is not standard base64.
 
@@ -22,6 +24,8 @@ Generator side: `cryptography` HKDF and pynacl XChaCha20-Poly1305 through handli
 import base64
 import json
 import struct
+
+import push_sms_truncation
 
 from handlive_protocol_derivations import (b64, compact_json, envelope_aad, envelope_wire, hkdf, test_bytes,
                                            uuid_bytes, xchacha_seal)
@@ -85,7 +89,8 @@ def _key_vector(pv: dict) -> dict:
             "k_push": push_key(H(pv["prk"])).hex()}
 
 
-def _envelope_vector(pv: dict, name, typ, env_id, ts, body, reason, collapse_key, ttl_s, thread_id) -> dict:
+def _envelope_vector(pv: dict, name, typ, env_id, ts, body, reason, collapse_key, ttl_s, thread_id,
+                     truncation: dict | None = None) -> dict:
     key = push_key(H(pv["prk"]))
     plaintext = compact_json(body)
     sealed = seal_envelope(key, typ, env_id, ts, plaintext.encode())
@@ -103,7 +108,22 @@ def _envelope_vector(pv: dict, name, typ, env_id, ts, body, reason, collapse_key
             "envelope": sealed["envelope"], "env_b64": sealed["env_b64"], "reason": reason,
             "push_request": compact_json(request), "apns_payload": compact_json(apns),
             "apns_headers": {"apns-push-type": "alert", "apns-topic": IOS_TOPIC, "apns-priority": "10",
-                             "apns-collapse-id": collapse_key}}
+                             "apns-collapse-id": collapse_key},
+            **({"truncation": truncation} if truncation else {})}
+
+
+def _cut_vector(pv: dict, name: str, ts: int, new: dict) -> dict:
+    """An sms/new push whose texts are cut per CONN-04 step 5b; lengths measured on the real sealed envelope."""
+    key = push_key(H(pv["prk"]))
+    env_id = push_sms_truncation.uuid7(ts, f"push envelope {name}")
+
+    def env_b64_length(obj: dict) -> int:
+        return len(seal_envelope(key, "sms", env_id, ts, compact_json(obj).encode())["env_b64"])
+
+    sealed, steps = push_sms_truncation.truncate(new, env_b64_length)
+    info = push_sms_truncation.describe(new, sealed, steps, env_b64_length)
+    return _envelope_vector(pv, name, "sms", env_id, ts, sealed, "sms_new", sealed["data"]["message"]["message_key"],
+                            86_400, "sms", info)
 
 
 def _push_negatives(pairs: dict, v: dict) -> list[dict]:
@@ -143,6 +163,7 @@ def push_file(ctx) -> dict:
     pairs = {p["name"]: p for p in ctx["pairs"]}
     target = pairs["cặp 2"]  # the client of pair 2 is the iPhone of relay-auth.json (RFC 8032 TEST 3)
     envelopes = [_envelope_vector(target, *spec) for spec in ENVELOPES]
+    envelopes += [_cut_vector(target, *case) for case in push_sms_truncation.cases()]
     return {"description": "Push to an iPhone/iPad without a session: K_push = HKDF-SHA256(PRK, empty salt, info "
                            "\"handlive/v1/push\", L = 32); the envelope is built as over a session and encrypted with "
                            "K_push exactly as 0.5.1 (payload = b64(nonce(24) ‖ ciphertext ‖ tag(16)), AAD = UTF-8 "
@@ -150,7 +171,10 @@ def push_file(ctx) -> dict:
                            "JSON, sent as env_b64 of POST /v1/push and as hl of the APNs payload. I-NSE derives K_push "
                            "from the PRK of pair p, decodes hl, rebuilds the AAD from the parsed envelope and "
                            "decrypts. APNs thread-id is the generic sms or calls; collapse_key is the message_key of "
-                           "an SMS, call:<call_id> for a call.",
+                           "an SMS, call:<call_id> for a call. Envelopes with a truncation object pin the SMS text "
+                           "cut: body over 1,000 code points → first 999 and \"…\"; while env_b64 > 3,000 the body, "
+                           "then the snippet, becomes the longest cut that fits, again ending with \"…\" (code points, "
+                           "never UTF-16 units).",
             "source": f"{SPEC} 0.4.4, 0.5.1, 0.6.1; 03-connectivity.md CONN-04 step 5b, API 2, API 4; 05-sms.md SMS-02 "
                       "API 2; 06-call-control.md CALL-01 API 4; PRK from pair-prk.json",
             "vectors": [_key_vector(p) for p in ctx["pairs"]] + envelopes,
