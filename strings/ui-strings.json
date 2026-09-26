@@ -4,6 +4,24 @@
   "languages": ["en", "vi"],
   "strings": [
     {
+      "key": "a11y.sms_bubble_received",
+      "en": "{sender}, {time}",
+      "vi": "{sender}, {time}",
+      "comment": "VoiceOver label of a received message bubble (SMS-03 special requirements); {sender} = the conversation name, or the sender's number in national format in a group conversation; {time} formatted by the system; the message text is the accessibility value, read after the label",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "sender", "type": "string"}, {"name": "time", "type": "string"}],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "a11y.sms_bubble_sent",
+      "en": "You, {time}, {status}",
+      "vi": "Bạn, {time}, {status}",
+      "comment": "VoiceOver label of a sent message bubble (SMS-03 special requirements); {time} formatted by the system; {status} = the sms.status_* text; the message text is the accessibility value",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "time", "type": "string"}, {"name": "status", "type": "string"}],
+      "specs": ["SMS-03"]
+    },
+    {
       "key": "clipboard.auto_send_off_on_phone",
       "en": "Auto-send is off on the phone — use the Send Clipboard button on the phone",
       "vi": "Tự gửi đang tắt trên điện thoại — dùng nút Gửi bảng nhớ tạm trên điện thoại",
@@ -141,6 +159,22 @@
       "en": "Nothing Received Yet",
       "vi": "Chưa nhận gì",
       "comment": "Empty state title of the last received content on the Clipboard tab (PasteCard)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
+      "key": "clipboard.nothing_received_body",
+      "en": "Content copied on the phone or Mac appears here while HandLive is open.",
+      "vi": "Nội dung sao chép trên điện thoại hoặc Mac sẽ hiện ở đây khi HandLive đang mở.",
+      "comment": "Empty-state sentence under clipboard.nothing_received on the Clipboard tab (CLIP-04 field 10, PasteCard)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
+      "key": "clipboard.paste_hint",
+      "en": "Tap Paste to send what you just copied.",
+      "vi": "Chạm Dán để gửi nội dung vừa sao chép.",
+      "comment": "One-line hint under the system Paste button on the send card (CLIP-04 field 1, PasteCard); “Paste” is the system button's own label",
       "platforms": ["ios"],
       "specs": ["CLIP-04"]
     },
@@ -521,6 +555,23 @@
       "specs": ["CONN-03"]
     },
     {
+      "key": "error.relay_pin_mismatch",
+      "en": "The server's certificate isn't trusted, so HandLive didn't connect over the internet.",
+      "vi": "Chứng chỉ máy chủ không đáng tin cậy nên HandLive không kết nối qua Internet.",
+      "comment": "The relay certificate does not match the pinned keys; nothing was sent (CONN-03 E7, field 4)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CONN-03"]
+    },
+    {
+      "key": "error.relay_rate_limited",
+      "en": "Too many requests. Trying again in {duration}.",
+      "vi": "Quá nhiều yêu cầu. Thử lại sau {duration}.",
+      "comment": "Relay answered 429 RATE_LIMITED (CONN-03 E6, field 4); {duration} is the remaining Retry-After wait, formatted by the system (like status.retry_in)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "duration", "type": "string"}],
+      "specs": ["CONN-03"]
+    },
+    {
       "key": "error.server_unreachable",
       "en": "Couldn't connect to the server. Try again later.",
       "vi": "Không kết nối được máy chủ, hãy thử lại sau.",
@@ -551,6 +602,14 @@
       "comment": "Reason of a failed SMS for SMS_GENERIC_FAILURE and any other code without its own text",
       "platforms": ["macos", "ios"],
       "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_history_failed",
+      "en": "Couldn't load older messages",
+      "vi": "Không tải được tin cũ hơn",
+      "comment": "Error banner at the top of a conversation when sms/history timed out or failed (SMS-03 E4), with common.retry",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
     },
     {
       "key": "error.sms_invalid_address",
@@ -599,6 +658,14 @@
       "comment": "Reason of a failed SMS for SMS_SIM_UNAVAILABLE; the SIM picker opens",
       "platforms": ["macos", "ios"],
       "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_sync_storage",
+      "en": "Couldn't save messages on this device",
+      "vi": "Không lưu được tin nhắn trên máy này",
+      "comment": "Non-blocking error when a sync page cannot be written to the local database (SMS-01 E7: out of storage, SQLCipher cannot be opened)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01"]
     },
     {
       "key": "error.sms_thread_not_found",
@@ -1185,6 +1252,14 @@
       "specs": ["SET-01"]
     },
     {
+      "key": "permission.local_network_primer",
+      "en": "HandLive looks for your Android phone on your Wi-Fi network to connect to it directly.",
+      "vi": "HandLive tìm điện thoại Android trong mạng Wi-Fi để kết nối trực tiếp.",
+      "comment": "Body of the local network explanation before the first Bonjour browse (SET-03 step 9), under permission.local_network_primer_title; button common.continue",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-03"]
+    },
+    {
       "key": "permission.local_network_primer_title",
       "en": "Find Your Phone on Wi-Fi",
       "vi": "Tìm điện thoại trong mạng Wi-Fi",
@@ -1418,6 +1493,14 @@
       "specs": ["SET-02"]
     },
     {
+      "key": "settings.delete_all_confirm",
+      "en": "Delete All",
+      "vi": "Xóa toàn bộ",
+      "comment": "Warning-colored confirm button of Delete All HandLive Data, next to common.cancel (SET-02 field 28)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
       "key": "settings.delete_all_data",
       "en": "Delete All HandLive Data",
       "vi": "Xóa toàn bộ dữ liệu HandLive",
@@ -1583,6 +1666,14 @@
       "vi": "Xóa thiết bị khỏi máy chủ",
       "comment": "Action row in the Data group (SET-02 field 26), iPhone, iPad and Android; also the title of its confirmation",
       "platforms": ["android", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.remove_from_server_confirm",
+      "en": "Remove from Server",
+      "vi": "Xóa khỏi máy chủ",
+      "comment": "Warning-colored confirm button of Remove Device from Server, next to common.cancel (SET-02 field 28)",
+      "platforms": ["android", "macos", "ios"],
       "specs": ["SET-02"]
     },
     {
@@ -1819,6 +1910,14 @@
       "specs": ["SET-03"]
     },
     {
+      "key": "setup.local_network_denied_ios",
+      "en": "HandLive can't look for the phone on Wi-Fi. Turn on HandLive in Settings › Privacy & Security › Local Network.",
+      "vi": "HandLive không tìm được điện thoại trong mạng Wi-Fi. Bật HandLive trong Cài đặt › Quyền riêng tư & Bảo mật › Mạng cục bộ.",
+      "comment": "iPhone/iPad guidance when the local network permission is denied (SET-03 E4), with common.open_settings; the Mac text is setup.local_network_denied_mac",
+      "platforms": ["ios"],
+      "specs": ["SET-03", "CONN-01"]
+    },
+    {
       "key": "setup.local_network_denied_mac",
       "en": "HandLive can't look for the phone on Wi-Fi. Turn on HandLive in System Settings › Privacy & Security › Local Network.",
       "vi": "HandLive không tìm được điện thoại trong mạng Wi-Fi. Bật HandLive trong Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Mạng cục bộ.",
@@ -1841,6 +1940,14 @@
       "comment": "SET-01 E1 warning banner on Android when POST_NOTIFICATIONS is denied, next to a button that opens notification settings",
       "platforms": ["android"],
       "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.notifications_denied_ios",
+      "en": "Notifications are off, so new SMS messages and incoming calls don't appear while HandLive is closed. Turn them on in Settings › Notifications › HandLive.",
+      "vi": "Thông báo đang tắt nên không thấy SMS mới và cuộc gọi đến khi HandLive đóng. Bật lại trong Cài đặt › Thông báo › HandLive.",
+      "comment": "iPhone/iPad guidance when notifications are denied (SET-03 E3), with common.open_settings; the Mac text is setup.notifications_denied_mac",
+      "platforms": ["ios"],
+      "specs": ["SET-03", "CONN-04"]
     },
     {
       "key": "setup.notifications_denied_mac",
@@ -1949,6 +2056,14 @@
       "specs": ["SMS-04"]
     },
     {
+      "key": "sms.choose_sim",
+      "en": "Choose SIM",
+      "vi": "Chọn SIM",
+      "comment": "Title of the SIM picker of the compose field, also opened by SMS_SIM_UNAVAILABLE (SMS-04 field 4, E6)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
       "key": "sms.compose_placeholder",
       "en": "SMS Message",
       "vi": "Tin nhắn SMS",
@@ -1970,6 +2085,14 @@
       "vi": "Sao chép số",
       "comment": "Context menu item of a conversation in the Messages window sidebar (Mac)",
       "platforms": ["macos"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.empty_body",
+      "en": "Messages from your phone appear here after the first sync.",
+      "vi": "Tin nhắn từ điện thoại sẽ hiện ở đây sau lần đồng bộ đầu tiên.",
+      "comment": "Empty-state sentence under sms.empty_title, shown with the SMS-01 sync status (SMS-03 E1)",
+      "platforms": ["macos", "ios"],
       "specs": ["SMS-03"]
     },
     {
@@ -2059,6 +2182,14 @@
       "vi": "Chưa gửi được, mở HandLive để thử lại.",
       "comment": "Body of the local notification when a quick reply from a notification got no ack within about 20 s (SMS-04 E8); no title",
       "platforms": ["ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.recipient_label",
+      "en": "To:",
+      "vi": "Đến:",
+      "comment": "Label of the recipient field of New Message (SMS-04 field 1)",
+      "platforms": ["macos", "ios"],
       "specs": ["SMS-04"]
     },
     {
