@@ -104,7 +104,7 @@ def check_tables(schemas: dict, docs_dir: Path, report) -> None:
         if values:
             _compare(report, f"controls.{name} vs CALL-01 API 1", values, state["hfp-control"]["enum"])
 
-    # CALL-02 API 1: call_event/action data, action enum, error codes in check order (+ INTERNAL, 0.8.1).
+    # CALL-02 API 1: call_event/action data, action enum, error codes in check order (INTERNAL last).
     api = _section(call, "#### API 1 — `WS call_event/action`", "#### API 2")
     action = schemas["call_event-action"]
     rows = _table_after(api, "**Request (`data`):**")
@@ -113,7 +113,7 @@ def check_tables(schemas: dict, docs_dir: Path, report) -> None:
     _compare(report, "call_event/action action enum vs CALL-02 API 1", _enum_in(rows[1][1]), action["$defs"]["action"]["enum"])
     _compare(report, "call_event/action audio enum vs CALL-02 API 1", _enum_in(rows[2][1]), data["properties"]["audio"]["enum"])
     codes = _first_ticked(_table_after(api, "Errors (`ack.error.code`), in check order:"))
-    _compare(report, "call_event/action error codes vs CALL-02 API 1", codes + ["INTERNAL"],
+    _compare(report, "call_event/action error codes vs CALL-02 API 1", codes,
              action["$defs"]["error"]["properties"]["code"]["enum"])
 
     # CALL-04: the shared entry object, log_sync, log_new.

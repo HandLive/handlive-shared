@@ -44,7 +44,7 @@
       ]
     },
     "ack-failure": {
-      "description": "Error ack of call_event/action: the codes of CALL-02 API 1 in check order, plus INTERNAL (0.8.1), with the details each code requires.",
+      "description": "Error ack of call_event/action: the codes of CALL-02 API 1 in check order, INTERNAL last, with the details each code requires.",
       "allOf": [
         { "$ref": "ack.schema.json#/$defs/failure" },
         { "properties": { "error": { "$ref": "#/$defs/error" } } }
