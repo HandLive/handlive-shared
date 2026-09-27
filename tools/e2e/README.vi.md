@@ -15,6 +15,8 @@ Máy build không có Xcode, nên app Mac và app iPhone không chạy được 
 | `sms` | Cấp quyền và bản cập nhật capability. `sms/new` từ modem. Đồng bộ lần đầu chia trang quá 180 KiB, đồng bộ bù, lỗi cursor. Chia trang `sms/history`. `sms/send` với `sms/status` chỉ tiến, dòng Sent có `local_id`, chống gửi trùng, các lỗi gửi. `sms/read_changed`. Thu hồi `READ_SMS` và thông báo gợi ý cấp quyền | SMS-01…05, SET-01 B |
 | `calls` | Cuộc gọi đến kèm tên danh bạ giả. Nghe, từ chối, kết thúc từ Mac, đối chiếu trạng thái cuộc gọi của chính Android. `CALL_HFP_REQUIRED`, `CALL_ACTION_NOT_ALLOWED`, `CALL_NOT_FOUND`. Kết nối lại giữa cuộc gọi. Cuộc gọi chờ khi modem tạo được. `log_new` cho cuộc đã nghe, đã từ chối, gọi nhỡ. Chia trang `log_sync` và cursor hỏng. Sau đó chạy `tools/bench/call_latency.py` trên lượt chạy | CALL-01…04 |
 | `all` | `setup clipboard sms calls` theo thứ tự đó | |
+| `relay` | Cần bộ relay cục bộ (`relay_stack/`) và app build cho nó. Một Mac giả thứ hai đăng ký với relay trước khi ghép nối; điện thoại đăng ký cặp. Mạng LAN mất đi (gỡ forward, bỏ phiên không gửi `session/bye`); điện thoại phải lên `/v1/relay`. Sau đó qua relay: bắt tay phiên, cuộc gọi đến, nghe và kết thúc, SMS mới, `sms/sync` và một tin trả lời | CONN-03, PAIR-01 API 8, PAIR-02 API 1 |
+| `push` | Cùng bộ relay. Một iPhone giả đăng ký token APNs, ghép nối, chào tạm biệt rồi tắt. SMS đến và cuộc gọi đến phải tới APNs giả (`sms_new`, `call_incoming`); `hl` mở được bằng `K_push` của cặp. Sau đó iPhone từ chối cuộc gọi qua relay; cuộc gọi thứ hai người gọi bỏ máy thì gửi `call_missed` cùng collapse id | CONN-04, SMS-02 bước 10, CALL-01 bước 5, CALL-02 B1–B3, CALL-04 API 5 |
 
 Mọi tin gửi và nhận đều được kiểm theo `shared/schemas`. Phần mật mã lấy từ `tools/vectors`, chính mã sinh test vector.
 
@@ -22,7 +24,7 @@ Mọi tin gửi và nhận đều được kiểm theo `shared/schemas`. Phần 
 
 - Mac, iPhone, iPad thật: giao diện, thông báo, Keychain, `NSPasteboard`, HFP. Mac giả chỉ làm phần giao thức cần.
 - Tìm máy qua mDNS: mạng máy ảo không truyền multicast. Client gọi thẳng cổng đã forward, như đường tắt `last_host` của Mac.
-- Relay, APNs và FCM ở giai đoạn này. Giai đoạn relay đi cùng `relay_stack/`.
+- Dịch vụ push của Apple và Google: kịch bản `push` dừng ở APNs giả của `relay_stack/`. Giai đoạn relay còn cần app build cho relay cục bộ với hai bản vá debug của `relay_stack/`.
 - Tự gửi clipboard qua dịch vụ Trợ năng.
 - Cuộc gọi chờ trên Android 11 trở lên: modem giả lập của máy ảo không tạo cuộc thứ hai khi đang có cuộc gọi.
 - Thời gian trên máy thật. Máy ảo trên một máy chủ bận không phải điện thoại; độ trễ chỉ cho thấy xu hướng, không thay chỉ tiêu của cổng G1.
@@ -49,6 +51,9 @@ tools/.venv/bin/python tools/e2e/e2e.py calls --serial emulator-5556 --step-dela
 | `--state-dir` | `$HL_E2E_STATE_DIR` hoặc `<tmp>/handlive-e2e/<serial>` | Trạng thái cặp, log và kết quả. Thư mục chứa khóa thử nghiệm: để ngoài kho mã |
 | `--host-port` | 47800 + cổng − 5500 | Đầu phía máy chủ của `adb forward` tới cổng 47800 của điện thoại |
 | `--step-delay` | 1 s | Nghỉ sau mỗi thao tác thấy được; 0 để chạy nhanh |
+| `--shared-device` | tắt | Máy ảo dùng chung với client khác: không cho `--apk` và bỏ qua bước thu hồi quyền (bước này khởi động lại app) |
+| `--lock-dir` | thư mục `.locks` của workspace | Mỗi kịch bản giữ khóa `<lock-dir>/<serial>` (chờ nếu đang bị giữ; khóa quá 30 phút coi là cũ) |
+| `--relay-state` | `$HANDLIVE_RELAY_STACK_DIR` hoặc `<tmp>/handlive-relay-stack` | Thư mục trạng thái của `relay_stack.py up` (cho `relay` và `push`) |
 
 Lượt chạy in một dòng cho mỗi bước và một bảng tổng. Có bước FAIL thì thoát với mã 1. Thư mục trạng thái giữ:
 
@@ -70,8 +75,9 @@ Số điện thoại và tên đều là giả: số 555-01xx mã vùng 201 (lib
 | `transport.py` | TLS 1.3 có ghim chứng chỉ, WebSocket ping mỗi 15 s |
 | `pair_store.py`, `schema_check.py`, `bench_lines.py` | File cặp, kiểm schema, dòng `HLBENCH/1` |
 | `adb_device.py`, `ui_automator.py` | adb, console máy ảo, các provider; đọc màn hình bằng `uiautomator` với chữ lấy từ catalog chuỗi |
-| `scenario_*.py`, `steps.py` | Các kịch bản và dòng PASS/FAIL |
-| `self_test.py`, `fake_phone.py` | Tự kiểm (CI): mật mã so với vector, rồi cả client với một điện thoại giả chạy trong tiến trình |
+| `relay_client.py` | Client trên bộ relay: đăng ký, JWT, cặp, token APNs, `/v1/relay`, kênh relay cho phiên |
+| `scenario_*.py`, `steps.py` | Các kịch bản (`scenario_common.py`: quyền và số điện thoại giả) và dòng PASS/FAIL |
+| `self_test.py`, `fake_phone.py` | Tự kiểm (CI): mật mã so với vector, cả client với một điện thoại giả chạy trong tiến trình, rồi cùng phiên đó qua relay giả của `tools/bench` |
 
 ```sh
 tools/.venv/bin/python tools/e2e/self_test.py      # phải in "0 failed"
