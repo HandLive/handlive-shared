@@ -8,6 +8,7 @@ from __future__ import annotations
 import os
 import re
 import shlex
+import socket
 import subprocess
 import time
 from dataclasses import dataclass
@@ -81,6 +82,9 @@ class Adb:
 
     def install(self, apk: Path, timeout: float = 240) -> None:
         self.run("install", "-r", "-t", str(apk), timeout=timeout)
+
+    def push(self, local: Path, remote: str) -> None:
+        self.run("push", str(local), remote, timeout=120)
 
     def uninstall(self, package: str = PACKAGE) -> None:
         self.run("uninstall", package, timeout=120, check=False)
@@ -167,10 +171,15 @@ class Adb:
         """The SIM's line 1 number (the emulator loops SMS sent to it back as incoming)."""
         for code in range(10, 25):
             out = self.shell(f"service call iphonesubinfo {code}", check=False)
-            chars = "".join(re.findall(r"'([^']*)'", out)).replace(".", "")
+            chars = "".join(re.findall(r"'([^']*)'", out)).replace(".", "").strip()
             if re.fullmatch(r"\+?1?555\d{7}", chars):
                 return chars if chars.startswith("+") else "+" + chars
         return None
+
+    def console_port(self) -> str | None:
+        """The emulator's console port: an SMS sent to it as a short code comes back to this emulator."""
+        m = re.search(r"emulator-(\d+)", self.serial)
+        return m.group(1) if m else None
 
     def gsm_call(self, number: str) -> None:
         self.emu(f"gsm call {number}")
@@ -181,13 +190,51 @@ class Adb:
     def gsm_cancel(self, number: str) -> None:
         self.emu(f"gsm cancel {number}")
 
+    def console(self, command: str, timeout: float = 10) -> str:
+        """A command on the emulator console over TCP (localhost:<port>, token auth), with its output lines —
+        `adb emu` relays only the final OK/KO, so listings such as `gsm list` need the console itself."""
+        token = (Path.home() / ".emulator_console_auth_token").read_text().strip()
+        with socket.create_connection(("127.0.0.1", int(self.console_port())), timeout=timeout) as sock:
+            f = sock.makefile("rwb")
+
+            def until_ok() -> str:
+                lines = []
+                while True:
+                    line = f.readline().decode(errors="replace")
+                    if not line:
+                        raise AdbError(f"console closed during {command!r}")
+                    if line.startswith("OK"):
+                        return "".join(lines)
+                    if line.startswith("KO"):
+                        raise AdbError(f"console {command!r}: {line.strip()}")
+                    lines.append(line)
+            until_ok()
+            for cmd in (f"auth {token}", command):
+                f.write((cmd + "\n").encode())
+                f.flush()
+                out = until_ok()
+            f.write(b"quit\n")
+            f.flush()
+            return out
+
     def gsm_list(self) -> list[GsmCall]:
         calls = []
-        for line in self.emu("gsm list").splitlines():
+        for line in self.console("gsm list").splitlines():
             m = re.match(r"\s*(inbound|outbound)\s+(?:from|to)\s+(\S+)\s*:\s*(\w+)", line)
             if m:
                 calls.append(GsmCall(m.group(1), m.group(2), m.group(3)))
         return calls
+
+    def call_state(self) -> dict[str, int]:
+        """The framework's view of the calls (dumpsys telephony.registry, first phone): mCallState 0 idle,
+        1 ringing, 2 offhook; m*CallState use PreciseCallState (1 active, 2 holding, 5 incoming, 6 waiting)."""
+        out = self.shell("dumpsys telephony.registry", timeout=30, check=False)
+        state: dict[str, int] = {}
+        for key in ("mCallState", "mRingingCallState", "mForegroundCallState", "mBackgroundCallState"):
+            m = re.search(rf"{key}=(-?\d+)", out)
+            if m:
+                state[key] = int(m.group(1))
+        return state
 
     def sms_to_phone(self, number: str, text: str) -> None:
         self.emu(f"sms send {number} {text}")

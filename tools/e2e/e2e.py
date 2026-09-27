@@ -98,6 +98,11 @@ def main(argv: list[str]) -> int:
     state_dir = args.state_dir or Path(os.environ.get("HL_E2E_STATE_DIR") or
                                        Path(tempfile.gettempdir()) / "handlive-e2e" / args.serial)
     state_dir.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    for log in ("hlbench-mac.log", "logcat-hlbench.log", "results.json", "call_latency.txt"):
+        if (state_dir / log).exists():                  # one run per set of logs, older runs kept aside
+            (state_dir / "previous" / stamp).mkdir(parents=True, exist_ok=True)
+            (state_dir / log).rename(state_dir / "previous" / stamp / log)
     port = args.host_port or default_host_port(args.serial)
     adb = Adb(args.serial, args.sdk)
     adb.wait_boot()

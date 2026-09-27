@@ -40,6 +40,7 @@ class Node:
     package: str
     clickable: bool
     bounds: tuple[int, int, int, int]
+    checked: bool = False
 
     @property
     def center(self) -> tuple[int, int]:
@@ -56,7 +57,7 @@ def parse_dump(xml: str) -> list[Node]:
             continue
         nodes.append(Node(el.get("text", ""), el.get("resource-id", ""), el.get("content-desc", ""),
                           el.get("class", ""), el.get("package", ""), el.get("clickable") == "true",
-                          tuple(int(g) for g in m.groups())))
+                          tuple(int(g) for g in m.groups()), el.get("checked") == "true"))
     return nodes
 
 
