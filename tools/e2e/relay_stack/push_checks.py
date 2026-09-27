@@ -97,9 +97,12 @@ def _verify_fcm(wake_answers: list, fcm: list[dict], oauth: list[dict], phone_to
         return Result("push wake → mock FCM", False, evidence + ["no FCM send captured for the fake phone's token"])
     message = sends[0]["body"]["message"]
     android = message.get("android") or {}
+    grant = oauth[-1] if oauth else {}
+    reused = bool(grant) and grant["ts"] < sends[0]["ts"] - 1000
     checks = {
-        "OAuth2 JWT-bearer assertion valid (RS256, iss, scope, aud, 3600 s)":
-            any(c.get("assertion", {}).get("valid") for c in oauth),
+        "OAuth2 JWT-bearer assertion valid (RS256, iss, scope, aud, 3600 s)"
+        + (" — access token reused from an earlier grant, as CONN-04 API 3 allows" if reused else ""):
+            grant.get("assertion", {}).get("valid") is True,
         "access token issued by the mock": sends[0].get("access_token_valid") is True,
         "data {t: wake, p: pair_id, r: user_open}": message.get("data") == {"t": "wake", "p": pair_id,
                                                                            "r": "user_open"},
@@ -153,8 +156,8 @@ def check_push(layout: Layout, info: dict, _wait_s: float) -> list[Result]:
             capture = next((c for c in apns if c.get("headers", {}).get("apns-collapse-id") == push["collapse"]
                             and (c.get("body") or {}).get("p") == pair_id), None)
             results.append(_verify_apns(push, capture, pair_id, k_push, "sandbox"))
-        fcm_all = read_captures(fcm_path, since)
-        results.append(_verify_fcm(wakes, [c for c in fcm_all if c["provider"] == "fcm"],
+        fcm_all = read_captures(fcm_path)  # the relay reuses its OAuth token: the grant may predate this check
+        results.append(_verify_fcm(wakes, [c for c in fcm_all if c["provider"] == "fcm" and c["ts"] >= since],
                                    [c for c in fcm_all if c["provider"] == "fcm-oauth"], fcm_token, pair_id))
         token_left = psql(layout, f"SELECT push_token IS NULL FROM devices WHERE device_id = '{dead.device_id}'").strip()
         dead_captured = [c["status"] for c in apns if c.get("headers", {}).get("apns-collapse-id") == "call:e2e-dead"]
