@@ -1,0 +1,6 @@
+# End-to-end harness (e2e.py, self_test.py). The crypto (cryptography, PyNaCl, argon2-cffi) comes from the vector
+# tools, the schema checks (jsonschema, referencing) from the schema tools; websockets (BSD-3-Clause, no dependency)
+# is the WebSocket client and, in the self-test, the fake phone's server.
+-r ../vectors/requirements.txt
+-r ../schemas/requirements.txt
+websockets==17.1
