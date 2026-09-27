@@ -193,6 +193,9 @@ def _paired(ctx, client, res, first: bool) -> bool:
                                    sms=dict(text=en("settings.sms_messages")))
         rec.check("after the first pairing the app opens the feature list", "SET-01 step 8", feature_list is not None,
                   "" if feature_list else f"screen: {ui.screen_texts()[:6]}")
+        if feature_list is not None:  # the list opens over the Devices tab; Back returns there
+            ctx.adb.shell("input keyevent KEYCODE_BACK")
+            ui.wait(10, text=en("pairing.add_device"))
     return True
 
 
