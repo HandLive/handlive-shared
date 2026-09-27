@@ -71,7 +71,7 @@ Những chỗ dễ vấp:
 - APK tin CA của một thư mục trạng thái. Hãy dùng lại cùng `--state-dir` (`down --wipe` giữ nguyên khóa). Thư mục trạng thái mới là CA mới, cần build lại.
 - Mạng của máy ảo đôi khi rớt (`IpReachabilityMonitor … NUD_FAILED` trong logcat). Khi đó ứng dụng kết nối lại `/v1/relay`, log của TLS front ghi một dòng `101` mới.
 
-Sau `down` rồi `up`, relay có JWT secret mới. Ứng dụng hiện tại giữ token cũ và nhận `401 SIGNATURE_INVALID` ở `/v1/relay` cho tới khi token hết hạn (tối đa 15 phút). Hãy khởi động lại ứng dụng (cài lại APK) sau khi khởi động lại relay.
+Sau `down` rồi `up`, relay có JWT secret mới. Ứng dụng hiện tại giữ token cũ và nhận `401 SIGNATURE_INVALID` ở `/v1/relay` và ở các lệnh REST cho tới khi token hết hạn (tối đa 15 phút). Cặp ghép nối trong khoảng đó bị từ chối với 401 và phải chờ 24 giờ (trong bộ nhớ) rồi ứng dụng mới đăng ký lại. Hãy khởi động lại ứng dụng (cài lại APK) sau khi khởi động lại relay.
 
 ## Những gì không chứng minh được
 

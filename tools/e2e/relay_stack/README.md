@@ -71,7 +71,7 @@ Things that bite:
 - The APK trusts the CA of one state directory: keep using the same `--state-dir` (`down --wipe` keeps the keys); a new state directory means a new CA and a new build.
 - The emulator's network sometimes drops (`IpReachabilityMonitor … NUD_FAILED` in logcat); the app then reconnects to `/v1/relay`, which the front's log shows as a new `101`.
 
-After `down` and `up` the relay has a new JWT secret. The current app keeps its token and gets `401 SIGNATURE_INVALID` on `/v1/relay` until the token expires (up to 15 minutes); restart the app (install the APK again) after restarting the stack.
+After `down` and `up` the relay has a new JWT secret. The current app keeps its token and gets `401 SIGNATURE_INVALID` on `/v1/relay` and on its REST calls until the token expires (up to 15 minutes); a pair made in that window is refused with 401 and waits 24 hours (in memory) before the app registers it again. Restart the app (install the APK again) after restarting the stack.
 
 ## What it cannot prove
 
