@@ -14,6 +14,7 @@ sys.dont_write_bytecode = True
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent / "bench"))
+sys.path.insert(0, str(HERE / "relay_stack"))
 
 import bench_log  # noqa: E402
 import mac_crypto as C  # noqa: E402
@@ -150,6 +151,57 @@ def loopback(checker: SchemaCheck) -> None:
         phone.close()
 
 
+def relay_loopback(checker: SchemaCheck) -> None:
+    """The same client through a relay: the fake relay of tools/bench (REST + /v1/relay, 0.4.3 wrappers)."""
+    import asyncio
+    from relay_client import RelayAccount, RelayLink, RelayStack
+    from relay_load_fake import FakeRelay
+    from stack_rest import FakeDevice
+    loop = asyncio.new_event_loop()
+    relay = FakeRelay()
+    threading.Thread(target=loop.run_forever, daemon=True).start()
+    asyncio.run_coroutine_threadsafe(relay.start(), loop).result(10)
+    stack = RelayStack(f"http://127.0.0.1:{relay.rest_port}", f"ws://127.0.0.1:{relay.ws_port}/v1/relay", None,
+                       Path("/nonexistent"), Path("/nonexistent"), "app.handlive.ios")
+    pin = C.new_pin()
+    phone = FakePhone(pin)
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            client = FakeClient(Path(tmp) / "pair.json", "E2E Test Mac", port=phone.port, checker=checker)
+            mac = RelayAccount(stack, client.record, checker)
+            check("the Mac registers with the relay (HLREG1, HLAUTH1)", mac.register()[0] == 200 and bool(mac.token))
+            phone_dev = FakeDevice("android", phone.identity.sig_seed)
+            check("the phone registers with the relay", phone_dev.register(stack.rest(), "10.0.0.2")[0] == 200)
+            check("PIN pairing on the LAN", client.pin_pairing().attempt(pin, 2).outcome == "paired")
+            status, _ = mac.register_pair()
+            check("POST /v1/pairs with both signatures", status in (200, 201), str(status))
+            phone_link = RelayLink(stack, phone_dev.token, checker)
+            mac_link = RelayLink(stack, mac.token, checker)
+            presence = mac_link.wait_control(lambda m: m.get("op") == "presence" and m.get("online") is True, 5)
+            check("presence of the phone on /v1/relay", presence is not None)
+            phone.serve_relayed(phone_link.channel(client.record.device_id))
+            s = client.session(open_transport=lambda: mac_link.channel(client.record.peer_device_id))
+            s.open()
+            check("session handshake and capabilities through the relay", s.peer_capability == PHONE_CAPABILITY)
+            ack = s.request("sms", "sync", {"thread_limit": 200, "per_thread_limit": 50})
+            check("a request and its ack through the relay", ack is not None and ack.ok)
+            mark = s.mark()
+            threading.Timer(0.2, phone.emit, ("sms", "read_changed", {"thread_id": 1, "unread_count": 0,
+                                                                      "read_up_to_ts": C.now_ms()})).start()
+            got = s.wait(lambda m: m.type == "sms" and m.op == "read_changed", 5, after=mark)
+            check("an event from the phone through the relay", got is not None)
+            check("no schema violation in the relayed session and wrappers",
+                  not s.violations and not mac_link.violations and not phone_link.violations,
+                  "; ".join(s.violations + mac_link.violations + phone_link.violations))
+            s.close()
+            mac_link.close()
+            phone_link.close()
+    finally:
+        phone.close()
+        asyncio.run_coroutine_threadsafe(relay.stop(), loop).result(10)
+        loop.call_soon_threadsafe(loop.stop)
+
+
 def ui_parser() -> None:
     xml = ('<?xml version="1.0"?><hierarchy rotation="0"><node index="0" text="" resource-id="" class="android.view.View" '
            'package="app.handlive.android" content-desc="" clickable="false" bounds="[0,0][1080,2400]">'
@@ -172,6 +224,7 @@ def main() -> int:
     vectors_session()
     vectors_envelopes()
     loopback(checker)
+    relay_loopback(checker)
     ui_parser()
     print(f"{len(FAILS)} failed")
     return 1 if FAILS else 0

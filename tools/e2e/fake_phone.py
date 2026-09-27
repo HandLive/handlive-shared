@@ -144,6 +144,12 @@ class FakePhone:
             if reply is not None:
                 send("ack", {"re": env["id"], "ok": True, "data": reply})
 
+    def serve_relayed(self, channel) -> threading.Thread:
+        """Serves one /v1/ctl session that arrives through a relay channel (0.4.3) instead of the LAN socket."""
+        th = threading.Thread(target=self._ctl, args=(_ChannelSocket(channel),), daemon=True)
+        th.start()
+        return th
+
     def emit(self, typ: str, op: str, data: dict) -> None:
         self._session(typ, {"op": op, "data": data})
 
@@ -158,6 +164,34 @@ class FakePhone:
         if typ == "call_event" and op == "action":
             return {}
         return None
+
+
+class _ChannelSocket:
+    """The subset of a websockets connection that _ctl uses, over a relay_client.RelayChannel."""
+
+    def __init__(self, channel) -> None:
+        self.channel = channel
+
+    def recv(self, timeout: float | None = None) -> str:
+        text = self.channel.recv(timeout or 30)
+        if text is None:
+            raise TimeoutError
+        return text
+
+    def send(self, text: str) -> None:
+        self.channel.send(text)
+
+    def close(self, *args) -> None:
+        self.channel.close()
+
+    def __iter__(self):
+        while True:
+            try:
+                text = self.channel.recv(1.0)
+            except Exception:  # noqa: BLE001 — the relay link closed: the session is over
+                return
+            if text is not None:
+                yield text
 
 
 PHONE_CAPABILITY = {
