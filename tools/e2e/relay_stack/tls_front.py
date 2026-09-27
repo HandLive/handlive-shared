@@ -8,10 +8,10 @@ Each connection carries one request: the front appends the client address to `X-
 `X-Forwarded-Proto: https` and, except for a WebSocket upgrade, `Connection: close`; then it copies bytes both ways.
 ALPN offers only `http/1.1`. The relay must trust the front (`RELAY_TRUSTED_PROXIES=127.0.0.1`).
 
-The log has one line per request — client address, method, path without the query, the upstream status, the
-User-Agent, bytes each way and the duration — and one line per failed TLS handshake with the TLS alert, which is
-how a client that refuses the certificate shows up (CONN-03 E7). No body and no header value other than the
-User-Agent is logged.
+The log has one line per request as soon as the relay answers — client address, method, path without the query,
+the status, the TLS version, the User-Agent and the time to the answer — plus a closing line with the duration and
+bytes each way for a WebSocket, and one line per failed TLS handshake with the TLS alert, which is how a client that
+refuses the certificate shows up (CONN-03 E7). No body and no header value other than the User-Agent is logged.
 """
 from __future__ import annotations
 
@@ -62,11 +62,14 @@ def rewrite_head(head: bytes, client_ip: str) -> tuple[bytes, dict]:
     return new_head, info
 
 
-async def _pipe(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, counter: list, first: list | None) -> None:
+async def _pipe(reader: asyncio.StreamReader, writer: asyncio.StreamWriter, counter: list,
+                on_first=None) -> None:
+    """Copy until EOF; `on_first(bytes)` sees the first chunk (the upstream's status line)."""
     try:
         while data := await reader.read(65536):
-            if first is not None and not first:
-                first.append(data[:64])
+            if on_first is not None:
+                on_first(data[:64])
+                on_first = None
             counter[0] += len(data)
             writer.write(data)
             await writer.drain()
@@ -87,6 +90,12 @@ class Front:
 
     def __init__(self, upstream: tuple[str, int], ctx: ssl.SSLContext, log: FrontLog) -> None:
         self.upstream, self.ctx, self.log = upstream, ctx, log
+        self.open: set[asyncio.StreamWriter] = set()
+
+    def close_all(self) -> None:
+        """At shutdown: open WebSockets would otherwise keep the server waiting."""
+        for writer in list(self.open):
+            writer.close()
 
     async def handle(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         peer = writer.get_extra_info("peername") or ("?", 0)
@@ -118,13 +127,23 @@ class Front:
             writer.close()
             return
         up_writer.write(new_head)
-        sent, received, first = [len(new_head)], [0], []
-        await asyncio.gather(_pipe(reader, up_writer, sent, None), _pipe(up_reader, writer, received, first))
-        status = first[0].split(b" ", 2)[1].decode("latin-1", "replace") if first and b" " in first[0] else "-"
-        kind = " websocket" if info["upgrade"] else ""
-        self.log.write(f"{peer[0]} {info['method']} {info['path']} {status}{kind} {tls_version} ua={info['ua']!r} "
-                       f"out={sent[0]}B in={received[0]}B {int((time.monotonic() - started) * 1000)}ms")
+        self.open.update((writer, up_writer))
+        sent, received, status = [len(new_head)], [0], ["-"]
+        line = f"{peer[0]} {info['method']} {info['path']}"
+
+        def answered(first: bytes) -> None:
+            # Logged as soon as the relay answers, so an open WebSocket shows up at once.
+            status[0] = first.split(b" ", 2)[1].decode("latin-1", "replace") if b" " in first else "-"
+            kind = " websocket" if info["upgrade"] and status[0] == "101" else ""
+            self.log.write(f"{line} {status[0]}{kind} {tls_version} ua={info['ua']!r}"
+                           + ("" if kind else f" {int((time.monotonic() - started) * 1000)}ms"))
+
+        await asyncio.gather(_pipe(reader, up_writer, sent), _pipe(up_reader, writer, received, answered))
+        if info["upgrade"] and status[0] == "101":
+            self.log.write(f"{line} websocket closed after {time.monotonic() - started:.1f}s "
+                           f"out={sent[0]}B in={received[0]}B")
         for w in (writer, up_writer):
+            self.open.discard(w)
             w.close()
 
 
@@ -137,9 +156,9 @@ def tls_context(cert: str, key: str) -> ssl.SSLContext:
 
 
 async def serve(listen: tuple[str, int], upstream: tuple[str, int], cert: str, key: str,
-                log: FrontLog) -> asyncio.AbstractServer:
+                log: FrontLog) -> tuple[asyncio.AbstractServer, Front]:
     front = Front(upstream, tls_context(cert, key), log)
-    return await asyncio.start_server(front.handle, *listen, limit=MAX_HEAD)
+    return await asyncio.start_server(front.handle, *listen, limit=MAX_HEAD), front
 
 
 def _addr(text: str) -> tuple[str, int]:
@@ -149,13 +168,18 @@ def _addr(text: str) -> tuple[str, int]:
 
 async def main_async(args) -> None:
     log = FrontLog(Path(args.log) if args.log else None)
-    server = await serve(_addr(args.listen), _addr(args.upstream), args.cert, args.key, log)
+    server, front = await serve(_addr(args.listen), _addr(args.upstream), args.cert, args.key, log)
     stop = asyncio.Event()
     for sig in (signal.SIGTERM, signal.SIGINT):
         asyncio.get_running_loop().add_signal_handler(sig, stop.set)
     print(f"TLS front on https://{args.listen} → http://{args.upstream}", flush=True)
-    async with server:
-        await stop.wait()
+    await stop.wait()
+    server.close()
+    front.close_all()
+    try:
+        await asyncio.wait_for(server.wait_closed(), 5)
+    except asyncio.TimeoutError:
+        pass
 
 
 def main(argv: list[str] | None = None) -> int:
