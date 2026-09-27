@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/call-notification.schema.json",
+  "title": "HandLive — call notification content (Mac, iPhone, iPad)",
+  "description": "CALL-01 API 6–7 and CALL-04 API 4: the UNNotificationRequest content of an incoming or a missed call, written as JSON. Not a wire message: it fixes the identifiers, categories and userInfo that M-APP, I-APP and I-NSE share (the Decline and Message actions and the seen marking read userInfo). One of #/$defs/incoming, #/$defs/missed.",
+  "oneOf": [
+    { "$ref": "#/$defs/incoming" },
+    { "$ref": "#/$defs/missed" }
+  ],
+  "$defs": {
+    "title": {
+      "description": "The contact name, else the number in national format, else the catalog text call.no_caller_id or call.unknown_caller.",
+      "type": "string",
+      "minLength": 1
+    },
+    "incoming": {
+      "description": "Incoming call: the iPhone/iPad notification rebuilt by I-NSE (category HL_CALL_INCOMING, API 6) or the Mac communication notification (HL_CALL_INCOMING_MAC, identifier = call_id, API 7). Without a category when the push arrives more than 60 s after started_at (CALL-01 E7); a locked iPhone keeps the push's own generic content and is not described here (E6).",
+      "type": "object",
+      "required": ["title", "body", "threadIdentifier", "userInfo"],
+      "additionalProperties": false,
+      "properties": {
+        "identifier": {
+          "description": "Mac: the call_id, one notification per call, posted again to update it; a notification created by a push has an identifier set by the system.",
+          "$ref": "call_event-common.schema.json#/$defs/call-id"
+        },
+        "title": { "$ref": "#/$defs/title" },
+        "body": {
+          "description": "call.incoming_body, call.incoming_body_sim with the SIM label, or call.incoming_late (E7).",
+          "type": "string",
+          "minLength": 1
+        },
+        "threadIdentifier": { "const": "calls" },
+        "categoryIdentifier": {
+          "description": "HL_CALL_INCOMING (iOS: action HL_CALL_REJECT) or HL_CALL_INCOMING_MAC (actions HL_CALL_ANSWER, HL_CALL_REJECT).",
+          "enum": ["HL_CALL_INCOMING", "HL_CALL_INCOMING_MAC"]
+        },
+        "interruptionLevel": {
+          "description": "passive while the Mac panel shows; timeSensitive on iPhone/iPad (from the APNs interruption-level) and on the Mac while a Focus hides the panel.",
+          "enum": ["passive", "timeSensitive"]
+        },
+        "userInfo": {
+          "description": "Read by the Decline action (CALL-02 B2).",
+          "type": "object",
+          "required": ["pair_id", "call_id", "started_at"],
+          "additionalProperties": false,
+          "properties": {
+            "pair_id": { "$ref": "common.schema.json#/$defs/uuid-v4" },
+            "call_id": { "$ref": "call_event-common.schema.json#/$defs/call-id" },
+            "started_at": { "$ref": "common.schema.json#/$defs/timestamp" }
+          }
+        }
+      }
+    },
+    "missed": {
+      "description": "Missed call (CALL-04 API 4), from a call_event/log_new with type = missed, or from a call_event/state with end_reason = missed when the phone lacks READ_CALL_LOG (flow A). Category HL_CALL_MISSED only when the number is known and the phone can send SMS (E10); a locked iPhone keeps the push's own generic content (E9).",
+      "type": "object",
+      "required": ["title", "body", "threadIdentifier", "userInfo"],
+      "additionalProperties": false,
+      "properties": {
+        "identifier": {
+          "description": "call-missed:<pair_id>:<entry_id>; flow A call-missed:<pair_id>:<call_id>; a notification created by a push has an identifier set by the system.",
+          "type": "string",
+          "pattern": "^call-missed:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:([1-9][0-9]*|[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$"
+        },
+        "title": { "$ref": "#/$defs/title" },
+        "body": {
+          "description": "call.missed_body, or call.missed_body_sim with the SIM label.",
+          "type": "string",
+          "minLength": 1
+        },
+        "threadIdentifier": {
+          "description": "calls:<pair_id>; a notification created by a push keeps the relay's generic calls.",
+          "type": "string",
+          "pattern": "^calls(:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})?$"
+        },
+        "categoryIdentifier": {
+          "description": "Action HL_CALL_SMS (text input, Message).",
+          "const": "HL_CALL_MISSED"
+        },
+        "sound": { "const": "default" },
+        "userInfo": {
+          "description": "Read by the Message action and to mark the entry seen; entry_id is null in flow A, call_id when no context matched; at least one of them is set.",
+          "type": "object",
+          "required": ["pair_id", "entry_id", "call_id", "number", "sub_id"],
+          "additionalProperties": false,
+          "properties": {
+            "pair_id": { "$ref": "common.schema.json#/$defs/uuid-v4" },
+            "entry_id": {
+              "oneOf": [
+                { "$ref": "call_event-common.schema.json#/$defs/entry-id" },
+                { "type": "null" }
+              ]
+            },
+            "call_id": {
+              "oneOf": [
+                { "$ref": "call_event-common.schema.json#/$defs/call-id" },
+                { "type": "null" }
+              ]
+            },
+            "number": { "$ref": "call_event-common.schema.json#/$defs/number" },
+            "sub_id": { "$ref": "call_event-common.schema.json#/$defs/sub-id" }
+          },
+          "not": {
+            "properties": { "entry_id": { "type": "null" }, "call_id": { "type": "null" } }
+          }
+        }
+      },
+      "if": { "required": ["categoryIdentifier"] },
+      "then": { "properties": { "userInfo": { "properties": { "number": { "type": "string" } } } } }
+    }
+  }
+}
