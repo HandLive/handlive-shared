@@ -2,6 +2,8 @@
 
 - K_push: HKDF with hashlib/hmac (verify_common), chained to the PRK of pair-prk.json.
 - SMS text cut (verify_push_truncation_checks): every sms/new push is run through the CONN-04 step 5b rule again.
+- Call pushes (verify_push_call_checks): reason, collapse key and controls of each call push, and across vectors the
+  missed-call push that replaces an incoming one.
 - Envelopes: decoded as I-NSE does (strict standard base64 → UTF-8 JSON → AAD rebuilt from the parsed fields) and
   decrypted two ways (libsodium, and HChaCha20 + ChaCha20-Poly1305 as on Apple); every negative vector must fail for
   its stated reason and only for it.
@@ -14,6 +16,7 @@ import json
 import re
 import struct
 
+import verify_push_call_checks
 import verify_push_truncation_checks
 from verify_common import H, b64_decode_strict, hkdf, uuid16, uuid_str, xchacha_open_both, xchacha_seal_apple
 
@@ -23,8 +26,7 @@ PUSH_REASONS = {"wrong_key", "tag_mismatch", "aad_mismatch", "stale", "not_b64"}
 FRAME_REASONS = {"bad_magic", "unsupported_version", "unknown_op", "truncated"}
 TEXT_REASONS = {"bad_wrapper": "BAD_REQUEST", "not_paired": "NOT_PAIRED"}
 UUID_V8 = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
-REASON_OF_TYPE = {("sms", "new"): "sms_new", ("call_event", "state"): "call_incoming"}
-TTL = {"sms_new": 86_400, "call_incoming": 30}
+TTL = {"sms_new": 86_400, "call_incoming": 30, "call_missed": 86_400}
 
 
 def k_push(prk: bytes) -> bytes:
@@ -48,8 +50,8 @@ def _check_key(c, n: str, v: dict, pair_prk: dict) -> None:
          ("", PUSH_INFO.decode(), 32, k_push(H(v["prk"])).hex()))
 
 
-def _check_envelope(c, n: str, v: dict, keys: dict, pair_prk: dict) -> list[str] | None:
-    """All checks of one envelope; returns the steps of its SMS text cut (None for a call)."""
+def _check_envelope(c, n: str, v: dict, keys: dict, pair_prk: dict) -> tuple[list[str] | None, dict]:
+    """All checks of one envelope; returns the steps of its SMS text cut (None for a call) and the plaintext."""
     pv = pair_prk[v["pair_name"]]
     c.eq(f"{n} K_push of its pair", v["k_push"], keys[v["pair_name"]])
     c.eq(f"{n} devices of the pair", (v["pair_id"], v["sender_device_id"], v["recipient_device_id"]),
@@ -66,16 +68,19 @@ def _check_envelope(c, n: str, v: dict, keys: dict, pair_prk: dict) -> list[str]
     c.eq(f"{n} decrypted two ways", (sodium, apple), (pt, pt))
     c.eq(f"{n} Apple-style encryption", xchacha_seal_apple(H(v["k_push"]), raw[:24], pt, aad.encode()), raw[24:])
     body = json.loads(pt)
-    reason = REASON_OF_TYPE.get((v["type"], body["op"]))
+    reason = verify_push_call_checks.push_reason(v["type"], body)
     c.eq(f"{n} push reason of the message", v["reason"], reason)
     if body["op"] == "new":
         c.true(f"{n} push envelope carries no local_id", "local_id" not in body["data"]["message"])
+    else:
+        verify_push_call_checks.check_call(c, n, v, body)
     req = json.loads(v["push_request"])
-    # SMS-02 API 2: the message_key itself (already sms:<_id>); CONN-04 step 5b: call:<call_id> for a call.
-    collapse = body["data"]["message"]["message_key"] if v["type"] == "sms" else f"call:{body['data']['call_id']}"
+    # SMS-02 API 2: the message_key itself (already sms:<_id>); CONN-04 step 5b and CALL-04 API 5: call:<call_id> for
+    # a call, calllog:<entry_id> for a missed call whose call_id is unknown.
+    collapse = verify_push_call_checks.collapse_key(v["type"], body)
     c.eq(f"{n} POST /v1/push body", req, {"pair_id": v["pair_id"], "to": v["recipient_device_id"], "kind": "alert",
                                          "reason": reason, "env_b64": v["env_b64"], "collapse_key": collapse,
-                                         "ttl_s": TTL[reason]})
+                                         "ttl_s": TTL.get(reason)})
     c.true(f"{n} env_b64 ≤ 3,000 characters", len(v["env_b64"]) <= 3000)
     apns = json.loads(v["apns_payload"])
     # CONN-04 API 4 logic 3: the relay cannot see the conversation, so the group is generic.
@@ -87,7 +92,7 @@ def _check_envelope(c, n: str, v: dict, keys: dict, pair_prk: dict) -> list[str]
     c.true(f"{n} APNs payload ≤ 4 KB", len(v["apns_payload"].encode()) <= 4096)
     c.eq(f"{n} APNs headers", v["apns_headers"], {"apns-push-type": "alert", "apns-topic": "app.handlive.ios",
                                                   "apns-priority": "10", "apns-collapse-id": collapse})
-    return verify_push_truncation_checks.check_cut(c, n, v) if v["type"] == "sms" else None
+    return (verify_push_truncation_checks.check_cut(c, n, v) if v["type"] == "sms" else None), body
 
 
 def _check_push_negative(c, n: str, v: dict, keys_by_pair_id: dict) -> None:
@@ -131,13 +136,16 @@ def check_push_envelope(c, doc, all_docs) -> None:
         if v["kind"] == "key":
             _check_key(c, f"push-envelope/{v['name']}", v, pair_prk)
             keys[v["pair_name"]] = k_push(H(pair_prk[v["pair_name"]]["prk"])).hex()
-    cuts = []
+    cuts, calls = [], []
     for v in doc["vectors"]:
         if v["kind"] == "envelope":
-            steps = _check_envelope(c, f"push-envelope/{v['name']}", v, keys, pair_prk)
+            steps, body = _check_envelope(c, f"push-envelope/{v['name']}", v, keys, pair_prk)
             if steps is not None:
                 cuts.append((v, steps))
+            if v["type"] == "call_event":
+                calls.append((v, body))
     verify_push_truncation_checks.check_coverage(c, cuts)
+    verify_push_call_checks.check_coverage(c, calls)
     c.true("push-envelope: K_push for every pair of pair-prk.json", set(keys) == set(pair_prk))
     c.true("push-envelope: sms and call_event envelopes",
            {v["type"] for v in doc["vectors"] if v["kind"] == "envelope"} == {"sms", "call_event"})

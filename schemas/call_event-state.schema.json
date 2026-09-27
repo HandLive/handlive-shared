@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/call_event-state.schema.json",
+  "title": "HandLive — call_event/state (S→C, no ack)",
+  "description": "CALL-01 API 1: the phone's call context, sent to each session when a field changes and after a new session has exchanged capabilities (CALL-01…03); controls, hfp_connected and audio_on are computed for the receiving client. The same schema covers the call_event/state envelope encrypted with K_push for the call_incoming push and for the call_missed push of flow A (CALL-01 API 4, CALL-04 API 5). The allOf rules restate the context state machine of API 1 logic 2 and 5.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "state" },
+    "data": { "$ref": "#/$defs/state-data" }
+  },
+  "$defs": {
+    "hfp-control": {
+      "description": "hfp: the action exists only as an HFP command from the Mac (CALL-03 API 3); unavailable otherwise.",
+      "enum": ["hfp", "unavailable"]
+    },
+    "timestamp-or-null": {
+      "oneOf": [
+        { "$ref": "common.schema.json#/$defs/timestamp" },
+        { "type": "null" }
+      ]
+    },
+    "controls": {
+      "description": "Actions the receiving client may perform (CALL-01 API 1, the controls object). dtmf always equals hold; mute = hfp needs hold = hfp.",
+      "type": "object",
+      "required": ["answer", "reject", "end", "hold", "dtmf", "mute"],
+      "additionalProperties": false,
+      "properties": {
+        "answer": {
+          "description": "true when state = ringing, waiting = false, ANSWER_PHONE_CALLS is granted and the receiving client is a Mac.",
+          "type": "boolean"
+        },
+        "reject": {
+          "description": "true when state = ringing, waiting = false and ANSWER_PHONE_CALLS is granted.",
+          "type": "boolean"
+        },
+        "end": {
+          "description": "true when state = offhook, waiting = false and ANSWER_PHONE_CALLS is granted.",
+          "type": "boolean"
+        },
+        "hold": {
+          "description": "hfp exactly when state = offhook and hfp_connected = true.",
+          "$ref": "#/$defs/hfp-control"
+        },
+        "dtmf": {
+          "description": "Same as hold.",
+          "$ref": "#/$defs/hfp-control"
+        },
+        "mute": {
+          "description": "hfp exactly when state = offhook, hfp_connected = true and audio_on = mac.",
+          "$ref": "#/$defs/hfp-control"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "hold": { "const": "hfp" } } },
+          "then": { "properties": { "dtmf": { "const": "hfp" } } },
+          "else": { "properties": { "dtmf": { "const": "unavailable" } } }
+        },
+        {
+          "if": { "properties": { "mute": { "const": "hfp" } } },
+          "then": { "properties": { "hold": { "const": "hfp" } } }
+        },
+        {
+          "if": { "properties": { "answer": { "const": true } } },
+          "then": { "properties": { "reject": { "const": true } } }
+        }
+      ]
+    },
+    "state-data": {
+      "description": "Every field is always present (null where the spec allows it).",
+      "type": "object",
+      "required": [
+        "call_id", "direction", "state", "waiting", "number", "display_name", "presentation", "sub_id", "sim_label",
+        "waiting_number", "waiting_display_name", "started_at", "answered_at", "ended_at", "end_reason", "controls",
+        "hfp_connected", "audio_on"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "call_id": { "$ref": "call_event-common.schema.json#/$defs/call-id" },
+        "direction": {
+          "description": "unknown when the context is built while the phone is already OFFHOOK (CALL-01 E8).",
+          "enum": ["incoming", "outgoing", "unknown"]
+        },
+        "state": {
+          "description": "The phone's aggregate state.",
+          "enum": ["ringing", "offhook", "idle"]
+        },
+        "waiting": {
+          "description": "true when RINGING appears while OFFHOOK (call waiting); the aggregate state is then ringing.",
+          "type": "boolean"
+        },
+        "number": {
+          "description": "Number of the main call; null when READ_CALL_LOG is missing, the number is withheld, or for an outgoing call.",
+          "$ref": "call_event-common.schema.json#/$defs/number"
+        },
+        "display_name": {
+          "description": "Name from PhoneLookup of number; null when READ_CONTACTS is missing or the number is not in the contacts.",
+          "$ref": "call_event-common.schema.json#/$defs/display-name"
+        },
+        "presentation": {
+          "description": "allowed: number available; restricted: READ_CALL_LOG granted but the number-carrying broadcast has an empty number; unknown: every other case.",
+          "enum": ["allowed", "restricted", "unknown"]
+        },
+        "sub_id": { "$ref": "call_event-common.schema.json#/$defs/sub-id" },
+        "sim_label": {
+          "description": "SubscriptionInfo.getDisplayName() of sub_id; only when the phone has more than one active SIM.",
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "waiting_number": {
+          "description": "Number of the waiting call; null when waiting = false or unknown.",
+          "$ref": "call_event-common.schema.json#/$defs/number"
+        },
+        "waiting_display_name": {
+          "description": "Name of the waiting caller.",
+          "$ref": "call_event-common.schema.json#/$defs/display-name"
+        },
+        "started_at": {
+          "description": "When the context was created (Android clock).",
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "answered_at": {
+          "description": "When an incoming call went RINGING → OFFHOOK; always null for outgoing and unknown calls.",
+          "$ref": "#/$defs/timestamp-or-null"
+        },
+        "ended_at": {
+          "description": "Only when state = idle.",
+          "$ref": "#/$defs/timestamp-or-null"
+        },
+        "end_reason": {
+          "description": "Only when state = idle (API 1 logic 5): rejected after endCall() by HandLive within 3 s, missed for RINGING → IDLE without OFFHOOK, ended with OFFHOOK; one correction to rejected or answered_elsewhere may follow a missed from the call log.",
+          "enum": ["missed", "rejected", "ended", "answered_elsewhere", null]
+        },
+        "controls": { "$ref": "#/$defs/controls" },
+        "hfp_connected": {
+          "description": "The receiving Mac has the HFP profile connected to the phone; always false for iPhone/iPad.",
+          "type": "boolean"
+        },
+        "audio_on": {
+          "description": "mac: the call audio is on the receiving Mac itself (SCO to that Mac, or the Opus/WS path of that session); otherwise phone.",
+          "enum": ["phone", "mac"]
+        }
+      },
+      "allOf": [
+        {
+          "description": "ended_at and end_reason are set exactly when state = idle.",
+          "if": { "properties": { "state": { "const": "idle" } } },
+          "then": { "properties": { "ended_at": { "type": "integer" }, "end_reason": { "type": "string" } } },
+          "else": { "properties": { "ended_at": { "type": "null" }, "end_reason": { "type": "null" } } }
+        },
+        {
+          "description": "A number is present exactly when presentation = allowed.",
+          "if": { "properties": { "presentation": { "const": "allowed" } } },
+          "then": { "properties": { "number": { "type": "string" } } },
+          "else": { "properties": { "number": { "type": "null" } } }
+        },
+        {
+          "description": "The name is looked up from the number.",
+          "if": { "properties": { "number": { "type": "null" } } },
+          "then": { "properties": { "display_name": { "type": "null" } } }
+        },
+        {
+          "description": "The waiting caller's name is looked up from its number.",
+          "if": { "properties": { "waiting_number": { "type": "null" } } },
+          "then": { "properties": { "waiting_display_name": { "type": "null" } } }
+        },
+        {
+          "description": "A waiting call only exists while the aggregate state is ringing; without one, waiting_* are null.",
+          "if": { "properties": { "waiting": { "const": true } } },
+          "then": { "properties": { "state": { "const": "ringing" } } },
+          "else": { "properties": { "waiting_number": { "type": "null" }, "waiting_display_name": { "type": "null" } } }
+        },
+        {
+          "description": "A SIM label names the call's sub_id.",
+          "if": { "properties": { "sim_label": { "type": "string" } } },
+          "then": { "properties": { "sub_id": { "type": "integer" } } }
+        },
+        {
+          "description": "An outgoing context starts with number = null, presentation = unknown.",
+          "if": { "properties": { "direction": { "const": "outgoing" } } },
+          "then": { "properties": { "presentation": { "const": "unknown" } } }
+        },
+        {
+          "description": "Outgoing and unknown contexts started at OFFHOOK: no answered_at, and they can only end as ended.",
+          "if": { "properties": { "direction": { "enum": ["outgoing", "unknown"] } } },
+          "then": { "properties": { "answered_at": { "type": "null" }, "end_reason": { "enum": ["ended", null] } } }
+        },
+        {
+          "description": "An incoming call that is offhook, has a waiting call or ended as ended went through RINGING → OFFHOOK.",
+          "if": {
+            "properties": { "direction": { "const": "incoming" } },
+            "anyOf": [
+              { "properties": { "state": { "const": "offhook" } } },
+              { "properties": { "waiting": { "const": true } } },
+              { "properties": { "end_reason": { "const": "ended" } } }
+            ]
+          },
+          "then": { "properties": { "answered_at": { "type": "integer" } } }
+        },
+        {
+          "description": "A call ringing without a waiting call, or ended as missed, rejected or answered elsewhere, was never answered on the phone.",
+          "if": {
+            "anyOf": [
+              { "properties": { "state": { "const": "ringing" }, "waiting": { "const": false } } },
+              { "properties": { "end_reason": { "enum": ["missed", "rejected", "answered_elsewhere"] } } }
+            ]
+          },
+          "then": { "properties": { "answered_at": { "type": "null" } } }
+        },
+        {
+          "description": "controls.answer and controls.reject need a ringing call without a waiting call.",
+          "if": {
+            "anyOf": [
+              { "properties": { "controls": { "properties": { "answer": { "const": true } } } } },
+              { "properties": { "controls": { "properties": { "reject": { "const": true } } } } }
+            ]
+          },
+          "then": { "properties": { "state": { "const": "ringing" }, "waiting": { "const": false } } }
+        },
+        {
+          "description": "controls.end needs an offhook call (then waiting = false).",
+          "if": { "properties": { "controls": { "properties": { "end": { "const": true } } } } },
+          "then": { "properties": { "state": { "const": "offhook" } } }
+        },
+        {
+          "description": "controls.hold (and dtmf) = hfp exactly when state = offhook and hfp_connected = true.",
+          "if": { "properties": { "state": { "const": "offhook" }, "hfp_connected": { "const": true } } },
+          "then": { "properties": { "controls": { "properties": { "hold": { "const": "hfp" } } } } },
+          "else": { "properties": { "controls": { "properties": { "hold": { "const": "unavailable" } } } } }
+        },
+        {
+          "description": "controls.mute = hfp exactly when state = offhook, hfp_connected = true and audio_on = mac.",
+          "if": {
+            "properties": { "state": { "const": "offhook" }, "hfp_connected": { "const": true }, "audio_on": { "const": "mac" } }
+          },
+          "then": { "properties": { "controls": { "properties": { "mute": { "const": "hfp" } } } } },
+          "else": { "properties": { "controls": { "properties": { "mute": { "const": "unavailable" } } } } }
+        }
+      ]
+    }
+  }
+}

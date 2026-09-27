@@ -1,14 +1,18 @@
 """Build push-envelope.json and relay-frame.json.
 
-push-envelope.json (00-common-specs 0.4.4, 0.5.1, 0.6.1; CONN-04 step 5b and API 2–4; SMS-02 API 2; CALL-01 API 4):
+push-envelope.json (00-common-specs 0.4.4, 0.5.1, 0.6.1; CONN-04 step 5b and API 2–4; SMS-02 API 2; CALL-01 API 4;
+CALL-04 API 5):
 - kind "key": K_push = HKDF-SHA256(PRK, empty salt, info "handlive/v1/push", L = 32) for both pairs of pair-prk.json.
 - kind "envelope": what the phone sends for an iPhone/iPad without a session: an envelope built as over a session
   but encrypted with K_push (nonce 24 bytes, AAD "<v>|<type>|<id>|<ts>" as in 0.5.1), its env_b64 (standard base64
   of the UTF-8 envelope JSON), the POST /v1/push body, and the APNs payload and headers the relay derives from it.
-- the last five envelopes pin the SMS text cut of CONN-04 step 5b (push_sms_truncation): each carries a truncation
-  object with the texts before the cut, the steps applied and the env_b64 lengths.
+- five envelopes pin the SMS text cut of CONN-04 step 5b (push_sms_truncation): each carries a truncation object with
+  the texts before the cut, the steps applied and the env_b64 lengths.
+- the call envelopes (push_call_messages): call_incoming with and without the caller's number, call_missed from the
+  call log (log_new, with a matched call or not) and without it (a missed call_event/state).
 - invalid_vectors: what I-NSE must refuse — another key, a tampered tag, a wrong AAD, an envelope older than 24 h,
-  an env_b64 that is not standard base64.
+  an env_b64 that is not standard base64; the last three break a call push (another key, the AAD type written
+  callEvent, the type changed after encryption).
 
 relay-frame.json (00-common-specs 0.4.3; CONN-03 API 6):
 - kind "frame": the binary routing frame "HR" ‖ ver 0x01 ‖ op 0x01 (forward) ‖ device_id (16 bytes: destination
@@ -25,6 +29,7 @@ import base64
 import json
 import struct
 
+import push_call_messages
 import push_sms_truncation
 
 from handlive_protocol_derivations import (b64, compact_json, envelope_aad, envelope_wire, hkdf, test_bytes,
@@ -48,22 +53,13 @@ SMS_NEW_SHORT_CODE = {"op": "new", "data": {
     "thread": {"thread_id": 57, "addresses": ["VIETTEL"], "display_name": None,
                "snippet": "Your data plan has been renewed until 26/10.", "last_ts": 1727150070000,
                "unread_count": 1}}}
-CALL_RINGING = {"op": "state", "data": {
-    "call_id": "0192f3f0-6a1b-7c2d-8e3f-4a5b6c7d8e90", "direction": "incoming", "state": "ringing", "waiting": False,
-    "number": "+84900000123", "display_name": "Nguyễn Văn A", "presentation": "allowed", "sub_id": 1,
-    "sim_label": "SIM 1", "waiting_number": None, "waiting_display_name": None, "started_at": 1727150400123,
-    "answered_at": None, "ended_at": None, "end_reason": None,
-    "controls": {"answer": True, "reject": True, "end": False, "hold": "unavailable", "dtmf": "unavailable",
-                 "mute": "unavailable"},
-    "hfp_connected": False, "audio_on": "phone"}}
 # (name, envelope type, id, ts, plaintext, push reason, collapse_key, ttl_s, APNs thread-id)
 ENVELOPES = [
     ("pair 2 / sms/new (Vietnamese content)", "sms", "0192f3e4-7a10-7b20-8c30-9d40ae50bf60", 1727150060500,
      SMS_NEW_VI, "sms_new", "sms:12847", 86_400, "sms"),
     ("pair 2 / sms/new from a sender name, no contact, no SIM", "sms", "0192f3e4-7c31-7d42-9e53-af64b075c186",
      1727150070050, SMS_NEW_SHORT_CODE, "sms_new", "sms:12850", 86_400, "sms"),
-    ("pair 2 / call_event/state ringing", "call_event", "0192f3f0-6a2c-7d3e-9f40-5a6b7c8d9eaf", 1727150400400,
-     CALL_RINGING, "call_incoming", "call:0192f3f0-6a1b-7c2d-8e3f-4a5b6c7d8e90", 30, "calls"),
+    push_call_messages.FIRST_CALL_ENVELOPE,
 ]
 INTERRUPTION = {"sms_new": "active", "call_incoming": "time-sensitive", "call_missed": "active"}
 
@@ -159,11 +155,34 @@ def _push_negatives(pairs: dict, v: dict) -> list[dict]:
             for n, r, k, e, extra in out]
 
 
+def _call_push_negatives(pairs: dict, ringing: dict, missed: dict) -> list[dict]:
+    """Call pushes I-NSE must refuse: another pair's K_push, an AAD built from a mistyped type (the AAD always uses the
+    envelope's own type, call_event), and the type changed after encryption."""
+    right = push_key(H(pairs["cặp 2"]["prk"]))
+    camel_aad = f"1|callEvent|{ringing['id']}|{ringing['ts']}"
+    camel = seal_envelope(right, ringing["type"], ringing["id"], ringing["ts"], ringing["plaintext"].encode(),
+                          aad=camel_aad)
+    env = json.loads(missed["envelope"])
+    out = [
+        (ringing, "K_push of pair 1", "wrong_key", push_key(H(pairs["cặp 1"]["prk"])), ringing["env_b64"], {}),
+        (ringing, "sealed with the AAD type written callEvent", "aad_mismatch", right, camel["env_b64"],
+         {"aad_used": camel_aad}),
+        (missed, "type changed to sms after encryption (AAD)", "aad_mismatch", right,
+         b64(compact_json({**env, "type": "sms"}).encode()), {}),
+    ]
+    return [{"name": f"{v['name']} / {n}", "reason": r, "pair_id": v["pair_id"], "key": k.hex(), "env_b64": e, **extra}
+            for v, n, r, k, e, extra in out]
+
+
 def push_file(ctx) -> dict:
     pairs = {p["name"]: p for p in ctx["pairs"]}
     target = pairs["cặp 2"]  # the client of pair 2 is the iPhone of relay-auth.json (RFC 8032 TEST 3)
     envelopes = [_envelope_vector(target, *spec) for spec in ENVELOPES]
     envelopes += [_cut_vector(target, *case) for case in push_sms_truncation.cases()]
+    envelopes += [_envelope_vector(target, *spec) for spec in push_call_messages.CALL_ENVELOPES]
+    by_name = {v["name"]: v for v in envelopes}
+    call_negatives = _call_push_negatives(pairs, by_name[push_call_messages.FIRST_CALL_ENVELOPE[0]],
+                                          by_name[push_call_messages.CALL_ENVELOPES[1][0]])
     return {"description": "Push to an iPhone/iPad without a session: K_push = HKDF-SHA256(PRK, empty salt, info "
                            "\"handlive/v1/push\", L = 32); the envelope is built as over a session and encrypted with "
                            "K_push exactly as 0.5.1 (payload = b64(nonce(24) ‖ ciphertext ‖ tag(16)), AAD = UTF-8 "
@@ -171,14 +190,16 @@ def push_file(ctx) -> dict:
                            "JSON, sent as env_b64 of POST /v1/push and as hl of the APNs payload. I-NSE derives K_push "
                            "from the PRK of pair p, decodes hl, rebuilds the AAD from the parsed envelope and "
                            "decrypts. APNs thread-id is the generic sms or calls; collapse_key is the message_key of "
-                           "an SMS, call:<call_id> for a call. Envelopes with a truncation object pin the SMS text "
+                           "an SMS, call:<call_id> for a call (the missed-call push replaces the incoming one) and "
+                           "calllog:<entry_id> for a missed call no call matched; a call_event/state carries the "
+                           "controls of an iPhone/iPad (answer = false). Envelopes with a truncation object pin the SMS text "
                            "cut: body over 1,000 code points → first 999 and \"…\"; while env_b64 > 3,000 the body, "
                            "then the snippet, becomes the longest cut that fits, again ending with \"…\" (code points, "
                            "never UTF-16 units).",
             "source": f"{SPEC} 0.4.4, 0.5.1, 0.6.1; 03-connectivity.md CONN-04 step 5b, API 2, API 4; 05-sms.md SMS-02 "
-                      "API 2; 06-call-control.md CALL-01 API 4; PRK from pair-prk.json",
+                      "API 2; 06-call-control.md CALL-01 API 1, API 4, CALL-04 API 2, API 5; PRK from pair-prk.json",
             "vectors": [_key_vector(p) for p in ctx["pairs"]] + envelopes,
-            "invalid_vectors": _push_negatives(pairs, envelopes[0])}
+            "invalid_vectors": _push_negatives(pairs, envelopes[0]) + call_negatives}
 
 
 def hr_frame(device_id: str, inner: bytes, ver: int = 1, op: int = 1) -> bytes:

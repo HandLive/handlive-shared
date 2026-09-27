@@ -1,8 +1,8 @@
 English | [Tiếng Việt](README.vi.md)
 
-# Benchmarks: clipboard, SMS, reconnect time and relay load
+# Benchmarks: clipboard, SMS, calls, reconnect time and relay load
 
-These scripts measure the Phase 1 targets of gate G1 and the Phase 2 targets from timestamped logs of the devices, and load-test the relay:
+These scripts measure the Phase 1 targets of gate G1 and the Phase 2 and Phase 3 targets from timestamped logs of the devices, and load-test the relay:
 
 | Metric | Target | Measured from → to |
 |--------|--------|--------------------|
@@ -11,6 +11,12 @@ These scripts measure the Phase 1 targets of gate G1 and the Phase 2 targets fro
 | Reconnect | < 3 s | network up again or Mac woke up (`net`, `wake`) → client back to `Connected` (CONN-02, 00-common-specs 0.11) |
 | New SMS notification on the Mac (Phase 2) | < 500 ms on the LAN, ≤ 1 s over the relay | the phone's `ContentObserver` fired (`sms_detected` field `onchange`) → the client posted the notification (`sms_notified`) (SMS-02) |
 | Reply confirmed as Sent (Phase 2) | < 2 s | the user pressed Send (`sms_send_tap`) → the client shows Sent (`sms_status_received status=sent`), one device (SMS-04); also the placeholder bubble < 100 ms and the ack < 300 ms on the LAN |
+| Call state on the client (Phase 3) | < 200 ms on the LAN, ≤ 1 s over the relay | the phone's OS callback or broadcast behind a change (`call_changed` field `os`) → the client decrypted the `call_event/state` that carried it (`call_state_received`, joined on the envelope id) (CALL-01) |
+| Call shown (Phase 3) | ≤ 300 ms | the first RINGING callback → the Mac's panel (`call_panel_shown`) or the iPhone/iPad's in-app banner (`call_banner_shown`) (CALL-01) |
+| Answer from the Mac (Phase 3) | < 500 ms end to end | Answer clicked (`call_action_tap action=answer`) → the phone's OFFHOOK callback, and → the Mac received `state = offhook`; Decline and End → the client received `state = idle`, also < 500 ms (CALL-02, CALL-03) |
+| Decline from an iPhone/iPad notification (Phase 3) | < 2 s over the relay | `call_action_tap from=notification` → the phone's IDLE callback (CALL-02 B1–B3) |
+| Missed-call notification (Phase 3) | ≤ 1.5 s | the phone's IDLE callback of a missed call → `call_missed_notified` (CALL-04) |
+| Incoming-call push (Phase 3) | < 300 ms after the number is settled | the first `call_changed settled=true` of the call — the broadcast that brought the number, the second ringing copy without it for a withheld caller, or `RINGING` itself without `READ_CALL_LOG` — or `RINGING` + 300 ms when nothing settled the number within that wait → `call_push_sent status=202`, phone only (CALL-01 API 4 logic 2); display by the extension (`call_push_shown`) without target |
 | Relay at 1,000 connections (Phase 2) | no failure, no lost frame | `relay_load.py`: registration, pairing, `/v1/relay`, forwarding latency percentiles |
 
 A target is met when the 95th percentile is under it. Python 3.10+, standard library only — except the relay load test, which needs `requirements-load.txt`.
@@ -22,12 +28,13 @@ A target is met when the 95th percentile is under it. Python 3.10+, standard lib
 | `clip_latency.py` | Clipboard latency per transfer and per size bucket |
 | `reconnect_time.py` | Reconnect time per episode |
 | `sms_latency.py` | New SMS notification latency per message and bucket (LAN, relay), reply-to-Sent time per send, placeholder bubble and ack times, push display time |
+| `call_latency.py` | Call state delivery per envelope (LAN, relay), panel and banner times, answer, decline and end times, decline from an iPhone/iPad notification, missed-call notifications, push times, and the Focus rule of the Mac's alerts |
 | `relay_load.py` | Relay load test: N fake devices through CONN-03 and `/v1/relay` (see "Relay load test") |
 | `relay_load_fake.py`, `relay_load_self_test.py` | An in-process stand-in for the relay and the test of `relay_load.py` against it (CI) |
 | `requirements-load.txt` | Pinned dependencies of the load test: the vector tools' `cryptography` and PyNaCl, `websockets` (BSD-3-Clause) |
 | `collect_logs.sh` | Records one session: Android over `adb logcat`, the Mac through `log stream` |
 | `make_test_png.py` | Writes an incompressible PNG of a given size for the image scenarios |
-| `self_test.py`, `sms_self_test.py` | Run the scripts on synthetic logs with known timings (CI runs them) |
+| `self_test.py`, `sms_self_test.py`, `call_self_test.py` | Run the scripts on synthetic logs with known timings (CI runs them) |
 
 ## Log line format `HLBENCH/1`
 
@@ -85,15 +92,38 @@ Privacy as above: only the provider's `message_key` (`sms:<_id>`), the random `l
 | `sms_status_sent` | Phone | `sms/status` handed to the WebSocket | `local`, `peer`, `status` (`sending`, `sent`, `delivered`, `failed`); optional `code` |
 | `sms_status_received` | Mac, iPhone, iPad | The status applied to the outbox and shown — **end of the reply time** when `status=sent` | `local`, `status`; optional `code` |
 
+### Call events (Phase 3)
+
+Privacy as above and as the call functions require: only the random `call_id` and envelope ids, states, the SIM's `sub_id` and error codes — never a number, a contact name, a SIM label or a DTMF digit.
+
+| `ev` | Who | When | Fields |
+|------|-----|------|--------|
+| `call_changed` | Phone | A-CALL applied an OS event that changed the call context (CALL-01 API 1–3; CALL-04 API 3 for the `end_reason` correction) | `call` (`call_id`), `state` (`ringing`, `offhook`, `idle`), `waiting` (`true`, `false`), `trigger` (`listener`: the state listener, API 2; `broadcast`: the `PHONE_STATE` copy with the number, API 3; `calllog`: the correction), `os` (wall clock, ms, when the OS delivered that callback or broadcast — **start of the state, panel, answer and missed-call latencies**); optional `number` (`known`, `none`: whether the context has the caller's number after the change), `settled` (`true` when this event settled the caller's number: the broadcast that brought it, the second ringing copy without the number key while `READ_CALL_LOG` is granted — a withheld caller, CALL-01 API 3 logic 3 — or `RINGING` itself when `READ_CALL_LOG` is missing; **start of the incoming push time**, CALL-01 API 4 logic 2), `sub` (`sub_id`), `end` (`end_reason` when `idle`) |
+| `call_state_sent` | Phone | `call_event/state` handed to one client's session | `call`, `env` (envelope `id`), `peer`, `via` (`lan`, `relay`), `state`, `reason` (`change`: a change of the context; `session`: the current state sent to a new session, CALL-01 E8, not measured) |
+| `call_state_received` | Mac, iPhone, iPad | `call_event/state` decrypted — **end of the state latency** | `call`, `env`, `peer`, `state`; optional `waiting` |
+| `call_alert` | Mac | M-APP decided how to alert a ringing call (CALL-01 step 7) | `call`, `focus` (`off`, `on`, `unknown`: the Focus status cannot be read), `panel`, `ring` (`true`, `false`), `level` (`passive`, `time_sensitive`, `none`) |
+| `call_panel_shown` | Mac | The ringing call panel is on screen (`orderFrontRegardless()` returned) — **end of the panel latency** | `call` |
+| `call_banner_shown` | iPhone, iPad | The in-app banner of a ringing call is on screen | `call` |
+| `call_notified` | Mac | The incoming-call communication notification was added | `call`, `level` (`passive`, `time_sensitive`) |
+| `call_push_sent` | Phone | `POST /v1/push` answered, for an iPhone/iPad without a session | `call`, `peer`, `reason` (`call_incoming`, `call_missed`), `status` (HTTP status) |
+| `call_push_shown` | iPhone, iPad (extension) | The extension decrypted a call push and called the content handler | `call`, `reason`, `late` (`true` when more than 60 s after `started_at`, CALL-01 E7) |
+| `call_action_tap` | Mac, iPhone, iPad | The user chose Answer, Decline (also Decline with Message…) or End, or the `HL_CALL_REJECT` notification action reached the iPhone/iPad app — **start of the action times** | `call`, `action` (`answer`, `reject`, `end`), `from` (`panel`, `menu`, `notification`, `banner`) |
+| `call_action_sent` | Mac, iPhone, iPad | `call_event/action` handed to the WebSocket, one line per attempt (a retry keeps the envelope `id`) | `call`, `env`, `peer`, `action`, `via`, `attempt` |
+| `call_action_received` | Phone | `call_event/action` decrypted | `call`, `env`, `peer`, `action` |
+| `call_action_ack_sent` | Phone | Its `ack` handed to the WebSocket (once the Telecom method returned, or with the error) | `call`, `env`, `peer`, `ok`; optional `code` |
+| `call_action_ack_received` | Mac, iPhone, iPad | That `ack` decrypted | `call`, `env`, `peer`, `ok`; optional `code` |
+| `call_missed_notified` | Mac, iPhone, iPad | A missed-call notification was added — **end of the missed-call latency** | `call` (`none` when no call context matched), `source` (`log_new`; `state` without the call log, flow A); optional `entry` (`entry_id`) |
+
 ```text
 HLBENCH/1 wall=1727151101000.000 mono=9001000000000 dev=8c7d6e5f role=android ev=clip_read clip=0192f3e0-5a21-7b3c-9d4e-1f2a3b4c5d6e kind=text bytes=27 source=auto
 HLBENCH/1 wall=1727151099770.500 mono=5001004000000 dev=5b1f8c2e role=macos ev=clip_received clip=0192f3e0-5a21-7b3c-9d4e-1f2a3b4c5d6e peer=8c7d6e5f kind=text bytes=27
 HLBENCH/1 wall=1727151142000.000 mono=5042000000000 dev=5b1f8c2e role=macos ev=state from=Discovering to=Connected channel=lan
+HLBENCH/1 wall=1727150400164.500 mono=9001041000000 dev=8c7d6e5f role=android ev=call_changed call=0192f3f0-6a1b-7c2d-8e3f-4a5b6c7d8e90 state=ringing waiting=false trigger=broadcast os=1727150400163.000 number=known settled=true sub=1
 ```
 
 ## Clocks
 
-The two devices' clocks differ by up to seconds, which is far more than 50 ms. Every `clipboard/push` and every `sms/send` is acknowledged and both sides log the four moments (an `sms/send` that was retried is left out), so `clock_sync.py` computes the offset as NTP does (RFC 5905 §8): `offset = ((t2 − t1) + (t3 − t4)) / 2`, error at most half the network round trip. For each measurement it takes the exchange with the smallest round trip within ±120 s (`--window-s`), so a slow drift during the session does not matter; a device two hops away (an iPad that gets clips through the phone) is reached through the phone. A session without any clip (for example only Wi-Fi toggles on the phone) has no exchange: copy one short text each way at its start, or pass `--offset A:B=MS` (clock of B minus clock of A); otherwise the offset is assumed 0 and the report says so. Keep automatic network time on for every device anyway.
+The two devices' clocks differ by up to seconds, which is far more than 50 ms. Every `clipboard/push`, `sms/send` and `call_event/action` is acknowledged and both sides log the four moments (an `sms/send` or `call_event/action` that was retried is left out), so `clock_sync.py` computes the offset as NTP does (RFC 5905 §8): `offset = ((t2 − t1) + (t3 − t4)) / 2`, error at most half the network round trip. For each measurement it takes the exchange with the smallest round trip within ±120 s (`--window-s`), so a slow drift during the session does not matter; a device two hops away (an iPad that gets clips through the phone) is reached through the phone. A session without any clip (for example only Wi-Fi toggles on the phone) has no exchange: copy one short text each way at its start, or pass `--offset A:B=MS` (clock of B minus clock of A); otherwise the offset is assumed 0 and the report says so. A session with only calls gets its offsets from the call actions: decline one test call from the Mac (and one from the iPhone) at its start. Keep automatic network time on for every device anyway.
 
 ## Running
 
@@ -102,6 +132,7 @@ tools/bench/collect_logs.sh bench-logs/pixel8-mbp [adb-serial]   # record, Ctrl-
 python3 tools/bench/clip_latency.py bench-logs/pixel8-mbp/*.log   # add --json for the report, --check for exit 1 on a miss
 python3 tools/bench/reconnect_time.py bench-logs/pixel8-mbp/*.log
 python3 tools/bench/sms_latency.py bench-logs/pixel8-mbp/*.log     # --json, --check as above
+python3 tools/bench/call_latency.py bench-logs/pixel8-mbp/*.log    # --json, --check as above
 python3 tools/bench/make_test_png.py 5000000 image-5mb.png         # test image of about 5 MB
 python3 tools/bench/self_test.py                                   # must print "0 failed"
 ```
@@ -109,6 +140,8 @@ python3 tools/bench/self_test.py                                   # must print 
 `clip_latency.py` prints one row per transfer (latency, copy detection, and its split into sender, network and receiver time), the clips that were read but never applied (refused as a conflict, lost, or the other log is missing), and a summary per bucket: text inline (≤ 180 KiB, target 50 ms), text chunked, images below 4.5 MB, about 5 MB (4.5–5.5 MB, target 2 s) and above. `reconnect_time.py` prints one row per episode with its trigger (`net up on <dev>`, `wake on <dev>`, or `loss` when nothing on the network changed) and the target check.
 
 `sms_latency.py` prints one row per notified message (latency on the phone's clock and its split: detection, phone, network, client), the incoming messages sent to a client that never notified (setting off, conversation open, lost), one row per reply (attempts, final status, time to Sent, bubble, ack, radio time on the phone, error code), the push display times, and a summary with median, p95 and maximum: `notification lan` (target 500 ms), `notification relay` (1 s), `reply sent` (2 s), `placeholder bubble` (100 ms), `ack lan` (300 ms, sends without a retry), `push shown` (no target). The reply time needs no clock offset (one device); the notification latency does — send one reply at the start of the session, or pass `--offset`.
+
+`call_latency.py` prints one row per state envelope (latency on the phone's clock, its trigger, and the split into phone and network time), the envelopes never received, the panel and banner times, one row per action (source, transport, attempts, ack, tap → the phone's callback, tap → the resulting state on the client, ack time, error code), the missed-call notifications, the pushes (HTTP status, time after the number, display by the extension), the Mac alerts that break the Focus rule (Focus on: no panel, no ringtone, a time-sensitive notification; Focus status not readable: the panel without ringtone; a panel always with a passive notification), and a summary: `state lan` (200 ms), `state relay` (1 s), `shown panel` and `shown banner` (300 ms), `answer to phone offhook`, `answer back on client`, `decline back on client`, `end back on client` (500 ms), `decline from notification` (2 s), `missed notification` (1.5 s), `incoming push` (300 ms), `push shown` (no target). `--check` also fails on a Focus rule problem. Tap → the state back on the client needs no clock offset; the other times do.
 
 ## Relay load test
 
@@ -153,6 +186,16 @@ Scenarios (3 s pause between repetitions):
 | S2 | Phase 2: same as S1 with the Mac on another network (internet connection, relay) | 10 |
 | S3 | Phase 2: reply from the Mac's Messages window with normal signal (start with one reply for the clock offset) | 20 |
 | S4 | Phase 2: quick reply from the notification on the Mac; then from an iPhone with HandLive in the background | 5 + 5 |
+| C1 | Phase 3: a call from another phone, the Mac on the LAN, no Focus: panel and ringtone; let it ring 5 s, then decline on the phone (start with one decline from the Mac for the clock offset) | 20 |
+| C2 | Phase 3: answer from the Mac panel (Return), talk 10 s on the phone, end from the Mac panel | 10 |
+| C3 | Phase 3: decline from the Mac panel (⌘⌫); twice with Decline with Message… and a template | 10 + 2 |
+| C4 | Phase 3: call waiting (CALL-01 E9): during a call answered on the phone, a call from a third phone: the Mac shows the waiting caller as information only, End hidden, no push to an iPhone; decline the waiting call on the phone | 3 |
+| C5 | Phase 3: two SIMs: call each SIM of a dual-SIM phone; the panel and the notification show the right SIM label (`sub` of `call_changed`) | 3 + 3 |
+| C6 | Phase 3: a Focus on the Mac: no panel, no ringtone, a time-sensitive notification, the call in the menu bar menu; then with the Focus status permission not granted: the panel without ringtone | 3 + 2 |
+| C7 | Phase 3: AirPods connected to the phone: C1 and C2 again; the audio stays on the phone or the AirPods (no effect in this phase) | 3 |
+| C8 | Phase 3: iPhone with HandLive in the background (no session), the phone reachable through the relay: the incoming-call push, then Decline from the notification (unlock) | 10 |
+| C9 | Phase 3: a missed call (let it ring out) with the Mac connected; then with the iPhone in the background, where the missed-call push replaces the incoming one | 5 + 3 |
+| C10 | Phase 3: iPhone with HandLive open: the in-app banner, Decline from the banner | 5 |
 
 Then stop the recording, run both scripts and fill a row per pair (p95 in ms; add the `--json` output to the report):
 
@@ -165,5 +208,11 @@ Phase 2 adds a row per pair from `sms_latency.py` (p95 in ms):
 | Phone (Android) | Client | Notification LAN (S1) | Notification relay (S2) | Reply Sent (S3) | Bubble | Ack LAN | Not notified | Notes |
 |-----------------|--------|-----------------------|-------------------------|-----------------|--------|---------|--------------|-------|
 | Pixel 8 (15) | MacBook Pro M3 (26) | | | | | | | |
+
+Phase 3 adds a row per pair from `call_latency.py` (p95 in ms):
+
+| Phone (Android) | Client | State LAN (C1) | Panel (C1) | Answer → offhook (C2) | Answer back (C2) | Decline back (C3) | End back (C2) | Decline from notification (C8) | Missed (C9) | Push (C8) | Focus rule (C6) | Notes |
+|-----------------|--------|----------------|------------|-----------------------|------------------|-------------------|---------------|--------------------------------|-------------|-----------|-----------------|-------|
+| Pixel 8 (15) | MacBook Pro M3 (26) | | | | | | | | | | | |
 
 A pair passes when every p95 is under its target and "Not applied" lists only clips the scenario expected to be refused. Record devices that block the Accessibility service or `ClipboardReadActivity` in `docs/deployment-guide.md` (phase 1 risks).

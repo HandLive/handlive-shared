@@ -42,6 +42,23 @@ EVENTS: dict[str, set[str]] = {
     "sms_radio_done": {"local", "result"},
     "sms_status_sent": {"local", "peer", "status"},
     "sms_status_received": {"local", "status"},
+    # Calls (Phase 3): state delivery, the panel or banner, answer/decline/end, decline from an iOS notification,
+    # missed calls, pushes, and the Focus rule of the Mac; see README.md.
+    "call_changed": {"call", "state", "waiting", "trigger", "os"},
+    "call_state_sent": {"call", "env", "peer", "via", "state", "reason"},
+    "call_state_received": {"call", "env", "peer", "state"},
+    "call_alert": {"call", "focus", "panel", "ring", "level"},
+    "call_panel_shown": {"call"},
+    "call_banner_shown": {"call"},
+    "call_notified": {"call", "level"},
+    "call_push_sent": {"call", "peer", "reason", "status"},
+    "call_push_shown": {"call", "reason", "late"},
+    "call_action_tap": {"call", "action", "from"},
+    "call_action_sent": {"call", "env", "peer", "action", "via", "attempt"},
+    "call_action_received": {"call", "env", "peer", "action"},
+    "call_action_ack_sent": {"call", "env", "peer", "ok"},
+    "call_action_ack_received": {"call", "env", "peer", "ok"},
+    "call_missed_notified": {"call", "source"},
 }
 KEY_VALUE = re.compile(r"^([a-z_]+)=(\S+)$")
 

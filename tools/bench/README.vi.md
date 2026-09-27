@@ -1,8 +1,8 @@
 [English](README.md) | Tiếng Việt
 
-# Đo hiệu năng: bảng nhớ tạm, SMS, kết nối lại và tải của relay
+# Đo hiệu năng: bảng nhớ tạm, SMS, cuộc gọi, kết nối lại và tải của relay
 
-Các script này đo các mục tiêu Phase 1 của cổng G1 và các mục tiêu Phase 2 từ log có dấu thời gian của các thiết bị, và thử tải relay:
+Các script này đo các mục tiêu Phase 1 của cổng G1, các mục tiêu Phase 2 và Phase 3 từ log có dấu thời gian của các thiết bị, và thử tải relay:
 
 | Chỉ số | Mục tiêu | Tính từ → tới |
 |--------|----------|---------------|
@@ -11,6 +11,12 @@ Các script này đo các mục tiêu Phase 1 của cổng G1 và các mục ti�
 | Kết nối lại | < 3 s | mạng có lại hoặc Mac thức dậy (`net`, `wake`) → client về `Connected` (CONN-02, 00-common-specs 0.11) |
 | Thông báo SMS mới trên Mac (Phase 2) | < 500 ms trong LAN, ≤ 1 s qua relay | `ContentObserver` của điện thoại được gọi (`sms_detected` trường `onchange`) → client đăng thông báo (`sms_notified`) (SMS-02) |
 | Trả lời được xác nhận Đã gửi (Phase 2) | < 2 s | người dùng bấm Gửi (`sms_send_tap`) → client hiện Đã gửi (`sms_status_received status=sent`), trên cùng một máy (SMS-04); kèm bong bóng tạm < 100 ms và ack < 300 ms trong LAN |
+| Trạng thái cuộc gọi trên client (Phase 3) | < 200 ms trong LAN, ≤ 1 s qua relay | callback hoặc broadcast của hệ điều hành gây ra thay đổi trên điện thoại (`call_changed` trường `os`) → client giải mã được `call_event/state` mang thay đổi đó (`call_state_received`, ghép theo id envelope) (CALL-01) |
+| Hiện cuộc gọi (Phase 3) | ≤ 300 ms | callback RINGING đầu tiên → panel trên Mac (`call_panel_shown`) hoặc banner trong ứng dụng trên iPhone/iPad (`call_banner_shown`) (CALL-01) |
+| Trả lời từ Mac (Phase 3) | < 500 ms đầu-cuối | bấm Trả lời (`call_action_tap action=answer`) → callback OFFHOOK của điện thoại, và → Mac nhận `state = offhook`; Từ chối và Kết thúc → client nhận `state = idle`, cũng < 500 ms (CALL-02, CALL-03) |
+| Từ chối từ thông báo iPhone/iPad (Phase 3) | < 2 s qua relay | `call_action_tap from=notification` → callback IDLE của điện thoại (CALL-02 B1–B3) |
+| Thông báo cuộc gọi nhỡ (Phase 3) | ≤ 1,5 s | callback IDLE của một cuộc gọi nhỡ trên điện thoại → `call_missed_notified` (CALL-04) |
+| Push cuộc gọi đến (Phase 3) | < 300 ms sau khi số đã rõ | `call_changed settled=true` đầu tiên của cuộc gọi — broadcast mang số, bản đổ chuông thứ hai không có số khi người gọi ẩn số, hoặc chính `RINGING` khi thiếu `READ_CALL_LOG` — hoặc `RINGING` + 300 ms khi trong lúc chờ đó số chưa rõ → `call_push_sent status=202`, chỉ trên điện thoại (CALL-01 API 4 logic 2); thời gian phần mở rộng hiện thông báo (`call_push_shown`) không có mục tiêu |
 | Relay với 1 000 kết nối (Phase 2) | không lỗi, không mất khung | `relay_load.py`: đăng ký, ghép cặp, `/v1/relay`, các phân vị độ trễ chuyển tiếp |
 
 Đạt mục tiêu khi phân vị 95 nằm dưới mục tiêu. Python 3.10+, chỉ dùng thư viện chuẩn — trừ phép thử tải relay, cần `requirements-load.txt`.
@@ -22,12 +28,13 @@ Các script này đo các mục tiêu Phase 1 của cổng G1 và các mục ti�
 | `clip_latency.py` | Độ trễ bảng nhớ tạm theo từng lần truyền và theo nhóm kích thước |
 | `reconnect_time.py` | Thời gian kết nối lại theo từng lần |
 | `sms_latency.py` | Độ trễ thông báo SMS mới theo từng tin và theo nhóm (LAN, relay), thời gian từ bấm Gửi tới Đã gửi của từng lần gửi, thời gian bong bóng tạm và ack, thời gian hiện push |
+| `call_latency.py` | Độ trễ trạng thái cuộc gọi theo từng envelope (LAN, relay), thời gian hiện panel và banner, thời gian trả lời, từ chối, kết thúc, từ chối từ thông báo iPhone/iPad, thông báo cuộc gọi nhỡ, thời gian push, và quy tắc Tập trung của cách báo trên Mac |
 | `relay_load.py` | Thử tải relay: N thiết bị giả đi qua CONN-03 và `/v1/relay` (xem "Thử tải relay") |
 | `relay_load_fake.py`, `relay_load_self_test.py` | Relay giả chạy trong tiến trình và bài kiểm `relay_load.py` với nó (CI) |
 | `requirements-load.txt` | Phụ thuộc ghim phiên bản của phép thử tải: `cryptography` và PyNaCl của công cụ vector, `websockets` (BSD-3-Clause) |
 | `collect_logs.sh` | Ghi một phiên đo: Android qua `adb logcat`, Mac qua `log stream` |
 | `make_test_png.py` | Tạo ảnh PNG không nén được với kích thước cho trước, dùng cho các kịch bản ảnh |
-| `self_test.py`, `sms_self_test.py` | Chạy các script trên log giả có thời gian biết trước (CI chạy) |
+| `self_test.py`, `sms_self_test.py`, `call_self_test.py` | Chạy các script trên log giả có thời gian biết trước (CI chạy) |
 
 ## Định dạng dòng log `HLBENCH/1`
 
@@ -85,15 +92,38 @@ Quyền riêng tư như trên: chỉ `message_key` của provider (`sms:<_id>`),
 | `sms_status_sent` | Điện thoại | Đã giao `sms/status` cho WebSocket | `local`, `peer`, `status` (`sending`, `sent`, `delivered`, `failed`); không bắt buộc `code` |
 | `sms_status_received` | Mac, iPhone, iPad | Trạng thái đã áp vào hàng đợi gửi và hiện ra — **điểm kết thúc thời gian trả lời** khi `status=sent` | `local`, `status`; không bắt buộc `code` |
 
+### Sự kiện cuộc gọi (Phase 3)
+
+Quyền riêng tư như trên và như nhóm chức năng cuộc gọi yêu cầu: chỉ `call_id` và id envelope ngẫu nhiên, trạng thái, `sub_id` của SIM và mã lỗi — không bao giờ có số điện thoại, tên liên hệ, nhãn SIM hay phím DTMF.
+
+| `ev` | Ai | Khi nào | Trường |
+|------|----|---------|--------|
+| `call_changed` | Điện thoại | A-CALL áp một sự kiện của hệ điều hành làm đổi ngữ cảnh cuộc gọi (CALL-01 API 1–3; CALL-04 API 3 cho lần hiệu chỉnh `end_reason`) | `call` (`call_id`), `state` (`ringing`, `offhook`, `idle`), `waiting` (`true`, `false`), `trigger` (`listener`: listener trạng thái, API 2; `broadcast`: bản `PHONE_STATE` có số, API 3; `calllog`: lần hiệu chỉnh), `os` (đồng hồ thực, ms, lúc hệ điều hành giao callback hoặc broadcast đó — **điểm bắt đầu độ trễ trạng thái, panel, trả lời và cuộc gọi nhỡ**); không bắt buộc `number` (`known`, `none`: sau thay đổi ngữ cảnh đã có số người gọi hay chưa), `settled` (`true` khi sự kiện này làm rõ số người gọi: broadcast mang số, bản đổ chuông thứ hai không có khóa số khi đã có `READ_CALL_LOG` — người gọi ẩn số, CALL-01 API 3 logic 3 — hoặc chính `RINGING` khi thiếu `READ_CALL_LOG`; **điểm bắt đầu thời gian push cuộc gọi đến**, CALL-01 API 4 logic 2), `sub` (`sub_id`), `end` (`end_reason` khi `idle`) |
+| `call_state_sent` | Điện thoại | Đã giao `call_event/state` cho phiên của một client | `call`, `env` (`id` của envelope), `peer`, `via` (`lan`, `relay`), `state`, `reason` (`change`: ngữ cảnh vừa đổi; `session`: trạng thái hiện tại gửi cho phiên mới, CALL-01 E8, không đo) |
+| `call_state_received` | Mac, iPhone, iPad | Đã giải mã `call_event/state` — **điểm kết thúc độ trễ trạng thái** | `call`, `env`, `peer`, `state`; không bắt buộc `waiting` |
+| `call_alert` | Mac | M-APP quyết định cách báo một cuộc gọi đang đổ chuông (CALL-01 bước 7) | `call`, `focus` (`off`, `on`, `unknown`: không đọc được trạng thái Tập trung), `panel`, `ring` (`true`, `false`), `level` (`passive`, `time_sensitive`, `none`) |
+| `call_panel_shown` | Mac | Panel cuộc gọi đang đổ chuông đã hiện (`orderFrontRegardless()` đã trả về) — **điểm kết thúc độ trễ panel** | `call` |
+| `call_banner_shown` | iPhone, iPad | Banner trong ứng dụng của cuộc gọi đang đổ chuông đã hiện | `call` |
+| `call_notified` | Mac | Đã thêm thông báo liên lạc của cuộc gọi đến | `call`, `level` (`passive`, `time_sensitive`) |
+| `call_push_sent` | Điện thoại | `POST /v1/push` đã có phản hồi, cho iPhone/iPad không có phiên | `call`, `peer`, `reason` (`call_incoming`, `call_missed`), `status` (mã HTTP) |
+| `call_push_shown` | iPhone, iPad (phần mở rộng) | Phần mở rộng giải mã push cuộc gọi và gọi content handler | `call`, `reason`, `late` (`true` khi quá 60 s sau `started_at`, CALL-01 E7) |
+| `call_action_tap` | Mac, iPhone, iPad | Người dùng chọn Trả lời, Từ chối (cả Từ chối kèm tin nhắn…) hoặc Kết thúc, hoặc hành động thông báo `HL_CALL_REJECT` tới được ứng dụng iPhone/iPad — **điểm bắt đầu thời gian thao tác** | `call`, `action` (`answer`, `reject`, `end`), `from` (`panel`, `menu`, `notification`, `banner`) |
+| `call_action_sent` | Mac, iPhone, iPad | Đã giao `call_event/action` cho WebSocket, mỗi lần thử một dòng (gửi lại giữ nguyên `id` envelope) | `call`, `env`, `peer`, `action`, `via`, `attempt` |
+| `call_action_received` | Điện thoại | Đã giải mã `call_event/action` | `call`, `env`, `peer`, `action` |
+| `call_action_ack_sent` | Điện thoại | Đã giao `ack` của nó cho WebSocket (khi hàm Telecom đã trả về, hoặc kèm lỗi) | `call`, `env`, `peer`, `ok`; không bắt buộc `code` |
+| `call_action_ack_received` | Mac, iPhone, iPad | Đã giải mã `ack` đó | `call`, `env`, `peer`, `ok`; không bắt buộc `code` |
+| `call_missed_notified` | Mac, iPhone, iPad | Đã thêm thông báo cuộc gọi nhỡ — **điểm kết thúc độ trễ cuộc gọi nhỡ** | `call` (`none` khi không ghép được ngữ cảnh cuộc gọi nào), `source` (`log_new`; `state` khi không có nhật ký, luồng A); không bắt buộc `entry` (`entry_id`) |
+
 ```text
 HLBENCH/1 wall=1727151101000.000 mono=9001000000000 dev=8c7d6e5f role=android ev=clip_read clip=0192f3e0-5a21-7b3c-9d4e-1f2a3b4c5d6e kind=text bytes=27 source=auto
 HLBENCH/1 wall=1727151099770.500 mono=5001004000000 dev=5b1f8c2e role=macos ev=clip_received clip=0192f3e0-5a21-7b3c-9d4e-1f2a3b4c5d6e peer=8c7d6e5f kind=text bytes=27
 HLBENCH/1 wall=1727151142000.000 mono=5042000000000 dev=5b1f8c2e role=macos ev=state from=Discovering to=Connected channel=lan
+HLBENCH/1 wall=1727150400164.500 mono=9001041000000 dev=8c7d6e5f role=android ev=call_changed call=0192f3f0-6a1b-7c2d-8e3f-4a5b6c7d8e90 state=ringing waiting=false trigger=broadcast os=1727150400163.000 number=known settled=true sub=1
 ```
 
 ## Đồng hồ
 
-Đồng hồ của hai thiết bị có thể lệch nhau tới vài giây, lớn hơn nhiều so với 50 ms. Mỗi `clipboard/push` và mỗi `sms/send` đều có `ack` và hai bên ghi đủ bốn thời điểm (bỏ qua `sms/send` đã phải gửi lại), nên `clock_sync.py` tính độ lệch như NTP (RFC 5905 §8): `offset = ((t2 − t1) + (t3 − t4)) / 2`, sai số không quá nửa thời gian khứ hồi của mạng. Với mỗi phép đo, script chọn lượt trao đổi có thời gian khứ hồi nhỏ nhất trong ±120 s (`--window-s`), nên đồng hồ trôi chậm trong phiên không ảnh hưởng; thiết bị cách hai chặng (iPad nhận clip qua điện thoại) được nối qua điện thoại. Phiên không có clip nào (ví dụ chỉ bật tắt Wi-Fi trên điện thoại) thì không có lượt trao đổi: sao chép một đoạn văn bản ngắn mỗi chiều lúc bắt đầu, hoặc truyền `--offset A:B=MS` (đồng hồ B trừ đồng hồ A); không thì độ lệch được coi là 0 và báo cáo ghi rõ. Dù sao vẫn bật giờ tự động theo mạng trên mọi thiết bị.
+Đồng hồ của hai thiết bị có thể lệch nhau tới vài giây, lớn hơn nhiều so với 50 ms. Mỗi `clipboard/push`, `sms/send` và `call_event/action` đều có `ack` và hai bên ghi đủ bốn thời điểm (bỏ qua `sms/send` hoặc `call_event/action` đã phải gửi lại), nên `clock_sync.py` tính độ lệch như NTP (RFC 5905 §8): `offset = ((t2 − t1) + (t3 − t4)) / 2`, sai số không quá nửa thời gian khứ hồi của mạng. Với mỗi phép đo, script chọn lượt trao đổi có thời gian khứ hồi nhỏ nhất trong ±120 s (`--window-s`), nên đồng hồ trôi chậm trong phiên không ảnh hưởng; thiết bị cách hai chặng (iPad nhận clip qua điện thoại) được nối qua điện thoại. Phiên không có clip nào (ví dụ chỉ bật tắt Wi-Fi trên điện thoại) thì không có lượt trao đổi: sao chép một đoạn văn bản ngắn mỗi chiều lúc bắt đầu, hoặc truyền `--offset A:B=MS` (đồng hồ B trừ đồng hồ A); không thì độ lệch được coi là 0 và báo cáo ghi rõ. Phiên chỉ có cuộc gọi lấy độ lệch từ các thao tác cuộc gọi: lúc bắt đầu, từ chối một cuộc gọi thử từ Mac (và một từ iPhone). Dù sao vẫn bật giờ tự động theo mạng trên mọi thiết bị.
 
 ## Chạy
 
@@ -102,6 +132,7 @@ tools/bench/collect_logs.sh bench-logs/pixel8-mbp [adb-serial]   # ghi, Ctrl-C �
 python3 tools/bench/clip_latency.py bench-logs/pixel8-mbp/*.log   # thêm --json cho báo cáo, --check để thoát 1 khi không đạt
 python3 tools/bench/reconnect_time.py bench-logs/pixel8-mbp/*.log
 python3 tools/bench/sms_latency.py bench-logs/pixel8-mbp/*.log     # --json, --check như trên
+python3 tools/bench/call_latency.py bench-logs/pixel8-mbp/*.log    # --json, --check như trên
 python3 tools/bench/make_test_png.py 5000000 image-5mb.png         # ảnh thử khoảng 5 MB
 python3 tools/bench/self_test.py                                   # phải in "0 failed"
 ```
@@ -109,6 +140,8 @@ python3 tools/bench/self_test.py                                   # phải in "
 `clip_latency.py` in mỗi lần truyền một dòng (độ trễ, thời gian phát hiện sao chép, và phần của bên gửi, mạng, bên nhận), các clip đã đọc mà không bên nào ghi (bị từ chối vì xung đột, bị mất, hoặc thiếu log của máy kia), và bảng tóm tắt theo nhóm: văn bản gửi thẳng (≤ 180 KiB, mục tiêu 50 ms), văn bản theo chunk, ảnh dưới 4,5 MB, khoảng 5 MB (4,5–5,5 MB, mục tiêu 2 s) và lớn hơn. `reconnect_time.py` in mỗi lần kết nối lại một dòng kèm nguyên nhân (`net up on <dev>`, `wake on <dev>`, hoặc `loss` khi mạng không đổi gì) và kết quả so với mục tiêu.
 
 `sms_latency.py` in mỗi tin đã thông báo một dòng (độ trễ theo đồng hồ điện thoại và các phần: phát hiện, điện thoại, mạng, client), các tin đến đã gửi cho client mà không có thông báo (tắt cài đặt, đang mở hội thoại, bị mất), mỗi lần trả lời một dòng (số lần thử, trạng thái cuối, thời gian tới Đã gửi, bong bóng, ack, thời gian radio trên điện thoại, mã lỗi), thời gian hiện push, và bảng tóm tắt trung vị, phân vị 95, lớn nhất: `notification lan` (mục tiêu 500 ms), `notification relay` (1 s), `reply sent` (2 s), `placeholder bubble` (100 ms), `ack lan` (300 ms, chỉ lần gửi không phải thử lại), `push shown` (không có mục tiêu). Thời gian trả lời không cần độ lệch đồng hồ (một máy); độ trễ thông báo thì cần — gửi một tin trả lời lúc bắt đầu phiên, hoặc truyền `--offset`.
+
+`call_latency.py` in mỗi envelope trạng thái một dòng (độ trễ theo đồng hồ điện thoại, nguồn gây thay đổi, và phần điện thoại, phần mạng), các envelope không tới client, thời gian hiện panel và banner, mỗi thao tác một dòng (nguồn, đường truyền, số lần thử, ack, bấm → callback của điện thoại, bấm → trạng thái kết quả trên client, thời gian ack, mã lỗi), các thông báo cuộc gọi nhỡ, các push (mã HTTP, thời gian sau khi có số, lúc phần mở rộng hiện), các lần báo trên Mac sai quy tắc Tập trung (Tập trung bật: không panel, không chuông, thông báo time-sensitive; không đọc được trạng thái Tập trung: có panel, không chuông; có panel thì thông báo luôn ở mức passive), và bảng tóm tắt: `state lan` (200 ms), `state relay` (1 s), `shown panel` và `shown banner` (300 ms), `answer to phone offhook`, `answer back on client`, `decline back on client`, `end back on client` (500 ms), `decline from notification` (2 s), `missed notification` (1,5 s), `incoming push` (300 ms), `push shown` (không có mục tiêu). `--check` cũng báo lỗi khi sai quy tắc Tập trung. Thời gian từ bấm tới trạng thái trên chính client không cần độ lệch đồng hồ; các thời gian còn lại thì cần.
 
 ## Thử tải relay
 
@@ -153,6 +186,16 @@ Kịch bản (nghỉ 3 s giữa các lần lặp):
 | S2 | Phase 2: như S1 khi Mac ở mạng khác (kết nối qua Internet, relay) | 10 |
 | S3 | Phase 2: trả lời từ cửa sổ Tin nhắn của Mac khi sóng bình thường (mở đầu bằng một tin trả lời để có độ lệch đồng hồ) | 20 |
 | S4 | Phase 2: trả lời nhanh từ thông báo trên Mac; rồi từ iPhone khi HandLive chạy nền | 5 + 5 |
+| C1 | Phase 3: gọi từ một điện thoại khác, Mac trong LAN, không bật Tập trung: có panel và chuông; để đổ chuông 5 s rồi từ chối trên điện thoại (bắt đầu bằng một lần từ chối từ Mac để có độ lệch đồng hồ) | 20 |
+| C2 | Phase 3: trả lời từ panel trên Mac (Return), nói 10 s trên điện thoại, kết thúc từ panel trên Mac | 10 |
+| C3 | Phase 3: từ chối từ panel trên Mac (⌘⌫); hai lần dùng Từ chối kèm tin nhắn… với một mẫu tin | 10 + 2 |
+| C4 | Phase 3: cuộc gọi chờ (CALL-01 E9): đang nói một cuộc gọi đã nghe trên điện thoại thì có cuộc gọi từ máy thứ ba: Mac chỉ hiện thông tin người gọi chờ, ẩn Kết thúc, không push cho iPhone; từ chối cuộc gọi chờ trên điện thoại | 3 |
+| C5 | Phase 3: hai SIM: gọi tới từng SIM của một điện thoại hai SIM; panel và thông báo hiện đúng nhãn SIM (`sub` của `call_changed`) | 3 + 3 |
+| C6 | Phase 3: bật Tập trung trên Mac: không panel, không chuông, thông báo time-sensitive, cuộc gọi vẫn ở menu của biểu tượng thanh menu; rồi khi chưa cấp quyền đọc trạng thái Tập trung: có panel, không chuông | 3 + 2 |
+| C7 | Phase 3: AirPods đang nối với điện thoại: làm lại C1 và C2; âm thanh vẫn ở điện thoại hoặc AirPods (không ảnh hưởng ở phase này) | 3 |
+| C8 | Phase 3: iPhone có HandLive chạy nền (không có phiên), điện thoại kết nối được qua relay: push cuộc gọi đến, rồi Từ chối từ thông báo (mở khóa) | 10 |
+| C9 | Phase 3: cuộc gọi nhỡ (để đổ chuông hết) khi Mac đang kết nối; rồi khi iPhone chạy nền, push cuộc gọi nhỡ thay thế push cuộc gọi đến | 5 + 3 |
+| C10 | Phase 3: iPhone đang mở HandLive: banner trong ứng dụng, Từ chối từ banner | 5 |
 
 Sau đó dừng ghi, chạy hai script và điền một dòng cho mỗi cặp (phân vị 95, đơn vị ms; đính kèm đầu ra `--json` vào báo cáo):
 
@@ -165,5 +208,11 @@ Phase 2 thêm một dòng cho mỗi cặp từ `sms_latency.py` (phân vị 95, 
 | Điện thoại (Android) | Client | Thông báo LAN (S1) | Thông báo relay (S2) | Trả lời Đã gửi (S3) | Bong bóng | Ack LAN | Không thông báo | Ghi chú |
 |----------------------|--------|--------------------|----------------------|---------------------|-----------|---------|-----------------|---------|
 | Pixel 8 (15) | MacBook Pro M3 (26) | | | | | | | |
+
+Phase 3 thêm một dòng cho mỗi cặp từ `call_latency.py` (phân vị 95, đơn vị ms):
+
+| Điện thoại (Android) | Client | Trạng thái LAN (C1) | Panel (C1) | Trả lời → offhook (C2) | Trả lời về client (C2) | Từ chối về client (C3) | Kết thúc về client (C2) | Từ chối từ thông báo (C8) | Nhỡ (C9) | Push (C8) | Quy tắc Tập trung (C6) | Ghi chú |
+|----------------------|--------|---------------------|------------|------------------------|------------------------|------------------------|-------------------------|---------------------------|----------|-----------|------------------------|---------|
+| Pixel 8 (15) | MacBook Pro M3 (26) | | | | | | | | | | | |
 
 Một cặp đạt khi mọi phân vị 95 dưới mục tiêu của nó và mục "Không được ghi" chỉ có những clip mà kịch bản chờ bị từ chối. Ghi các máy chặn dịch vụ Hỗ trợ tiếp cận hoặc `ClipboardReadActivity` vào `docs/deployment-guide.md` (rủi ro của phase 1).

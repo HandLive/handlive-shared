@@ -5,7 +5,7 @@ Called by check_schemas.py:
   endpoints and their bodies), 0.8.2 (relay error codes), CONN-04 API 2 (push reasons) and API 4 (APNs loc-keys,
   which must also be push.* keys of the UI string catalog shown on iOS);
 - vectors: the wire messages inside shared/test-vectors (relay REST requests, pair/* plaintexts, push bodies, the
-  sms/new plaintexts of push envelopes, relay text wrappers) must pass their schemas;
+  sms/new and call_event plaintexts of push envelopes, relay text wrappers) must pass their schemas;
 - embedded envelopes: env_b64 of POST /v1/push and hl of the APNs payload must decode to a valid envelope.
 """
 
@@ -33,6 +33,17 @@ REST_BODIES = {
     ("GET (WS)", "/v1/relay"): [],
 }
 REST_SHARED_DEFS = {"error-response", "error-code"}
+# Plaintexts a push envelope can carry (CONN-04 step 3): envelope type and op → schema.
+PUSH_PLAINTEXTS = {("sms", "new"): "sms-new", ("call_event", "state"): "call_event-state",
+                   ("call_event", "log_new"): "call_event-log_new"}
+
+
+def _push_plaintext_schema(vector: dict) -> str | None:
+    if "plaintext" not in vector:
+        return None
+    return PUSH_PLAINTEXTS.get((vector.get("type"), json.loads(vector["plaintext"]).get("op")))
+
+
 # Wire messages in the test vectors: (file, field holding JSON text, schema — or a function of the vector giving the
 # schema, None to skip the vector).
 VECTOR_MESSAGES = [
@@ -45,7 +56,7 @@ VECTOR_MESSAGES = [
     ("pair-handshake.json", "done_plaintext", "pair-done"),
     ("push-envelope.json", "push_request", "relay-rest#push-request"),
     ("push-envelope.json", "apns_payload", "push#apns-payload"),
-    ("push-envelope.json", "plaintext", lambda v: "sms-new" if v.get("type") == "sms" else None),
+    ("push-envelope.json", "plaintext", _push_plaintext_schema),
     ("relay-frame.json", "outbound",
      lambda v: "relay-wrapper" if v.get("kind") == "text_rewrite" and "spoofed_from" not in v else None),
     ("relay-frame.json", "inbound", lambda v: "relay-wrapper" if v.get("kind") == "text_rewrite" else None),

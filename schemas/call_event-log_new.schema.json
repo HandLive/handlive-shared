@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/call_event-log_new.schema.json",
+  "title": "HandLive — call_event/log_new (S→C, no ack)",
+  "description": "CALL-04 API 2: a new call log entry, sent in ascending entry_id order to every session for which calls are in effect, with the call context it matched. The same schema covers the call_event/log_new envelope encrypted with K_push for the call_missed push when READ_CALL_LOG is granted (CALL-04 API 5).",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "log_new" },
+    "data": {
+      "type": "object",
+      "required": ["entry", "call_id"],
+      "additionalProperties": false,
+      "properties": {
+        "entry": { "$ref": "call_event-common.schema.json#/$defs/entry" },
+        "call_id": {
+          "description": "The call context (CALL-01) matched with the entry; null when none matches.",
+          "oneOf": [
+            { "$ref": "call_event-common.schema.json#/$defs/call-id" },
+            { "type": "null" }
+          ]
+        }
+      }
+    }
+  }
+}

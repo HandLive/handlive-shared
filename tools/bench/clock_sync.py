@@ -1,6 +1,6 @@
 """Clock offset between two devices from their own request/ack exchanges (the NTP method, RFC 5905 §8).
 
-Every `clipboard/push` and every `sms/send` is acknowledged, and both sides log it: a sends at t1 and receives the
+Every `clipboard/push`, `sms/send` and `call_event/action` is acknowledged, and both sides log it: a sends at t1 and receives the
 ack at t4 (a's clock), b receives at t2 and acks at t3 (b's clock). Then
 
     offset(b - a) = ((t2 - t1) + (t3 - t4)) / 2      delay = (t4 - t1) - (t3 - t2)
@@ -24,7 +24,7 @@ class Exchange:
     t2: float
     t3: float
     t4: float
-    ref: str  # clip_id of a clipboard/push, or local_id of an sms/send
+    ref: str  # clip_id of a clipboard/push, local_id of an sms/send, or envelope id of a call_event/action
 
     @property
     def offset(self) -> float:
@@ -51,12 +51,14 @@ class Offset:
 
 # (request sent, request received, ack sent, ack received, field naming the request)
 EXCHANGE_EVENTS = [("clip_sent", "clip_received", "ack_sent", "ack_received", "clip"),
-                   ("sms_send_sent", "sms_send_received", "sms_send_ack_sent", "sms_send_ack_received", "local")]
+                   ("sms_send_sent", "sms_send_received", "sms_send_ack_sent", "sms_send_ack_received", "local"),
+                   ("call_action_sent", "call_action_received", "call_action_ack_sent", "call_action_ack_received",
+                    "env")]
 
 
 def exchanges(log: Log) -> list[Exchange]:
-    """Complete request/ack quadruples found in the log (all four events present). An sms/send that was sent more
-    than once (retries reuse the envelope id) is left out: its ack cannot be tied to one attempt."""
+    """Complete request/ack quadruples found in the log (all four events present). An sms/send or call_event/action
+    that was sent more than once (retries reuse the envelope id) is left out: its ack cannot be tied to one attempt."""
     out = []
     for sent_ev, received_ev, ack_ev, back_ev, key in EXCHANGE_EVENTS:
         index, count = {}, {}

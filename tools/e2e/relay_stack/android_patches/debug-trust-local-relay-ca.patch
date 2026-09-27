@@ -1,0 +1,31 @@
+diff --git a/app/src/debug/AndroidManifest.xml b/app/src/debug/AndroidManifest.xml
+new file mode 100644
+--- /dev/null
++++ b/app/src/debug/AndroidManifest.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!-- Debug builds only: the network security config below (local relay tests, shared/tools/e2e/relay_stack). -->
++<manifest xmlns:android="http://schemas.android.com/apk/res/android">
++
++    <application android:networkSecurityConfig="@xml/network_security_config" />
++</manifest>
+diff --git a/app/src/debug/res/xml/network_security_config.xml b/app/src/debug/res/xml/network_security_config.xml
+new file mode 100644
+--- /dev/null
++++ b/app/src/debug/res/xml/network_security_config.xml
+@@ -0,0 +1,15 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++    Debug builds only (debug-overrides apply to a debuggable app): trust the CA of a local test relay as well as the
++    system CAs. The CA is res/raw/local_relay_ca.pem, written at build time by
++    shared/tools/e2e/relay_stack/build_android_for_local_relay.sh and never committed; its SPKI is also pinned through
++    handlive.relayExtraPins, so OkHttp's CertificatePinner still checks the chain (0.4.3).
++-->
++<network-security-config>
++    <debug-overrides>
++        <trust-anchors>
++            <certificates src="system" />
++            <certificates src="@raw/local_relay_ca" />
++        </trust-anchors>
++    </debug-overrides>
++</network-security-config>
