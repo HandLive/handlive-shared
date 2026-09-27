@@ -5,7 +5,8 @@ call_event/action acks alone (the phone runs 1234.5 ms ahead of the Mac, the iPa
 Calls: A rings on the Mac (number after the first RINGING), is answered and ended from the panel; B is declined from
 the panel; C rings during a Focus on the Mac, reaches the iPad over the relay with a banner, and is missed; D rings
 while the iPad has no session (push), and is declined from the notification over the relay; F is dialed on the
-phone and gets a waiting call.
+phone and gets a waiting call; W, N and Q are pushed to the iPad, each push timed from the settled number: a withheld
+caller, a phone without READ_CALL_LOG, and a number that came only after the 300 ms wait.
 """
 
 from __future__ import annotations
@@ -18,7 +19,7 @@ import call_latency
 from bench_log import load
 from clock_sync import ClockModel, exchanges
 
-CALL = {k: f"0192f3f0-{n:04x}-7c2d-8e3f-4a5b6c7d8e90" for n, k in enumerate("ABCDFGH", start=1)}
+CALL = {k: f"0192f3f0-{n:04x}-7c2d-8e3f-4a5b6c7d8e90" for n, k in enumerate("ABCDFGHWNQ", start=1)}
 
 
 def env(n: int) -> str:
@@ -125,6 +126,19 @@ def build(line, mac, phone, ipad):
     s.deliver(75000, CALL["F"], "ringing", ipad, via="relay", lost=True)
     s.change(80000, CALL["F"], "offhook")
     s.deliver(80000, CALL["F"], "offhook", mac)
+    # Pushes timed from the settled number (CALL-01 API 4 logic 2). W: a withheld caller, marked by the second ringing
+    # copy without the number (API 3 logic 3), well before 300 ms. N: READ_CALL_LOG missing, so RINGING itself settles
+    # it. Q: nothing settled it within the wait, so the push left at RINGING + 300 ms; the number came after the push.
+    s.change(100_000, CALL["W"], "ringing", number="none")
+    s.change(100_040, CALL["W"], "ringing", trigger="broadcast", number="none", settled="true")
+    s.add(phone, 100_220, "call_push_sent", call=CALL["W"], peer=ipad, reason="call_incoming", status=202)
+    s.change(110_000, CALL["N"], "ringing", number="none", settled="true")
+    s.add(phone, 110_150, "call_push_sent", call=CALL["N"], peer=ipad, reason="call_incoming", status=202)
+    s.change(120_000, CALL["Q"], "ringing", number="none")
+    s.add(phone, 120_420, "call_push_sent", call=CALL["Q"], peer=ipad, reason="call_incoming", status=202)
+    s.change(120_500, CALL["Q"], "ringing", trigger="broadcast", number="known", settled="true")
+    truth["settled"] = {"W": ("a withheld caller", 180.0), "N": ("no READ_CALL_LOG", 150.0),
+                        "Q": ("nothing settled within the wait", 120.0)}
     return s, truth
 
 
@@ -172,10 +186,14 @@ def run_checks(t, line, run, close, mac, phone, ipad) -> None:
         missed = call_latency.missed(log, clocks)
         t.check("missed-call notification after the call ended", len(missed) == 1
                 and close(missed[0].latency_ms, truth["missed"]), str(missed))
-        pushes = call_latency.pushes(log, clocks)
-        t.check("push answered after the number, shown by the extension",
-                len(pushes) == 1 and close(pushes[0].after_number_ms, truth["push"][0])
-                and close(pushes[0].shown_ms, truth["push"][1]), str(pushes))
+        pushes = {p.call: p for p in call_latency.pushes(log, clocks)}
+        d = pushes.get(CALL["D"])
+        t.check("push answered after the number, shown by the extension", d is not None
+                and close(d.after_number_ms, truth["push"][0]) and close(d.shown_ms, truth["push"][1]), str(d))
+        for key, (label, want) in truth["settled"].items():
+            got = pushes.get(CALL[key])
+            t.check(f"push timed from the settled number: {label}",
+                    got is not None and close(got.after_number_ms, want), str(got))
         t.check("Focus rule kept", call_latency.alert_problems(log) == [], str(call_latency.alert_problems(log)))
 
         code, text = run([str(p) for p in paths] + ["--check", "--json"], call_latency.main)
