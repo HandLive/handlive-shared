@@ -16,7 +16,7 @@ Các script này đo các mục tiêu Phase 1 của cổng G1, các mục tiêu 
 | Trả lời từ Mac (Phase 3) | < 500 ms đầu-cuối | bấm Trả lời (`call_action_tap action=answer`) → callback OFFHOOK của điện thoại, và → Mac nhận `state = offhook`; Từ chối và Kết thúc → client nhận `state = idle`, cũng < 500 ms (CALL-02, CALL-03) |
 | Từ chối từ thông báo iPhone/iPad (Phase 3) | < 2 s qua relay | `call_action_tap from=notification` → callback IDLE của điện thoại (CALL-02 B1–B3) |
 | Thông báo cuộc gọi nhỡ (Phase 3) | ≤ 1,5 s | callback IDLE của một cuộc gọi nhỡ trên điện thoại → `call_missed_notified` (CALL-04) |
-| Push cuộc gọi đến (Phase 3) | < 300 ms sau khi có số | có số (hoặc hết 300 ms chờ số) → `call_push_sent status=202`, chỉ trên điện thoại (CALL-01 API 4); thời gian phần mở rộng hiện thông báo (`call_push_shown`) không có mục tiêu |
+| Push cuộc gọi đến (Phase 3) | < 300 ms sau khi số đã rõ | `call_changed settled=true` đầu tiên của cuộc gọi — broadcast mang số, bản đổ chuông thứ hai không có số khi người gọi ẩn số, hoặc chính `RINGING` khi thiếu `READ_CALL_LOG` — hoặc `RINGING` + 300 ms khi trong lúc chờ đó số chưa rõ → `call_push_sent status=202`, chỉ trên điện thoại (CALL-01 API 4 logic 2); thời gian phần mở rộng hiện thông báo (`call_push_shown`) không có mục tiêu |
 | Relay với 1 000 kết nối (Phase 2) | không lỗi, không mất khung | `relay_load.py`: đăng ký, ghép cặp, `/v1/relay`, các phân vị độ trễ chuyển tiếp |
 
 Đạt mục tiêu khi phân vị 95 nằm dưới mục tiêu. Python 3.10+, chỉ dùng thư viện chuẩn — trừ phép thử tải relay, cần `requirements-load.txt`.
@@ -98,7 +98,7 @@ Quyền riêng tư như trên và như nhóm chức năng cuộc gọi yêu cầ
 
 | `ev` | Ai | Khi nào | Trường |
 |------|----|---------|--------|
-| `call_changed` | Điện thoại | A-CALL áp một sự kiện của hệ điều hành làm đổi ngữ cảnh cuộc gọi (CALL-01 API 1–3; CALL-04 API 3 cho lần hiệu chỉnh `end_reason`) | `call` (`call_id`), `state` (`ringing`, `offhook`, `idle`), `waiting` (`true`, `false`), `trigger` (`listener`: listener trạng thái, API 2; `broadcast`: bản `PHONE_STATE` có số, API 3; `calllog`: lần hiệu chỉnh), `os` (đồng hồ thực, ms, lúc hệ điều hành giao callback hoặc broadcast đó — **điểm bắt đầu độ trễ trạng thái, panel, trả lời và cuộc gọi nhỡ**); không bắt buộc `number` (`known`, `none`: sau thay đổi ngữ cảnh đã có số người gọi hay chưa), `sub` (`sub_id`), `end` (`end_reason` khi `idle`) |
+| `call_changed` | Điện thoại | A-CALL áp một sự kiện của hệ điều hành làm đổi ngữ cảnh cuộc gọi (CALL-01 API 1–3; CALL-04 API 3 cho lần hiệu chỉnh `end_reason`) | `call` (`call_id`), `state` (`ringing`, `offhook`, `idle`), `waiting` (`true`, `false`), `trigger` (`listener`: listener trạng thái, API 2; `broadcast`: bản `PHONE_STATE` có số, API 3; `calllog`: lần hiệu chỉnh), `os` (đồng hồ thực, ms, lúc hệ điều hành giao callback hoặc broadcast đó — **điểm bắt đầu độ trễ trạng thái, panel, trả lời và cuộc gọi nhỡ**); không bắt buộc `number` (`known`, `none`: sau thay đổi ngữ cảnh đã có số người gọi hay chưa), `settled` (`true` khi sự kiện này làm rõ số người gọi: broadcast mang số, bản đổ chuông thứ hai không có khóa số khi đã có `READ_CALL_LOG` — người gọi ẩn số, CALL-01 API 3 logic 3 — hoặc chính `RINGING` khi thiếu `READ_CALL_LOG`; **điểm bắt đầu thời gian push cuộc gọi đến**, CALL-01 API 4 logic 2), `sub` (`sub_id`), `end` (`end_reason` khi `idle`) |
 | `call_state_sent` | Điện thoại | Đã giao `call_event/state` cho phiên của một client | `call`, `env` (`id` của envelope), `peer`, `via` (`lan`, `relay`), `state`, `reason` (`change`: ngữ cảnh vừa đổi; `session`: trạng thái hiện tại gửi cho phiên mới, CALL-01 E8, không đo) |
 | `call_state_received` | Mac, iPhone, iPad | Đã giải mã `call_event/state` — **điểm kết thúc độ trễ trạng thái** | `call`, `env`, `peer`, `state`; không bắt buộc `waiting` |
 | `call_alert` | Mac | M-APP quyết định cách báo một cuộc gọi đang đổ chuông (CALL-01 bước 7) | `call`, `focus` (`off`, `on`, `unknown`: không đọc được trạng thái Tập trung), `panel`, `ring` (`true`, `false`), `level` (`passive`, `time_sensitive`, `none`) |
@@ -118,6 +118,7 @@ Quyền riêng tư như trên và như nhóm chức năng cuộc gọi yêu cầ
 HLBENCH/1 wall=1727151101000.000 mono=9001000000000 dev=8c7d6e5f role=android ev=clip_read clip=0192f3e0-5a21-7b3c-9d4e-1f2a3b4c5d6e kind=text bytes=27 source=auto
 HLBENCH/1 wall=1727151099770.500 mono=5001004000000 dev=5b1f8c2e role=macos ev=clip_received clip=0192f3e0-5a21-7b3c-9d4e-1f2a3b4c5d6e peer=8c7d6e5f kind=text bytes=27
 HLBENCH/1 wall=1727151142000.000 mono=5042000000000 dev=5b1f8c2e role=macos ev=state from=Discovering to=Connected channel=lan
+HLBENCH/1 wall=1727150400164.500 mono=9001041000000 dev=8c7d6e5f role=android ev=call_changed call=0192f3f0-6a1b-7c2d-8e3f-4a5b6c7d8e90 state=ringing waiting=false trigger=broadcast os=1727150400163.000 number=known settled=true sub=1
 ```
 
 ## Đồng hồ

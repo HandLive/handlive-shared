@@ -16,7 +16,7 @@ These scripts measure the Phase 1 targets of gate G1 and the Phase 2 and Phase 3
 | Answer from the Mac (Phase 3) | < 500 ms end to end | Answer clicked (`call_action_tap action=answer`) → the phone's OFFHOOK callback, and → the Mac received `state = offhook`; Decline and End → the client received `state = idle`, also < 500 ms (CALL-02, CALL-03) |
 | Decline from an iPhone/iPad notification (Phase 3) | < 2 s over the relay | `call_action_tap from=notification` → the phone's IDLE callback (CALL-02 B1–B3) |
 | Missed-call notification (Phase 3) | ≤ 1.5 s | the phone's IDLE callback of a missed call → `call_missed_notified` (CALL-04) |
-| Incoming-call push (Phase 3) | < 300 ms after the number is known | the number known (or the 300 ms wait for it over) → `call_push_sent status=202`, phone only (CALL-01 API 4); display by the extension (`call_push_shown`) without target |
+| Incoming-call push (Phase 3) | < 300 ms after the number is settled | the first `call_changed settled=true` of the call — the broadcast that brought the number, the second ringing copy without it for a withheld caller, or `RINGING` itself without `READ_CALL_LOG` — or `RINGING` + 300 ms when nothing settled the number within that wait → `call_push_sent status=202`, phone only (CALL-01 API 4 logic 2); display by the extension (`call_push_shown`) without target |
 | Relay at 1,000 connections (Phase 2) | no failure, no lost frame | `relay_load.py`: registration, pairing, `/v1/relay`, forwarding latency percentiles |
 
 A target is met when the 95th percentile is under it. Python 3.10+, standard library only — except the relay load test, which needs `requirements-load.txt`.
@@ -98,7 +98,7 @@ Privacy as above and as the call functions require: only the random `call_id` an
 
 | `ev` | Who | When | Fields |
 |------|-----|------|--------|
-| `call_changed` | Phone | A-CALL applied an OS event that changed the call context (CALL-01 API 1–3; CALL-04 API 3 for the `end_reason` correction) | `call` (`call_id`), `state` (`ringing`, `offhook`, `idle`), `waiting` (`true`, `false`), `trigger` (`listener`: the state listener, API 2; `broadcast`: the `PHONE_STATE` copy with the number, API 3; `calllog`: the correction), `os` (wall clock, ms, when the OS delivered that callback or broadcast — **start of the state, panel, answer and missed-call latencies**); optional `number` (`known`, `none`: whether the context has the caller's number after the change), `sub` (`sub_id`), `end` (`end_reason` when `idle`) |
+| `call_changed` | Phone | A-CALL applied an OS event that changed the call context (CALL-01 API 1–3; CALL-04 API 3 for the `end_reason` correction) | `call` (`call_id`), `state` (`ringing`, `offhook`, `idle`), `waiting` (`true`, `false`), `trigger` (`listener`: the state listener, API 2; `broadcast`: the `PHONE_STATE` copy with the number, API 3; `calllog`: the correction), `os` (wall clock, ms, when the OS delivered that callback or broadcast — **start of the state, panel, answer and missed-call latencies**); optional `number` (`known`, `none`: whether the context has the caller's number after the change), `settled` (`true` when this event settled the caller's number: the broadcast that brought it, the second ringing copy without the number key while `READ_CALL_LOG` is granted — a withheld caller, CALL-01 API 3 logic 3 — or `RINGING` itself when `READ_CALL_LOG` is missing; **start of the incoming push time**, CALL-01 API 4 logic 2), `sub` (`sub_id`), `end` (`end_reason` when `idle`) |
 | `call_state_sent` | Phone | `call_event/state` handed to one client's session | `call`, `env` (envelope `id`), `peer`, `via` (`lan`, `relay`), `state`, `reason` (`change`: a change of the context; `session`: the current state sent to a new session, CALL-01 E8, not measured) |
 | `call_state_received` | Mac, iPhone, iPad | `call_event/state` decrypted — **end of the state latency** | `call`, `env`, `peer`, `state`; optional `waiting` |
 | `call_alert` | Mac | M-APP decided how to alert a ringing call (CALL-01 step 7) | `call`, `focus` (`off`, `on`, `unknown`: the Focus status cannot be read), `panel`, `ring` (`true`, `false`), `level` (`passive`, `time_sensitive`, `none`) |
@@ -118,6 +118,7 @@ Privacy as above and as the call functions require: only the random `call_id` an
 HLBENCH/1 wall=1727151101000.000 mono=9001000000000 dev=8c7d6e5f role=android ev=clip_read clip=0192f3e0-5a21-7b3c-9d4e-1f2a3b4c5d6e kind=text bytes=27 source=auto
 HLBENCH/1 wall=1727151099770.500 mono=5001004000000 dev=5b1f8c2e role=macos ev=clip_received clip=0192f3e0-5a21-7b3c-9d4e-1f2a3b4c5d6e peer=8c7d6e5f kind=text bytes=27
 HLBENCH/1 wall=1727151142000.000 mono=5042000000000 dev=5b1f8c2e role=macos ev=state from=Discovering to=Connected channel=lan
+HLBENCH/1 wall=1727150400164.500 mono=9001041000000 dev=8c7d6e5f role=android ev=call_changed call=0192f3f0-6a1b-7c2d-8e3f-4a5b6c7d8e90 state=ringing waiting=false trigger=broadcast os=1727150400163.000 number=known settled=true sub=1
 ```
 
 ## Clocks
