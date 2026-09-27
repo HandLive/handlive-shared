@@ -14,7 +14,7 @@
       "minLength": 1
     },
     "incoming": {
-      "description": "Incoming call: the iPhone/iPad notification rebuilt by I-NSE (category HL_CALL_INCOMING, API 6) or the Mac communication notification (HL_CALL_INCOMING_MAC, identifier = call_id, API 7). Without a category when the push arrives more than 60 s after started_at (CALL-01 E7); a locked iPhone keeps the push's own generic content and is not described here (E6).",
+      "description": "Incoming call: the iPhone/iPad notification rebuilt by I-NSE (category HL_CALL_INCOMING, API 6) or the Mac communication notification (HL_CALL_INCOMING_MAC, identifier = call_id, API 7). A push that arrives more than 60 s after started_at (CALL-01 E7) is shown late: body call.incoming_late, no category, level active — the only content without a category and the only one at the active level. A locked iPhone keeps the push's own generic content and is not described here (E6).",
       "type": "object",
       "required": ["title", "body", "threadIdentifier", "userInfo"],
       "additionalProperties": false,
@@ -35,8 +35,8 @@
           "enum": ["HL_CALL_INCOMING", "HL_CALL_INCOMING_MAC"]
         },
         "interruptionLevel": {
-          "description": "passive while the Mac panel shows; timeSensitive on iPhone/iPad (from the APNs interruption-level) and on the Mac while a Focus hides the panel.",
-          "enum": ["passive", "timeSensitive"]
+          "description": "passive while the Mac panel shows; timeSensitive on iPhone/iPad (from the APNs interruption-level) and on the Mac while a Focus hides the panel; active for a late push (E7).",
+          "enum": ["passive", "timeSensitive", "active"]
         },
         "userInfo": {
           "description": "Read by the Decline action (CALL-02 B2).",
@@ -49,7 +49,27 @@
             "started_at": { "$ref": "common.schema.json#/$defs/timestamp" }
           }
         }
-      }
+      },
+      "allOf": [
+        {
+          "description": "Only the late push (E7) is at the active level; it is rebuilt by I-NSE on iPhone/iPad, so it has no category and no identifier of its own.",
+          "if": {
+            "required": ["interruptionLevel"],
+            "properties": { "interruptionLevel": { "const": "active" } }
+          },
+          "then": {
+            "not": { "anyOf": [{ "required": ["categoryIdentifier"] }, { "required": ["identifier"] }] }
+          }
+        },
+        {
+          "description": "Content without a category is the late push, shown at the active level.",
+          "if": { "not": { "required": ["categoryIdentifier"] } },
+          "then": {
+            "required": ["interruptionLevel"],
+            "properties": { "interruptionLevel": { "const": "active" } }
+          }
+        }
+      ]
     },
     "missed": {
       "description": "Missed call (CALL-04 API 4), from a call_event/log_new with type = missed, or from a call_event/state with end_reason = missed when the phone lacks READ_CALL_LOG (flow A). Category HL_CALL_MISSED only when the number is known and the phone can send SMS (E10); a locked iPhone keeps the push's own generic content (E9).",

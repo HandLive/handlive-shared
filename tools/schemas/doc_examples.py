@@ -78,8 +78,10 @@ BODY_RULES = [
     # Nội dung thông báo SMS (SMS-02 API 4): nhận theo categoryIdentifier HL_SMS…, vì tiêu đề mục khác nhau giữa hai bản ngôn ngữ.
     (re.compile(r""), lambda o: str(o.get("categoryIdentifier", "")).startswith("HL_SMS"), "sms-notification"),
     # Call notification content (CALL-01 API 6, CALL-04 API 4), recognized the same way: the incoming call by its
-    # HL_CALL_INCOMING… category, the missed call by its call-missed: identifier or HL_CALL_MISSED category.
-    (re.compile(r""), lambda o: str(o.get("categoryIdentifier", "")).startswith("HL_CALL_INCOMING"),
+    # HL_CALL_INCOMING… category, or, for a late push without a category (CALL-01 E7), by its calls thread and the
+    # started_at of its userInfo; the missed call by its call-missed: identifier or HL_CALL_MISSED category.
+    (re.compile(r""), lambda o: str(o.get("categoryIdentifier", "")).startswith("HL_CALL_INCOMING")
+     or (o.get("threadIdentifier") == "calls" and "started_at" in (o.get("userInfo") or {})),
      "call-notification#incoming"),
     (re.compile(r""), lambda o: str(o.get("identifier", "")).startswith("call-missed:")
      or o.get("categoryIdentifier") == "HL_CALL_MISSED", "call-notification#missed"),

@@ -6,8 +6,8 @@ Called by check_schemas.py with the hub's docs/detailed-design:
 - 06-call-control.md (English, canonical): the data fields of call_event/state and of its controls object
   (CALL-01 API 1), of call_event/action with its action enum and error codes in check order (CALL-02 API 1), of the
   shared entry object with its type enum, of call_event/log_sync (request, ack data, error codes) and
-  call_event/log_new (CALL-04 API 1–2), and the userInfo fields of the call notifications (CALL-01 API 6,
-  CALL-04 API 4).
+  call_event/log_new (CALL-04 API 1–2), the userInfo fields of the call notifications (CALL-01 API 6,
+  CALL-04 API 4) and the interruption levels the incoming-call tables name (CALL-01 API 6–7).
 call_event/hfp_status is specified with call audio (AUDIO-02 API 3), not in 0.7 or CALL-03, so it has no schema yet.
 """
 
@@ -146,6 +146,20 @@ def check_tables(schemas: dict, docs_dir: Path, report) -> None:
         spec = [name.strip() for name in row.split(",")]
         _compare(report, f"{kind} notification userInfo vs {label}", spec,
                  list(notification[kind]["properties"]["userInfo"]["properties"]))
+
+    # Interruption levels of the incoming-call notification (CALL-01 API 6 on iPhone/iPad, API 7 on the Mac): every
+    # level a table names (.passive, .timeSensitive…) must be a value of the schema, which also allows active for a
+    # late push (E7) whether or not the table lists it.
+    levels = notification["incoming"]["properties"]["interruptionLevel"]["enum"]
+    for label, start, end in (("CALL-01 API 6", "#### API 6 — iOS banner", "#### API 7"),
+                              ("CALL-01 API 7", "#### API 7 — Communication notification", "#### Query")):
+        row = re.search(r"^\| `interruptionLevel` \|(.*)$", _section(call, start, end), re.M).group(1)
+        named = [token[1:] for token in TICKED.findall(row) if token.startswith(".")]
+        unknown = [level for level in named if level not in levels]
+        if named and not unknown:
+            report.ok("enum khớp bảng spec")
+        else:
+            report.fail(f"incoming notification interruptionLevel vs {label}: spec {named}, schema {levels}")
 
 
 def _compare(report, label: str, spec, schema) -> None:
