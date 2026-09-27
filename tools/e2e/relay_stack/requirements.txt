@@ -1,0 +1,7 @@
+# Local relay stack (relay_stack.py and its checks, self_test.py). Keys, certificates and JWT checks use
+# cryptography and PyNaCl from the vector tools; relay_load.py (the forwarding check) brings websockets. The mock
+# APNs speaks HTTP/2 through h2 (MIT) and its two dependencies hpack and hyperframe (MIT).
+-r ../../bench/requirements-load.txt
+h2==4.4.1
+hpack==4.2.0
+hyperframe==6.1.0
