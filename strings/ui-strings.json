@@ -1568,8 +1568,8 @@
       "key": "pairing.reason_missing_permission",
       "en": "Missing permission on the phone",
       "vi": "Thiếu quyền trên điện thoại",
-      "comment": "Reason under a feature that lacks an Android permission (permissions_missing)",
-      "platforms": ["macos", "ios"],
+      "comment": "Reason under a feature that lacks an Android permission (permissions_missing); on Android, the Calls row of a device's details when READ_PHONE_STATE is missing",
+      "platforms": ["android", "macos", "ios"],
       "specs": ["SET-02", "PAIR-02"]
     },
     {
