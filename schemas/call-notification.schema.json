@@ -14,7 +14,7 @@
       "minLength": 1
     },
     "incoming": {
-      "description": "Incoming call: the iPhone/iPad notification rebuilt by I-NSE (API 6) or the Mac communication notification (identifier = call_id, API 7). The category is set only when the notification offers its actions, so content without buttons has none and keeps its passive or timeSensitive level. A push that arrives more than 60 s after started_at (CALL-01 E7) is shown late: body call.incoming_late, no category, level active — the only incoming content at the active level. A locked iPhone keeps the push's own generic content and is not described here (E6).",
+      "description": "Incoming call: the iPhone/iPad notification rebuilt by I-NSE (API 6) or the Mac communication notification (identifier = call_id, API 7). The category is set only when the notification offers its actions, so content without buttons has none and keeps its passive or timeSensitive level. A push that arrives more than 60 s after started_at (CALL-01 E7) is shown late: body call.incoming_late, no category, level active — the only incoming content at the active level. Only the Mac time-sensitive variant (a Focus hides the panel) sets a sound, the default one. A locked iPhone keeps the push's own generic content and is not described here (E6).",
       "type": "object",
       "required": ["title", "body", "threadIdentifier", "userInfo"],
       "additionalProperties": false,
@@ -38,6 +38,10 @@
           "description": "passive while the Mac panel shows; timeSensitive on iPhone/iPad (from the APNs interruption-level) and on the Mac while a Focus hides the panel; active for a late push (E7).",
           "enum": ["passive", "timeSensitive", "active"]
         },
+        "sound": {
+          "description": "The Mac time-sensitive variant only (API 7): that level alone is silent on macOS. The passive Mac notification sets none, and iPhone/iPad content sets none: its push already carries the default sound (CONN-04 API 4).",
+          "const": "default"
+        },
         "userInfo": {
           "description": "Read by the Decline action (CALL-02 B2).",
           "type": "object",
@@ -59,6 +63,18 @@
           },
           "then": {
             "not": { "anyOf": [{ "required": ["categoryIdentifier"] }, { "required": ["identifier"] }] }
+          }
+        },
+        {
+          "description": "Only the Mac notification at the time-sensitive level carries a sound (API 7). The Mac is told by its identifier (call_id) or its category, which is never the iPhone one.",
+          "if": { "required": ["sound"] },
+          "then": {
+            "required": ["interruptionLevel"],
+            "properties": {
+              "interruptionLevel": { "const": "timeSensitive" },
+              "categoryIdentifier": { "const": "HL_CALL_INCOMING_MAC" }
+            },
+            "anyOf": [{ "required": ["identifier"] }, { "required": ["categoryIdentifier"] }]
           }
         }
       ]
