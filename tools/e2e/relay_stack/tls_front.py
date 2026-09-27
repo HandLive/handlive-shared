@@ -93,9 +93,11 @@ class Front:
         started = time.monotonic()
         try:
             await writer.start_tls(self.ctx, ssl_handshake_timeout=HEAD_TIMEOUT_S)
-        except (ssl.SSLError, OSError, asyncio.TimeoutError) as error:
-            reason = getattr(error, "reason", None) or type(error).__name__
-            self.log.write(f"{peer[0]} TLS handshake failed: {reason}")
+        except ssl.SSLError as error:  # the client's TLS alert, e.g. SSLV3_ALERT_CERTIFICATE_UNKNOWN
+            self.log.write(f"{peer[0]} TLS handshake failed: {error.reason or error}")
+            writer.close()
+            return
+        except (OSError, asyncio.TimeoutError):  # closed before a ClientHello (a port probe) or silent
             writer.close()
             return
         tls = writer.get_extra_info("ssl_object")
