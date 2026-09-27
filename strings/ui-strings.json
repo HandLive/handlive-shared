@@ -21,6 +21,15 @@
       "specs": ["CALL-01"]
     },
     {
+      "key": "a11y.missed_calls",
+      "en": {"one": "{count} missed call", "other": "{count} missed calls"},
+      "vi": {"other": "{count} cuộc gọi nhỡ"},
+      "comment": "VoiceOver text of the missed-call badge on the Calls item of the Mac Messages window and on the Calls tab (iPhone, iPad): the pair's unseen missed calls (CALL-04 field 7)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "count", "type": "int"}],
+      "specs": ["CALL-04"]
+    },
+    {
       "key": "a11y.sms_bubble_received",
       "en": "{sender}, {time}",
       "vi": "{sender}, {time}",
@@ -176,6 +185,22 @@
       "specs": ["CALL-02"]
     },
     {
+      "key": "call.empty_body",
+      "en": "Calls from your phone appear here after the first sync.",
+      "vi": "Cuộc gọi từ điện thoại sẽ hiện ở đây sau lần đồng bộ đầu tiên.",
+      "comment": "Empty-state sentence under call.empty_title (CALL-04 field 1)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-04"]
+    },
+    {
+      "key": "call.empty_title",
+      "en": "No Calls Yet",
+      "vi": "Chưa có cuộc gọi",
+      "comment": "Empty state of the call list (Mac Messages window › Calls, iPhone/iPad Calls tab), like SMS-03 E1 (CALL-04 field 1); sentence call.empty_body",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-04"]
+    },
+    {
       "key": "call.end",
       "en": "End",
       "vi": "Kết thúc",
@@ -277,7 +302,7 @@
       "key": "call.missed_body",
       "en": "Missed call · {time}",
       "vi": "Cuộc gọi nhỡ · {time}",
-      "comment": "Body of a missed-call notification; {time} = the call's ts formatted by the system (“2:05 PM”); with a SIM label: call.missed_body_sim (CALL-04 field 8, API 4)",
+      "comment": "Body of a missed-call notification, and the text of a missed call among the recent items of the Mac menu bar menu (CALL-04 API 4 logic 5); {time} = the call's ts formatted by the system (“2:05 PM”); with a SIM label: call.missed_body_sim (CALL-04 field 8, API 4)",
       "platforms": ["macos", "ios"],
       "args": [{"name": "time", "type": "string"}],
       "specs": ["CALL-04"]
@@ -286,7 +311,7 @@
       "key": "call.missed_body_sim",
       "en": "Missed call · {time} · {sim_label}",
       "vi": "Cuộc gọi nhỡ · {time} · {sim_label}",
-      "comment": "Body of a missed-call notification when the phone has more than one SIM; {time} as in call.missed_body; {sim_label} = the label of the SIM with the call's sub_id in features.sms.sims (never translated) (CALL-04 fields 6, 8, API 4)",
+      "comment": "call.missed_body when the phone has more than one SIM (notification body, Mac menu bar recent item); {time} as in call.missed_body; {sim_label} = the label of the SIM with the call's sub_id in features.sms.sims (never translated) (CALL-04 fields 6, 8, API 4)",
       "platforms": ["macos", "ios"],
       "args": [{"name": "time", "type": "string"}, {"name": "sim_label", "type": "string"}],
       "specs": ["CALL-04"]
@@ -295,7 +320,7 @@
       "key": "call.missed_call",
       "en": "Missed call",
       "vi": "Cuộc gọi nhỡ",
-      "comment": "hiddenPreviewsBodyPlaceholder of the HL_CALL_MISSED category (design system Notifications); the APNs text for a locked iPhone is push.call_missed (CALL-04 API 4)",
+      "comment": "hiddenPreviewsBodyPlaceholder of the HL_CALL_MISSED category (CALL-04 API 4); the APNs text for a locked iPhone is push.call_missed",
       "platforms": ["macos", "ios"],
       "specs": ["CALL-04"]
     },
@@ -319,7 +344,7 @@
       "key": "call.no_caller_id",
       "en": "No Caller ID",
       "vi": "Số ẩn",
-      "comment": "Shown instead of the caller's name and number when the caller withholds the number (presentation = restricted): Mac call panel, iPhone/iPad banner, notification titles; also the call log row and the missed-call notification title when number = null (CALL-01 field 3, CALL-04 fields 2, 8)",
+      "comment": "Shown instead of the caller's name and number when the caller withholds the number (presentation = restricted): Mac call panel, iPhone/iPad banner, notification titles; also the call log row and the missed-call notification title of a call log entry without number (CALL-01 field 3, CALL-04 fields 2, 8)",
       "platforms": ["macos", "ios"],
       "specs": ["CALL-01", "CALL-04"]
     },
@@ -421,12 +446,60 @@
       "specs": ["CALL-04"]
     },
     {
+      "key": "call.type_blocked",
+      "en": "Blocked call",
+      "vi": "Cuộc gọi bị chặn",
+      "comment": "VoiceOver label of the call type icon of a call log row, type blocked (CALL-04 field 3)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-04"]
+    },
+    {
+      "key": "call.type_incoming",
+      "en": "Incoming call",
+      "vi": "Cuộc gọi đến",
+      "comment": "VoiceOver label of the call type icon of a call log row, type incoming (CALL-04 field 3)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-04"]
+    },
+    {
+      "key": "call.type_missed",
+      "en": "Missed call",
+      "vi": "Cuộc gọi nhỡ",
+      "comment": "VoiceOver label of the call type icon of a call log row, type missed (CALL-04 field 3)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-04"]
+    },
+    {
+      "key": "call.type_outgoing",
+      "en": "Outgoing call",
+      "vi": "Cuộc gọi đi",
+      "comment": "VoiceOver label of the call type icon of a call log row, type outgoing (CALL-04 field 3)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-04"]
+    },
+    {
+      "key": "call.type_rejected",
+      "en": "Declined call",
+      "vi": "Cuộc gọi bị từ chối",
+      "comment": "VoiceOver label of the call type icon of a call log row, type rejected (CALL-04 field 3)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-04"]
+    },
+    {
+      "key": "call.type_voicemail",
+      "en": "Voicemail",
+      "vi": "Thư thoại",
+      "comment": "VoiceOver label of the call type icon of a call log row, type voicemail (CALL-04 field 3)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-04"]
+    },
+    {
       "key": "call.unknown_caller",
       "en": "Unknown Caller",
       "vi": "Không rõ số",
-      "comment": "Shown instead of the caller's number when it is unknown (presentation = unknown, for example READ_CALL_LOG missing on the phone, then with call.caller_id_permission_hint), and for a waiting caller without number and name (CALL-01 fields 3, 5, E2)",
+      "comment": "Shown instead of the caller's number when it is unknown (presentation = unknown, for example READ_CALL_LOG missing on the phone, then with call.caller_id_permission_hint), for a waiting caller without number and name (CALL-01 fields 3, 5, E2), and as the missed-call notification title without the call log, flow A (CALL-04 field 8, API 4)",
       "platforms": ["macos", "ios"],
-      "specs": ["CALL-01"]
+      "specs": ["CALL-01", "CALL-04"]
     },
     {
       "key": "call.waiting_handle_on_phone",
