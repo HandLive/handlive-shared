@@ -96,6 +96,14 @@
       "specs": ["CALL-03"]
     },
     {
+      "key": "call.call_log_permission_hint",
+      "en": "Allow HandLive to read the call log on the phone to see call history",
+      "vi": "Cho phép HandLive đọc nhật ký cuộc gọi trên điện thoại để xem lịch sử cuộc gọi",
+      "comment": "Guidance in the call list (Mac Messages window › Calls, iPhone/iPad Calls tab) when the phone lacks READ_CALL_LOG; missed calls are still notified from the call state (CALL-04 field 12, E2)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-04"]
+    },
+    {
       "key": "call.caller_id_permission_hint",
       "en": "Allow HandLive to read the call log on the phone to show caller numbers",
       "vi": "Cho phép HandLive đọc nhật ký cuộc gọi trên điện thoại để hiện số gọi đến",
@@ -234,6 +242,40 @@
       "specs": ["CALL-03"]
     },
     {
+      "key": "call.message",
+      "en": "Message",
+      "vi": "Nhắn tin",
+      "comment": "Title of the HL_CALL_SMS text-input action of a missed-call notification (button sms.send, placeholder sms.compose_placeholder), only when the number is known and the phone can send SMS (CALL-04 field 9, API 4)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-04"]
+    },
+    {
+      "key": "call.missed_body",
+      "en": "Missed call · {time}",
+      "vi": "Cuộc gọi nhỡ · {time}",
+      "comment": "Body of a missed-call notification; {time} = the call's ts formatted by the system (“2:05 PM”); with a SIM label: call.missed_body_sim (CALL-04 field 8, API 4)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "time", "type": "string"}],
+      "specs": ["CALL-04"]
+    },
+    {
+      "key": "call.missed_body_sim",
+      "en": "Missed call · {time} · {sim_label}",
+      "vi": "Cuộc gọi nhỡ · {time} · {sim_label}",
+      "comment": "Body of a missed-call notification when the phone has more than one SIM; {time} as in call.missed_body; {sim_label} = the label of the SIM with the call's sub_id in features.sms.sims (never translated) (CALL-04 fields 6, 8, API 4)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "time", "type": "string"}, {"name": "sim_label", "type": "string"}],
+      "specs": ["CALL-04"]
+    },
+    {
+      "key": "call.missed_call",
+      "en": "Missed call",
+      "vi": "Cuộc gọi nhỡ",
+      "comment": "hiddenPreviewsBodyPlaceholder of the HL_CALL_MISSED category (design system Notifications); the APNs text for a locked iPhone is push.call_missed (CALL-04 API 4)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-04"]
+    },
+    {
       "key": "call.mute",
       "en": "Mute",
       "vi": "Tắt tiếng",
@@ -329,6 +371,14 @@
       "comment": "Status of the in-call Mac call panel while a second call is waiting (waiting = true) (CALL-03 field 3, E7)",
       "platforms": ["macos"],
       "specs": ["CALL-03"]
+    },
+    {
+      "key": "call.title",
+      "en": "Calls",
+      "vi": "Cuộc gọi",
+      "comment": "The Calls item in the sidebar of the Mac Messages window and the Calls tab with its large title on iPhone and iPad: the call log and missed calls, with the badge of unseen missed calls (CALL-04 fields 1, 7)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-04"]
     },
     {
       "key": "call.unknown_caller",
@@ -1788,9 +1838,9 @@
       "key": "push.call_missed",
       "en": "Missed call on your phone",
       "vi": "Cuộc gọi nhỡ trên điện thoại",
-      "comment": "APNs aps.alert.loc-key for reason call_missed when the extension cannot decrypt",
+      "comment": "APNs aps.alert.loc-key for reason call_missed when the extension cannot decrypt (iPhone locked, CALL-04 E9); no title and no Message action",
       "platforms": ["ios"],
-      "specs": ["CONN-04"]
+      "specs": ["CONN-04", "CALL-04"]
     },
     {
       "key": "push.generic",
@@ -1888,6 +1938,15 @@
       "comment": "One-line description under Block Sensitive Content (SET-02 field 5). Proposed text",
       "platforms": ["android"],
       "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.call_log_last_sync",
+      "en": "Last synced: {time}",
+      "vi": "Lần đồng bộ cuối: {time}",
+      "comment": "Row in Settings › Calls (Mac pane, iPhone/iPad group) with the last call log sync (CALL-04 field 11); {time} is a relative time formatted by the system (“5 minutes ago”)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "time", "type": "string"}],
+      "specs": ["CALL-04"]
     },
     {
       "key": "settings.calls",
@@ -2520,9 +2579,9 @@
       "key": "sms.compose_placeholder",
       "en": "SMS Message",
       "vi": "Tin nhắn SMS",
-      "comment": "Placeholder of the compose field at the bottom of a conversation (MessageBubble) and of the quick-reply text field of the HL_SMS_REPLY notification action (SMS-02 API 4); at most 1,600 characters; also the single-line field of Custom Message… in Decline with Message… (CALL-02 field 7, at most 160 characters)",
+      "comment": "Placeholder of the compose field at the bottom of a conversation (MessageBubble) and of the quick-reply text field of the HL_SMS_REPLY notification action (SMS-02 API 4); at most 1,600 characters; also the single-line field of Custom Message… in Decline with Message… (CALL-02 field 7, at most 160 characters) and the text field of the HL_CALL_SMS action of a missed-call notification (CALL-04 API 4)",
       "platforms": ["macos", "ios"],
-      "specs": ["SMS-04", "SMS-02", "CALL-02"]
+      "specs": ["SMS-04", "SMS-02", "CALL-02", "CALL-04"]
     },
     {
       "key": "sms.contacts_permission_hint",
@@ -2649,9 +2708,9 @@
       "key": "sms.quick_reply_not_sent",
       "en": "Not sent yet. Open HandLive to try again.",
       "vi": "Chưa gửi được, mở HandLive để thử lại.",
-      "comment": "Body of the local notification when a quick reply from a notification got no ack within about 20 s (SMS-04 E8); no title",
+      "comment": "Body of the local notification when a quick reply from a notification got no ack within about 20 s (SMS-04 E8), also after Message on a missed-call notification (CALL-04 API 4); no title",
       "platforms": ["ios"],
-      "specs": ["SMS-04"]
+      "specs": ["SMS-04", "CALL-04"]
     },
     {
       "key": "sms.recipient_label",
@@ -2698,9 +2757,9 @@
       "key": "sms.send",
       "en": "Send",
       "vi": "Gửi",
-      "comment": "Send button of the quick-reply text field in the SMS notification, and accessibility label of the send button of the compose field (SMS-04 field 5); also the Send button of the Custom Message… field of Decline with Message… (CALL-02 field 7)",
+      "comment": "Send button of the quick-reply text field in the SMS notification, and accessibility label of the send button of the compose field (SMS-04 field 5); also the Send button of the Custom Message… field of Decline with Message… (CALL-02 field 7) and of the HL_CALL_SMS action of a missed-call notification (CALL-04 API 4)",
       "platforms": ["macos", "ios"],
-      "specs": ["SMS-02", "SMS-04", "CALL-02"]
+      "specs": ["SMS-02", "SMS-04", "CALL-02", "CALL-04"]
     },
     {
       "key": "sms.status_delivered",
