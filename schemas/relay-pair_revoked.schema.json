@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/relay-pair_revoked.schema.json",
+  "title": "HandLive — relay op pair_revoked (relay → device)",
+  "description": "0.7.3, PAIR-03 API 4, SET-02 API 5: the pair has been revoked; sent as soon as it happens and again when the device reconnects (pairs revoked within 30 days, revoked_notice). Repeats are ignored.",
+  "type": "object",
+  "required": ["op", "pair_id", "by"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "pair_revoked" },
+    "pair_id": { "$ref": "common.schema.json#/$defs/uuid-v4" },
+    "by": {
+      "description": "device_id of the device that revoked the pair.",
+      "$ref": "common.schema.json#/$defs/uuid-v8"
+    }
+  }
+}

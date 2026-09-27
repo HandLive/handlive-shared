@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/pair-revoke.schema.json",
+  "title": "HandLive — pair/revoke (both ways, ack)",
+  "description": "PAIR-03 API 1: encrypted envelope on /v1/ctl (LAN, USB or relay). The receiver acks with empty data before deleting its keys: #/$defs/ack.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "revoke" },
+    "data": {
+      "type": "object",
+      "required": ["pair_id", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "pair_id": {
+          "description": "Must match the pair of the current session.",
+          "$ref": "common.schema.json#/$defs/uuid-v4"
+        },
+        "reason": { "enum": ["user", "reinstall", "limit"] }
+      }
+    }
+  },
+  "$defs": {
+    "ack": {
+      "description": "Success ack of pair/revoke: empty data. Error acks use ack.schema.json#/$defs/failure (BAD_REQUEST).",
+      "allOf": [
+        { "$ref": "ack.schema.json#/$defs/success" },
+        { "properties": { "data": { "type": "object", "maxProperties": 0 } } }
+      ]
+    }
+  }
+}

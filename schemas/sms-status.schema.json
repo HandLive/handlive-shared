@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/sms-status.schema.json",
+  "title": "HandLive — sms/status (S→C, no ack)",
+  "description": "SMS-04 API 2: sending progress of an sms/send, only to the pair that created it. error_code is present if and only if status = failed.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "status" },
+    "data": {
+      "type": "object",
+      "required": ["local_id", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "local_id": {
+          "description": "local_id of the corresponding sms/send.",
+          "$ref": "common.schema.json#/$defs/uuid-v7"
+        },
+        "message_key": {
+          "description": "Present once the provider row has been matched.",
+          "$ref": "sms-common.schema.json#/$defs/message-key"
+        },
+        "status": { "enum": ["sending", "sent", "delivered", "failed"] },
+        "error_code": {
+          "allOf": [
+            { "$ref": "error.schema.json#/$defs/code" },
+            { "enum": ["SMS_NO_SERVICE", "SMS_RADIO_OFF", "SMS_LIMIT_EXCEEDED", "SMS_GENERIC_FAILURE"] }
+          ]
+        }
+      },
+      "if": {
+        "properties": { "status": { "const": "failed" } }
+      },
+      "then": {
+        "required": ["error_code"]
+      },
+      "else": {
+        "not": { "required": ["error_code"] }
+      }
+    }
+  }
+}

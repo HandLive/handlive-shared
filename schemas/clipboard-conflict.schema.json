@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/clipboard-conflict.schema.json",
+  "title": "HandLive — clipboard/conflict (both ways, no ack)",
+  "description": "CLIP-01 API 6: the receiver kept its local content (QC8 a) and tells the side that sent the push.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "conflict" },
+    "data": {
+      "type": "object",
+      "required": ["clip_id", "origin_device_id", "device_id", "device_name"],
+      "additionalProperties": false,
+      "properties": {
+        "clip_id": {
+          "description": "The clip that was not written.",
+          "$ref": "common.schema.json#/$defs/uuid-v7"
+        },
+        "origin_device_id": { "$ref": "common.schema.json#/$defs/uuid-v8" },
+        "device_id": {
+          "description": "The device that kept its local content.",
+          "$ref": "common.schema.json#/$defs/uuid-v8"
+        },
+        "device_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
+    }
+  }
+}

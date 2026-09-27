@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/pair-hello.schema.json",
+  "title": "HandLive — pair/hello (C→S)",
+  "description": "PAIR-01 API 2. Unencrypted payload (b64 of this JSON, 0.5.1) on /v1/pair or inside rv_msg; the relay and Android refuse mode = pin through the rendezvous (the PIN is LAN-only).",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "hello" },
+    "data": {
+      "type": "object",
+      "required": ["mode", "device_id", "nonce", "name", "platform", "ik_sig_pub", "ik_dh_pub"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": { "enum": ["qr", "pin"] },
+        "device_id": {
+          "description": "The client's device_id = UUIDv8(SHA-256(ik_sig_pub)).",
+          "$ref": "common.schema.json#/$defs/uuid-v8"
+        },
+        "nonce": {
+          "description": "nonce_c.",
+          "$ref": "common.schema.json#/$defs/b64u-32"
+        },
+        "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "platform": { "enum": ["macos", "ios", "ipados"] },
+        "model": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "ik_sig_pub": { "$ref": "common.schema.json#/$defs/b64u-32" },
+        "ik_dh_pub": {
+          "description": "Equals pk of the QR code when mode = qr.",
+          "$ref": "common.schema.json#/$defs/b64u-32"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/pair-done.schema.json",
+  "title": "HandLive — pair/done (S→C)",
+  "description": "PAIR-01 API 5. Unencrypted payload; sig = Ed25519(Android ik_sig, attestation).",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "done" },
+    "data": {
+      "type": "object",
+      "required": ["sig", "prk_check", "mac"],
+      "additionalProperties": false,
+      "properties": {
+        "sig": { "$ref": "common.schema.json#/$defs/b64u-64" },
+        "prk_check": {
+          "description": "HMAC-SHA256(PRK, \"HL1|prk-check-s|\" ‖ pair_id).",
+          "$ref": "common.schema.json#/$defs/b64u-32"
+        },
+        "mac": { "$ref": "common.schema.json#/$defs/b64u-32" }
+      }
+    }
+  }
+}

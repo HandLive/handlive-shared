@@ -1,0 +1,5 @@
+# Relay load test (relay_load.py, relay_load_self_test.py, relay_load_fake.py). Ed25519 signing (cryptography) and
+# the fake relay's independent verification (PyNaCl) come from the vector tools; websockets (BSD-3-Clause, no
+# dependency) is the WebSocket client and the fake relay's server.
+-r ../vectors/requirements.txt
+websockets==17.1

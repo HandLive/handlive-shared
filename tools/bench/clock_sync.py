@@ -1,7 +1,7 @@
 """Clock offset between two devices from their own request/ack exchanges (the NTP method, RFC 5905 §8).
 
-Every `clipboard/push` is acknowledged, and both sides log it: a sends at t1 and receives the ack at t4 (a's
-clock), b receives at t2 and acks at t3 (b's clock). Then
+Every `clipboard/push` and every `sms/send` is acknowledged, and both sides log it: a sends at t1 and receives the
+ack at t4 (a's clock), b receives at t2 and acks at t3 (b's clock). Then
 
     offset(b - a) = ((t2 - t1) + (t3 - t4)) / 2      delay = (t4 - t1) - (t3 - t2)
 
@@ -24,7 +24,7 @@ class Exchange:
     t2: float
     t3: float
     t4: float
-    clip: str
+    ref: str  # clip_id of a clipboard/push, or local_id of an sms/send
 
     @property
     def offset(self) -> float:
@@ -49,21 +49,30 @@ class Offset:
     method: str  # "exchange", "exchange (outside window)", "manual", "chain", "assumed 0"
 
 
+# (request sent, request received, ack sent, ack received, field naming the request)
+EXCHANGE_EVENTS = [("clip_sent", "clip_received", "ack_sent", "ack_received", "clip"),
+                   ("sms_send_sent", "sms_send_received", "sms_send_ack_sent", "sms_send_ack_received", "local")]
+
+
 def exchanges(log: Log) -> list[Exchange]:
-    """Complete request/ack quadruples found in the log (all four events present)."""
-    index = {}
-    for e in log.events:
-        if e.ev in ("clip_sent", "clip_received", "ack_sent", "ack_received"):
-            index.setdefault((e.ev, e.dev, e.get("peer"), e.get("clip")), e)
+    """Complete request/ack quadruples found in the log (all four events present). An sms/send that was sent more
+    than once (retries reuse the envelope id) is left out: its ack cannot be tied to one attempt."""
     out = []
-    for (ev, a, b, clip), sent in index.items():
-        if ev != "clip_sent":
-            continue
-        received = index.get(("clip_received", b, a, clip))
-        acked = index.get(("ack_sent", b, a, clip))
-        back = index.get(("ack_received", a, b, clip))
-        if received and acked and back:
-            out.append(Exchange(a, b, sent.wall_ms, received.wall_ms, acked.wall_ms, back.wall_ms, clip))
+    for sent_ev, received_ev, ack_ev, back_ev, key in EXCHANGE_EVENTS:
+        index, count = {}, {}
+        for e in log.events:
+            if e.ev in (sent_ev, received_ev, ack_ev, back_ev):
+                k = (e.ev, e.dev, e.get("peer"), e.get(key))
+                index.setdefault(k, e)
+                count[k] = count.get(k, 0) + 1
+        for (ev, a, b, ref), sent in index.items():
+            if ev != sent_ev or count[(ev, a, b, ref)] > 1:
+                continue
+            received = index.get((received_ev, b, a, ref))
+            acked = index.get((ack_ev, b, a, ref))
+            back = index.get((back_ev, a, b, ref))
+            if received and acked and back:
+                out.append(Exchange(a, b, sent.wall_ms, received.wall_ms, acked.wall_ms, back.wall_ms, ref))
     return out
 
 

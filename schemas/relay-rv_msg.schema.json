@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/relay-rv_msg.schema.json",
+  "title": "HandLive — relay op rv_msg (both ways)",
+  "description": "0.7.3, PAIR-01 API 7: carries a pair envelope through the rendezvous; the relay forwards env unchanged and accepts only env.type = pair.",
+  "type": "object",
+  "required": ["op", "rv_id", "env"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "rv_msg" },
+    "rv_id": { "$ref": "common.schema.json#/$defs/b64u-16" },
+    "env": {
+      "allOf": [
+        { "$ref": "envelope.schema.json" },
+        { "properties": { "type": { "const": "pair" } } }
+      ]
+    }
+  }
+}

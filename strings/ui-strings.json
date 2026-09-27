@@ -4,6 +4,33 @@
   "languages": ["en", "vi"],
   "strings": [
     {
+      "key": "a11y.sms_bubble_received",
+      "en": "{sender}, {time}",
+      "vi": "{sender}, {time}",
+      "comment": "VoiceOver label of a received message bubble (SMS-03 special requirements); {sender} = the conversation name, or the sender's number in national format in a group conversation; {time} formatted by the system; the message text is the accessibility value, read after the label",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "sender", "type": "string"}, {"name": "time", "type": "string"}],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "a11y.sms_bubble_sent",
+      "en": "You, {time}, {status}",
+      "vi": "Bạn, {time}, {status}",
+      "comment": "VoiceOver label of a sent message bubble (SMS-03 special requirements); {time} formatted by the system; {status} = the sms.status_* text; the message text is the accessibility value",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "time", "type": "string"}, {"name": "status", "type": "string"}],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "a11y.unread_conversations",
+      "en": {"one": "{count} unread conversation", "other": "{count} unread conversations"},
+      "vi": {"other": "{count} hội thoại chưa đọc"},
+      "comment": "VoiceOver text of the unread badge: after the connection status in the menu bar icon's label (Mac), on the Messages tab (iOS) — SMS-02 field 6",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "count", "type": "int"}],
+      "specs": ["SMS-02", "SMS-05"]
+    },
+    {
       "key": "clipboard.auto_send_off_on_phone",
       "en": "Auto-send is off on the phone — use the Send Clipboard button on the phone",
       "vi": "Tự gửi đang tắt trên điện thoại — dùng nút Gửi bảng nhớ tạm trên điện thoại",
@@ -16,17 +43,17 @@
       "en": "That device just copied something new.",
       "vi": "Thiết bị này vừa có nội dung sao chép mới.",
       "comment": "Body of the conflict notification; the device is the one named in the title",
-      "platforms": ["android", "macos"],
-      "specs": ["CLIP-01", "CLIP-02"]
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CLIP-01", "CLIP-02", "CLIP-04"]
     },
     {
       "key": "clipboard.conflict_title",
       "en": "Clipboard Not Updated on {device_name}",
       "vi": "Chưa ghi lên {device_name}",
-      "comment": "Title of the conflict notification on the sending device; action clipboard.send_again",
-      "platforms": ["android", "macos"],
+      "comment": "Title of the conflict notification on the sending device (iPhone: reported on the send card while the app is open); action clipboard.send_again",
+      "platforms": ["android", "macos", "ios"],
       "args": [{"name": "device_name", "type": "string"}],
-      "specs": ["CLIP-01", "CLIP-02"]
+      "specs": ["CLIP-01", "CLIP-02", "CLIP-04"]
     },
     {
       "key": "clipboard.consent_events",
@@ -69,6 +96,14 @@
       "specs": ["CLIP-01", "SET-01"]
     },
     {
+      "key": "clipboard.copy",
+      "en": "Copy",
+      "vi": "Sao chép",
+      "comment": "Button that copies the last received content again (PasteCard)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
       "key": "clipboard.empty_or_not_text",
       "en": "The clipboard is empty or doesn't contain text",
       "vi": "Bảng nhớ tạm trống hoặc không phải văn bản",
@@ -80,19 +115,45 @@
       "key": "clipboard.image_receiving",
       "en": "Receiving image from {device_name} — {percent}",
       "vi": "Đang nhận ảnh từ {device_name} — {percent}",
-      "comment": "Progress of an incoming image over 1 MiB (Android notification, Mac menu bar menu); {percent} is formatted by the system",
-      "platforms": ["android", "macos"],
+      "comment": "Progress of an incoming image over 1 MiB (Android notification, Mac menu bar menu, iPhone Clipboard tab); {percent} is formatted by the system",
+      "platforms": ["android", "macos", "ios"],
       "args": [{"name": "device_name", "type": "string"}, {"name": "percent", "type": "string"}],
-      "specs": ["CLIP-03"]
+      "specs": ["CLIP-03", "CLIP-04"]
     },
     {
       "key": "clipboard.image_sending",
       "en": "Sending image to {device_name} — {percent}",
       "vi": "Đang gửi ảnh tới {device_name} — {percent}",
-      "comment": "Progress of an image over 1 MiB (Android notification, Mac menu bar menu) with a Cancel button; {percent} is formatted by the system",
-      "platforms": ["android", "macos"],
+      "comment": "Progress of an image over 1 MiB (Android notification, Mac menu bar menu, iPhone send card) with a Cancel button; {percent} is formatted by the system",
+      "platforms": ["android", "macos", "ios"],
       "args": [{"name": "device_name", "type": "string"}, {"name": "percent", "type": "string"}],
-      "specs": ["CLIP-03"]
+      "specs": ["CLIP-03", "CLIP-04"]
+    },
+    {
+      "key": "clipboard.new_content_banner",
+      "en": "The {device_type} clipboard has new content — paste to send it to {device_name}",
+      "vi": "Bảng nhớ tạm trên {device_type} có nội dung mới — dán để gửi sang {device_name}",
+      "comment": "Suggestion banner with a close button when changeCount shows unsent local text (CLIP-04 field 3); {device_type} is “iPhone” or “iPad” (never translated), {device_name} is the phone",
+      "platforms": ["ios"],
+      "args": [{"name": "device_type", "type": "string"}, {"name": "device_name", "type": "string"}],
+      "specs": ["CLIP-04"]
+    },
+    {
+      "key": "clipboard.new_image_banner",
+      "en": "The {device_type} clipboard has a new image — paste to send it to {device_name}",
+      "vi": "Bảng nhớ tạm trên {device_type} có ảnh mới — dán để gửi sang {device_name}",
+      "comment": "Suggestion banner when changeCount changed and hasImages is true (CLIP-04 API 2); {device_type} is “iPhone” or “iPad” (never translated), {device_name} is the phone",
+      "platforms": ["ios"],
+      "args": [{"name": "device_type", "type": "string"}, {"name": "device_name", "type": "string"}],
+      "specs": ["CLIP-04"]
+    },
+    {
+      "key": "clipboard.not_connected_to_phone",
+      "en": "Not connected to the phone",
+      "vi": "Chưa kết nối với điện thoại",
+      "comment": "Line on the send card while there is no session; the Paste button is disabled (CLIP-04 E5)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
     },
     {
       "key": "clipboard.not_connected_will_send",
@@ -101,6 +162,39 @@
       "comment": "Result of a manual send while no device is connected (Android toast, Mac menu bar status line)",
       "platforms": ["android", "macos"],
       "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "clipboard.nothing_received",
+      "en": "Nothing Received Yet",
+      "vi": "Chưa nhận gì",
+      "comment": "Empty state title of the last received content on the Clipboard tab (PasteCard)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
+      "key": "clipboard.nothing_received_body",
+      "en": "Content copied on the phone or Mac appears here while HandLive is open.",
+      "vi": "Nội dung sao chép trên điện thoại hoặc Mac sẽ hiện ở đây khi HandLive đang mở.",
+      "comment": "Empty-state sentence under clipboard.nothing_received on the Clipboard tab (CLIP-04 field 10, PasteCard)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
+      "key": "clipboard.paste_hint",
+      "en": "Tap Paste to send what you just copied.",
+      "vi": "Chạm Dán để gửi nội dung vừa sao chép.",
+      "comment": "One-line hint under the system Paste button on the send card (CLIP-04 field 1, PasteCard); “Paste” is the system button's own label",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
+      "key": "clipboard.received_from",
+      "en": "From {device_name} · {time}",
+      "vi": "Từ {device_name} · {time}",
+      "comment": "Line under the last received content on the Clipboard tab (PasteCard); {time} is formatted by the system",
+      "platforms": ["ios"],
+      "args": [{"name": "device_name", "type": "string"}, {"name": "time", "type": "string"}],
+      "specs": ["CLIP-04"]
     },
     {
       "key": "clipboard.send",
@@ -115,8 +209,8 @@
       "en": "Send Again",
       "vi": "Gửi lại",
       "comment": "Action of the conflict notification; valid for 2 minutes",
-      "platforms": ["android", "macos"],
-      "specs": ["CLIP-01", "CLIP-02"]
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CLIP-01", "CLIP-02", "CLIP-04"]
     },
     {
       "key": "clipboard.send_anyway",
@@ -125,6 +219,15 @@
       "comment": "Action of the sensitive content notification; valid for 2 minutes",
       "platforms": ["android", "macos"],
       "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "clipboard.send_to_phone_title",
+      "en": "Send to {device_name}",
+      "vi": "Gửi sang {device_name}",
+      "comment": "Title of the send card with the system Paste button on the Clipboard tab (CLIP-04 field 1); {device_name} is the phone",
+      "platforms": ["ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["CLIP-04"]
     },
     {
       "key": "clipboard.sensitive_blocked_body",
@@ -141,6 +244,14 @@
       "comment": "Title of the sensitive content notification; action clipboard.send_anyway",
       "platforms": ["android", "macos"],
       "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "clipboard.sensitive_hidden",
+      "en": "Sensitive content hidden",
+      "vi": "Nội dung nhạy cảm đã được ẩn",
+      "comment": "Shown instead of the last received content when it was marked sensitive (PasteCard)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
     },
     {
       "key": "clipboard.sent_to",
@@ -195,6 +306,14 @@
       "specs": ["CLIP-01"]
     },
     {
+      "key": "clipboard.title",
+      "en": "Clipboard",
+      "vi": "Bảng nhớ tạm",
+      "comment": "Title of the Clipboard tab and its large title (iPhone, iPad)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
       "key": "common.agree",
       "en": "Agree",
       "vi": "Đồng ý",
@@ -219,12 +338,28 @@
       "specs": ["PAIR-01", "PAIR-03", "CLIP-03"]
     },
     {
+      "key": "common.close",
+      "en": "Close",
+      "vi": "Đóng",
+      "comment": "VoiceOver label of an xmark close button, e.g. the new-content banner (CLIP-04 field 3; design system 1-foundations/08)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
       "key": "common.continue",
       "en": "Continue",
       "vi": "Tiếp tục",
       "comment": "Only button of a permission explanation (PermissionPrimer) and next step of a multi-step flow",
       "platforms": ["android", "macos", "ios"],
       "specs": ["SET-01", "SET-03"]
+    },
+    {
+      "key": "common.delete",
+      "en": "Delete",
+      "vi": "Xóa",
+      "comment": "Destructive button of the alert “Couldn't connect to the server. Delete from this device anyway?” (SET-02 E7), next to common.cancel; the field 28 buttons are settings.remove_from_server_confirm and settings.delete_all_confirm",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
     },
     {
       "key": "common.done",
@@ -246,17 +381,25 @@
       "key": "common.off",
       "en": "Off",
       "vi": "Tắt",
-      "comment": "Off value: option of Auto-Clear Received Clipboard, state read by TalkBack/VoiceOver for a switch",
+      "comment": "Off value: option of Auto-Clear Received Clipboard, state read by TalkBack/VoiceOver for a switch, feature card state off (SET-01 field 10)",
       "platforms": ["android", "macos", "ios"],
-      "specs": ["SET-02", "CLIP-05"]
+      "specs": ["SET-02", "CLIP-05", "SET-01"]
+    },
+    {
+      "key": "common.ok",
+      "en": "OK",
+      "vi": "OK",
+      "comment": "The only button of an informational alert",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01", "PAIR-02"]
     },
     {
       "key": "common.on",
       "en": "On",
       "vi": "Bật",
-      "comment": "On value: state read by TalkBack/VoiceOver for a switch, value of a permission row",
+      "comment": "On value: state read by TalkBack/VoiceOver for a switch, value of a permission row, feature card state ready (SET-01 field 10)",
       "platforms": ["android", "macos", "ios"],
-      "specs": ["SET-02"]
+      "specs": ["SET-02", "SET-01"]
     },
     {
       "key": "common.open_settings",
@@ -278,9 +421,9 @@
       "key": "common.retry",
       "en": "Try Again",
       "vi": "Thử lại",
-      "comment": "Button of an error that the user can retry (service start, key creation)",
+      "comment": "Button of an error that the user can retry (service start, key creation, loading older messages, a failed SMS)",
       "platforms": ["android", "macos", "ios"],
-      "specs": ["SET-01", "SET-03"]
+      "specs": ["SET-01", "SET-03", "SMS-03", "SMS-04"]
     },
     {
       "key": "common.skip",
@@ -291,20 +434,44 @@
       "specs": ["SET-01"]
     },
     {
+      "key": "common.view_instructions",
+      "en": "View Instructions",
+      "vi": "Xem hướng dẫn",
+      "comment": "Opens the SMS-01 field 7 alert (sms.permission_instructions_title / _body, common.ok); the Mac uses common.view_instructions_ellipsis",
+      "platforms": ["ios"],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "common.view_instructions_ellipsis",
+      "en": "View Instructions…",
+      "vi": "Xem hướng dẫn…",
+      "comment": "Mac form of common.view_instructions: the button opens the SMS-01 field 7 alert, so it ends with “…”",
+      "platforms": ["macos"],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "error.clip_content_too_large",
+      "en": "Content is too large to send (up to 1 MB of text, 10 MB for images)",
+      "vi": "Nội dung quá lớn để gửi (tối đa 1 MB văn bản, 10 MB ảnh)",
+      "comment": "Shown when the pasted text or image exceeds the limits (CLIP_TOO_LARGE, CLIP-04 E4)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
       "key": "error.clip_image_no_space",
       "en": "Not enough storage to receive the image",
       "vi": "Không đủ bộ nhớ để nhận ảnh",
-      "comment": "Receiver of an image transfer cannot write the temporary file (acks INTERNAL); Android toast, Mac menu bar status line",
-      "platforms": ["android", "macos"],
-      "specs": ["CLIP-03"]
+      "comment": "Receiver of an image transfer cannot write the temporary file (acks INTERNAL); Android toast, Mac menu bar status line, iPhone Clipboard tab",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CLIP-03", "CLIP-04"]
     },
     {
       "key": "error.clip_image_send_failed",
       "en": "Couldn't send the image",
       "vi": "Không gửi được ảnh",
-      "comment": "Sender after the second CLIP_CHECKSUM_MISMATCH of one image; notification",
-      "platforms": ["android", "macos"],
-      "specs": ["CLIP-03"]
+      "comment": "Sender after the second CLIP_CHECKSUM_MISMATCH of one image; shown in place (Android toast, Mac menu bar status line, iPhone send card)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CLIP-03", "CLIP-04"]
     },
     {
       "key": "error.clip_image_too_large",
@@ -323,12 +490,28 @@
       "specs": ["CLIP-03"]
     },
     {
+      "key": "error.clip_send_failed",
+      "en": "Couldn't send. Try again.",
+      "vi": "Gửi không thành công, thử lại.",
+      "comment": "Send result on the Clipboard tab when no ack arrives within 10 s (CLIP-04 E9); not replayed automatically",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
+    },
+    {
       "key": "error.clip_text_too_large",
       "en": "Content is too large to send (up to 1 MB of text)",
       "vi": "Nội dung quá lớn để gửi (tối đa 1 MB văn bản)",
       "comment": "CLIP_TOO_LARGE for text; shown in place (Android toast, Mac menu bar status line), never as a notification",
       "platforms": ["android", "macos"],
       "specs": ["CLIP-01", "CLIP-02"]
+    },
+    {
+      "key": "error.clip_unsupported_mime",
+      "en": "Only text or images can be sent",
+      "vi": "Chỉ gửi được văn bản hoặc ảnh",
+      "comment": "Shown when the pasted content is not text, a URL or a supported image (CLIP_UNSUPPORTED_MIME, CLIP-04 E3)",
+      "platforms": ["ios"],
+      "specs": ["CLIP-04"]
     },
     {
       "key": "error.clip_write_failed_on_device",
@@ -397,6 +580,39 @@
       "specs": ["PAIR-01"]
     },
     {
+      "key": "error.relay_device_revoked",
+      "en": "This device was removed from the internet service",
+      "vi": "Thiết bị đã bị xóa khỏi dịch vụ Internet",
+      "comment": "Shown when the relay answers 410 DEVICE_REVOKED (CONN-03 E3); the internet connection stays off until the user turns it back on",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CONN-03", "SET-02"]
+    },
+    {
+      "key": "error.relay_pin_mismatch",
+      "en": "The server's certificate isn't trusted, so HandLive didn't connect over the internet.",
+      "vi": "Chứng chỉ máy chủ không đáng tin cậy nên HandLive không kết nối qua Internet.",
+      "comment": "The relay certificate does not match the pinned keys; nothing was sent (CONN-03 E7, field 4); Android shows it under Internet Connection (SET-02 field 21)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["CONN-03", "SET-02"]
+    },
+    {
+      "key": "error.relay_rate_limited",
+      "en": "Too many requests. Trying again in {duration}.",
+      "vi": "Quá nhiều yêu cầu. Thử lại sau {duration}.",
+      "comment": "Relay answered 429 RATE_LIMITED (CONN-03 E6, field 4); {duration} is the remaining Retry-After wait, formatted by the system (like status.retry_in)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "duration", "type": "string"}],
+      "specs": ["CONN-03"]
+    },
+    {
+      "key": "error.server_unreachable",
+      "en": "Couldn't connect to the server. Try again later.",
+      "vi": "Không kết nối được máy chủ, hãy thử lại sau.",
+      "comment": "Shown under Remove Device from Server when there is no network or the server fails (SET-02 E5); nothing changed",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
       "key": "error.service_start_failed",
       "en": "Couldn't Start the Connection Service",
       "vi": "Không khởi động được dịch vụ kết nối",
@@ -411,6 +627,86 @@
       "comment": "session/error AUTH_FAILED; status line on Mac/iPhone, no automatic retry for 5 minutes",
       "platforms": ["macos", "ios"],
       "specs": ["CONN-01"]
+    },
+    {
+      "key": "error.sms_generic_failure",
+      "en": "Couldn't send",
+      "vi": "Gửi không thành công",
+      "comment": "Reason of a failed SMS for SMS_GENERIC_FAILURE and any other code without its own text",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_history_failed",
+      "en": "Couldn't load older messages",
+      "vi": "Không tải được tin cũ hơn",
+      "comment": "Error banner at the top of a conversation when sms/history timed out or failed (SMS-03 E4), with common.retry",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "error.sms_invalid_address",
+      "en": "Invalid number",
+      "vi": "Số không hợp lệ",
+      "comment": "Reason of a failed SMS for SMS_INVALID_ADDRESS; also shown at the recipient field of New Message when the number is malformed",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_limit_exceeded",
+      "en": "Sending limit reached. Try again later.",
+      "vi": "Đã vượt giới hạn gửi, thử lại sau.",
+      "comment": "Reason of a failed SMS for SMS_LIMIT_EXCEEDED; shown in sms.status_failed_reason",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_no_service",
+      "en": "No service",
+      "vi": "Không có sóng",
+      "comment": "Reason of a failed SMS for SMS_NO_SERVICE; shown in sms.status_failed_reason",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_not_connected",
+      "en": "Couldn't connect to the phone",
+      "vi": "Không kết nối được điện thoại",
+      "comment": "Reason of a failed SMS with last_error NOT_CONNECTED: still waiting for the phone after 24 h (SMS-04 E1)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_radio_off",
+      "en": "The phone is in airplane mode",
+      "vi": "Điện thoại đang ở chế độ máy bay",
+      "comment": "Reason of a failed SMS for SMS_RADIO_OFF; shown in sms.status_failed_reason",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_sim_unavailable",
+      "en": "The SIM isn't active",
+      "vi": "SIM không hoạt động",
+      "comment": "Reason of a failed SMS for SMS_SIM_UNAVAILABLE; the SIM picker opens",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "error.sms_sync_storage",
+      "en": "Couldn't save messages on this device",
+      "vi": "Không lưu được tin nhắn trên máy này",
+      "comment": "Non-blocking error when a sync page cannot be written to the local database (SMS-01 E7: out of storage, SQLCipher cannot be opened)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "error.sms_thread_not_found",
+      "en": "This conversation is no longer on the phone",
+      "vi": "Hội thoại không còn trên điện thoại",
+      "comment": "Banner at the top of a conversation for SMS_THREAD_NOT_FOUND (SMS-03 E3); local messages stay, no more loading",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
     },
     {
       "key": "error.update_phone_app",
@@ -545,9 +841,9 @@
     },
     {
       "key": "notification.permission_sms_read",
-      "en": "{device_name} needs permission to read SMS on this phone — tap to allow",
-      "vi": "{device_name} cần quyền đọc SMS trên điện thoại — chạm để cho phép",
-      "comment": "Android notification (channel permission) after answering PERMISSION_MISSING to a client; at most once per feature per 24 h; {device_name} is the client",
+      "en": "{device_name} needs SMS permission on this phone — tap to allow",
+      "vi": "{device_name} cần quyền SMS trên điện thoại — chạm để cho phép",
+      "comment": "Android notification (channel permission) after answering PERMISSION_MISSING to a client; covers any missing SMS permission (reading or sending); at most once per feature per 24 h; {device_name} is the client",
       "platforms": ["android"],
       "args": [{"name": "device_name", "type": "string"}],
       "specs": ["SET-01"]
@@ -834,9 +1130,9 @@
       "key": "pairing.reason_missing_sms_permission",
       "en": "Missing SMS permission on the phone",
       "vi": "Thiếu quyền SMS trên điện thoại",
-      "comment": "Reason under the SMS feature when the phone lacks READ_SMS",
-      "platforms": ["macos", "ios"],
-      "specs": ["PAIR-02"]
+      "comment": "Reason under the SMS feature when the phone lacks READ_SMS; also the SMS-01 field 7 reason for E2",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["PAIR-02", "SMS-04", "SMS-01"]
     },
     {
       "key": "pairing.reason_off_on_device",
@@ -918,8 +1214,8 @@
       "key": "pairing.unpaired",
       "en": "Unpaired",
       "vi": "Đã hủy ghép nối",
-      "comment": "PAIR-03 field 4, result done: both devices cleaned up (HUD). Proposed text",
-      "platforms": ["android"],
+      "comment": "PAIR-03 field 4, result done: both devices cleaned up (HUD)",
+      "platforms": ["android", "macos", "ios"],
       "specs": ["PAIR-03"]
     },
     {
@@ -935,8 +1231,8 @@
       "key": "pairing.unpaired_pending",
       "en": "Unpaired; {device_name} will clean up when it reconnects",
       "vi": "Đã hủy ghép nối; {device_name} sẽ tự dọn khi kết nối lại",
-      "comment": "PAIR-03 field 4, result done_pending_remote: the other device was not connected. Proposed text",
-      "platforms": ["android"],
+      "comment": "PAIR-03 field 4, result done_pending_remote (flow B): cleaned up here, {device_name} was not connected and cleans up when it reconnects",
+      "platforms": ["android", "macos", "ios"],
       "args": [{"name": "device_name", "type": "string"}],
       "specs": ["PAIR-03"]
     },
@@ -987,6 +1283,14 @@
       "comment": "Android button on a feature card that still needs a permission",
       "platforms": ["android"],
       "specs": ["SET-01"]
+    },
+    {
+      "key": "permission.local_network_primer",
+      "en": "HandLive looks for your Android phone on your Wi-Fi network to connect to it directly.",
+      "vi": "HandLive tìm điện thoại Android trong mạng Wi-Fi để kết nối trực tiếp.",
+      "comment": "Body of the local network explanation before the first Bonjour browse (SET-03 step 9), under permission.local_network_primer_title; button common.continue",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-03"]
     },
     {
       "key": "permission.local_network_primer_title",
@@ -1041,6 +1345,38 @@
       "en": "To view and reply to SMS messages on your Mac or iPhone, HandLive needs to read and send SMS, read your contacts to show sender names, and read the phone state to choose a SIM.",
       "vi": "Để xem và trả lời SMS trên Mac hoặc iPhone, HandLive cần đọc và gửi SMS, đọc danh bạ để hiện tên người gửi và đọc trạng thái điện thoại để chọn SIM.",
       "comment": "Android explanation before the SMS permission dialogs (feature card Grant Permission)",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "permission.sms_primer_title",
+      "en": "Use SMS on Your Mac and iPhone",
+      "vi": "Dùng SMS trên Mac và iPhone",
+      "comment": "Title of the Android PermissionPrimer before the SMS permissions (SET-01 field 12, step 10); body permission.sms_primer",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "permission.status_denied",
+      "en": "Permission denied",
+      "vi": "Quyền bị từ chối",
+      "comment": "Status of an Android feature card whose permission is permanently denied (SET-01 field 10), shown with common.open_settings",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "permission.status_needs_permission",
+      "en": "Needs permission",
+      "vi": "Cần cấp quyền",
+      "comment": "Status of an Android feature card whose permission is missing (SET-01 field 10), shown with permission.grant",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "permission.status_unsupported",
+      "en": "Not supported on this phone",
+      "vi": "Điện thoại này không hỗ trợ",
+      "comment": "Status of an Android feature card on a phone without the hardware, e.g. no telephony for SMS (SET-01 field 10)",
       "platforms": ["android"],
       "specs": ["SET-01"]
     },
@@ -1114,7 +1450,7 @@
       "vi": "Tự gửi khi sao chép",
       "comment": "Android switch for clip.auto_send; the first time it opens the Accessibility disclosure (also its title)",
       "platforms": ["android"],
-      "specs": ["SET-02", "CLIP-01"]
+      "specs": ["SET-02", "CLIP-01", "SET-01"]
     },
     {
       "key": "settings.auto_send_consented_at",
@@ -1161,9 +1497,9 @@
       "key": "settings.calls",
       "en": "Calls",
       "vi": "Cuộc gọi",
-      "comment": "Mac Settings pane title (toolbar item)",
-      "platforms": ["macos"],
-      "specs": ["SET-02"]
+      "comment": "Mac Settings pane title (toolbar item); the Calls feature card name on Android (SET-01 field 10)",
+      "platforms": ["android", "macos"],
+      "specs": ["SET-02", "SET-01"]
     },
     {
       "key": "settings.camera",
@@ -1178,6 +1514,62 @@
       "en": "Clipboard",
       "vi": "Bảng nhớ tạm",
       "comment": "Mac Settings pane title; group header of the settings list on iPhone and Android",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.data",
+      "en": "Data",
+      "vi": "Dữ liệu",
+      "comment": "Header of the last Settings group with Remove Device from Server and Delete All HandLive Data (iPhone, iPad, Android)",
+      "platforms": ["android", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.delete_all_confirm",
+      "en": "Delete All",
+      "vi": "Xóa toàn bộ",
+      "comment": "Warning-colored confirm button of Delete All HandLive Data, next to common.cancel (SET-02 field 28)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.delete_all_data",
+      "en": "Delete All HandLive Data",
+      "vi": "Xóa toàn bộ dữ liệu HandLive",
+      "comment": "Row/button label of field 27 in Settings › Data; the confirmation title is settings.delete_all_data_title",
+      "platforms": ["android", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.delete_all_data_ellipsis",
+      "en": "Delete All HandLive Data…",
+      "vi": "Xóa toàn bộ dữ liệu HandLive…",
+      "comment": "Mac destructive button in the General pane (SET-02 field 27); “…” because it opens an alert",
+      "platforms": ["macos"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.delete_all_data_title",
+      "en": "Delete All HandLive Data?",
+      "vi": "Xóa toàn bộ dữ liệu HandLive?",
+      "comment": "Title of the confirmation of field 27 (SET-02 field 28); message settings.delete_all_data_warning, buttons settings.delete_all_confirm + common.cancel",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.delete_all_data_warning",
+      "en": "The security keys, paired devices, synced messages and call history, and all settings on this device will be deleted. This can't be undone.",
+      "vi": "Xóa khóa bảo mật, thiết bị đã ghép, tin nhắn và nhật ký cuộc gọi đã đồng bộ cùng mọi cài đặt trên thiết bị này. Không thể hoàn tác.",
+      "comment": "Message of the confirmation of field 27 (SET-02 field 29), under settings.delete_all_data_title; buttons settings.delete_all_confirm + common.cancel",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.delete_all_offline_confirm",
+      "en": "Couldn't connect to the server. Delete from this device anyway?",
+      "vi": "Không kết nối được máy chủ. Vẫn xóa trên thiết bị này?",
+      "comment": "Alert when the server can't be reached during Delete All HandLive Data (SET-02 E7); buttons common.cancel and common.delete",
       "platforms": ["android", "macos", "ios"],
       "specs": ["SET-02"]
     },
@@ -1238,20 +1630,28 @@
       "specs": ["SET-02"]
     },
     {
+      "key": "settings.local_network",
+      "en": "Local Network",
+      "vi": "Mạng cục bộ",
+      "comment": "Row in the Permissions group with the local network permission state, values common.on / common.off (SET-03 field 9)",
+      "platforms": ["ios"],
+      "specs": ["SET-03"]
+    },
+    {
       "key": "settings.messages",
       "en": "Messages",
       "vi": "Tin nhắn",
-      "comment": "Mac Settings pane title (toolbar item)",
-      "platforms": ["macos"],
+      "comment": "Mac Settings pane title (toolbar item); header of the Messages group of the Settings tab on iPhone and iPad",
+      "platforms": ["macos", "ios"],
       "specs": ["SET-02"]
     },
     {
       "key": "settings.notifications",
       "en": "Notifications",
       "vi": "Thông báo",
-      "comment": "Row in Settings › Permissions & Background with the notification permission state (SET-01 field 3, SET-02 field 23). Proposed text",
-      "platforms": ["android"],
-      "specs": ["SET-01", "SET-02"]
+      "comment": "Row with the notification permission state: Android Settings › Permissions & Background (SET-01 field 3, SET-02 field 23); iPhone Permissions group (SET-03 field 7)",
+      "platforms": ["android", "ios"],
+      "specs": ["SET-01", "SET-02", "SET-03"]
     },
     {
       "key": "settings.open_at_login",
@@ -1278,12 +1678,92 @@
       "specs": ["CLIP-02", "SET-03"]
     },
     {
+      "key": "settings.permissions",
+      "en": "Permissions",
+      "vi": "Quyền",
+      "comment": "Header of the Settings group with the Notifications and Local Network rows (iPhone, iPad)",
+      "platforms": ["ios"],
+      "specs": ["SET-02", "SET-03"]
+    },
+    {
       "key": "settings.permissions_background",
       "en": "Permissions & Background",
       "vi": "Quyền và chạy nền",
       "comment": "Android settings row opening the feature permission cards and the background state",
       "platforms": ["android"],
       "specs": ["SET-02", "SET-01"]
+    },
+    {
+      "key": "settings.phone",
+      "en": "Phone",
+      "vi": "Điện thoại",
+      "comment": "Header of the first Settings group with the paired phone's DeviceRow (iPhone, iPad)",
+      "platforms": ["ios"],
+      "specs": ["SET-02", "PAIR-02"]
+    },
+    {
+      "key": "settings.remove_from_server",
+      "en": "Remove Device from Server",
+      "vi": "Xóa thiết bị khỏi máy chủ",
+      "comment": "Row/button label of field 26 in Settings › Data; the confirmation title is settings.remove_from_server_title",
+      "platforms": ["android", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.remove_from_server_confirm",
+      "en": "Remove from Server",
+      "vi": "Xóa khỏi máy chủ",
+      "comment": "Warning-colored confirm button of Remove Device from Server, next to common.cancel (SET-02 field 28)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.remove_from_server_ellipsis",
+      "en": "Remove Device from Server…",
+      "vi": "Xóa thiết bị khỏi máy chủ…",
+      "comment": "Mac button in the General pane (SET-02 field 26); “…” because it opens an alert",
+      "platforms": ["macos"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.remove_from_server_title",
+      "en": "Remove This Device from the Server?",
+      "vi": "Xóa thiết bị này khỏi máy chủ?",
+      "comment": "Title of the confirmation of field 26 (SET-02 field 28); message settings.remove_from_server_warning, buttons settings.remove_from_server_confirm + common.cancel",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.remove_from_server_warning",
+      "en": "This device's registration will be removed from the HandLive server. Paired devices keep working on the same Wi-Fi network; the internet connection stays off until you turn it back on.",
+      "vi": "Xóa đăng ký của thiết bị này khỏi máy chủ HandLive. Các thiết bị đã ghép vẫn dùng được khi ở cùng mạng Wi-Fi; kết nối qua Internet sẽ tắt cho tới khi bạn bật lại.",
+      "comment": "Message of the confirmation of field 26 (SET-02 field 29), under settings.remove_from_server_title; buttons settings.remove_from_server_confirm + common.cancel",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.removed_from_server",
+      "en": "Removed from the server",
+      "vi": "Đã xóa khỏi máy chủ",
+      "comment": "Result under Remove Device from Server after the relay deleted the registration (SET-02 field 30)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.resync_sms",
+      "en": "Resync All SMS",
+      "vi": "Đồng bộ lại toàn bộ SMS",
+      "comment": "Action row in Settings › Messages (SET-02 field 25, SMS-01 field 5), iPhone and iPad; disabled without a session to the phone",
+      "platforms": ["ios"],
+      "specs": ["SET-02", "SMS-01"]
+    },
+    {
+      "key": "settings.resync_sms_ellipsis",
+      "en": "Resync All SMS…",
+      "vi": "Đồng bộ lại toàn bộ SMS…",
+      "comment": "Mac button in the Messages pane (SET-02 field 25); “…” because it opens an alert",
+      "platforms": ["macos"],
+      "specs": ["SET-02", "SMS-01"]
     },
     {
       "key": "settings.run_in_background",
@@ -1308,6 +1788,47 @@
       "comment": "Footnote under Show HandLive in Menu Bar",
       "platforms": ["macos"],
       "specs": ["SET-03", "SET-02"]
+    },
+    {
+      "key": "settings.sms_last_sync",
+      "en": "Last synced: {time}",
+      "vi": "Lần đồng bộ cuối: {time}",
+      "comment": "Row in Settings › Messages (SMS-01 field 4); {time} is a relative time formatted by the system (“5 minutes ago”)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "time", "type": "string"}],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "settings.sms_messages",
+      "en": "SMS Messages",
+      "vi": "Tin nhắn SMS",
+      "comment": "Switch for feature.sms (SET-02 field 7): Android Settings tab, Mac Messages pane, iPhone Messages group; also the SMS feature card name (SET-01 field 10)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02", "SET-01"]
+    },
+    {
+      "key": "settings.sms_notify",
+      "en": "New SMS Notifications",
+      "vi": "Thông báo SMS mới",
+      "comment": "Option for sms.notify under SMS Messages (SET-02 field 8): checkbox on the Mac, switch on iPhone and iPad",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-02", "SMS-02"]
+    },
+    {
+      "key": "settings.sms_preview",
+      "en": "Show Content in Notifications",
+      "vi": "Hiện nội dung trong thông báo",
+      "comment": "Option for sms.preview under SMS Messages (SET-02 field 9); off → notifications only say sms.notification_hidden_body",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-02", "SMS-02"]
+    },
+    {
+      "key": "settings.sms_read_note",
+      "en": "Marking as read on this device doesn't change the status on the phone.",
+      "vi": "Đánh dấu đã đọc trên máy này không đổi trạng thái trên điện thoại.",
+      "comment": "Caption of the Messages settings group stating the one-way read status (SMS-05 field 6)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-05"]
     },
     {
       "key": "settings.sync_clipboard",
@@ -1430,12 +1951,28 @@
       "specs": ["SET-03"]
     },
     {
+      "key": "setup.ios_limits_title",
+      "en": "How HandLive Works on iPhone and iPad",
+      "vi": "Cách HandLive hoạt động trên iPhone và iPad",
+      "comment": "Title of the limits screen, above setup.ios_limits (SET-03 field 11)",
+      "platforms": ["ios"],
+      "specs": ["SET-03"]
+    },
+    {
       "key": "setup.keys_failed",
       "en": "Couldn't create the security keys on this device. Try again.",
       "vi": "Không tạo được khóa bảo mật trên máy này. Hãy thử lại.",
       "comment": "Mac/iPhone first run when creating or saving the identity keys in the Keychain fails (SET-03 E1); shown with a Try Again button",
       "platforms": ["macos", "ios"],
       "specs": ["SET-03"]
+    },
+    {
+      "key": "setup.local_network_denied_ios",
+      "en": "HandLive can't look for the phone on Wi-Fi. Turn on HandLive in Settings › Privacy & Security › Local Network.",
+      "vi": "HandLive không tìm được điện thoại trong mạng Wi-Fi. Bật HandLive trong Cài đặt › Quyền riêng tư & Bảo mật › Mạng cục bộ.",
+      "comment": "iPhone/iPad guidance when the local network permission is denied (SET-03 E4), with common.open_settings; the Mac text is setup.local_network_denied_mac",
+      "platforms": ["ios"],
+      "specs": ["SET-03", "CONN-01"]
     },
     {
       "key": "setup.local_network_denied_mac",
@@ -1460,6 +1997,14 @@
       "comment": "SET-01 E1 warning banner on Android when POST_NOTIFICATIONS is denied, next to a button that opens notification settings",
       "platforms": ["android"],
       "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.notifications_denied_ios",
+      "en": "Notifications are off, so new SMS messages and incoming calls don't appear while HandLive is closed. Turn them on in Settings › Notifications › HandLive.",
+      "vi": "Thông báo đang tắt nên không thấy SMS mới và cuộc gọi đến khi HandLive đóng. Bật lại trong Cài đặt › Thông báo › HandLive.",
+      "comment": "iPhone/iPad guidance when notifications are denied (SET-03 E3), with common.open_settings; the Mac text is setup.notifications_denied_mac",
+      "platforms": ["ios"],
+      "specs": ["SET-03", "CONN-04"]
     },
     {
       "key": "setup.notifications_denied_mac",
@@ -1542,12 +2087,331 @@
       "specs": ["SET-01", "SET-03"]
     },
     {
+      "key": "sms.beginning_of_conversation",
+      "en": "Beginning of conversation",
+      "vi": "Đầu hội thoại",
+      "comment": "Line at the top of a conversation when the phone has no older messages (SMS-03 field 11)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.char_count",
+      "en": "{used}/{limit}",
+      "vi": "{used}/{limit}",
+      "comment": "Character counter under an empty compose field (“0/160”, SMS-04 field 3); {used} and {limit} as in sms.char_counter, formatted by the system",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "used", "type": "string"}, {"name": "limit", "type": "string"}],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.char_counter",
+      "en": "{used}/{limit} · {parts}",
+      "vi": "{used}/{limit} · {parts}",
+      "comment": "Character and part counter under the compose field (SMS-04 field 3: “120/160 · 1 message”, “230/306 · 2 messages”); {used} = characters in the message, {limit} = capacity of the current number of parts (160 for one GSM-7 part, 153 × parts when several; 70 for one part with a character outside GSM-7, 67 × parts when several), both formatted numbers; {parts} is sms.part_count",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "used", "type": "string"}, {"name": "limit", "type": "string"}, {"name": "parts", "type": "string"}],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.choose_sim",
+      "en": "Choose SIM",
+      "vi": "Chọn SIM",
+      "comment": "Title of the SIM picker of the compose field, also opened by SMS_SIM_UNAVAILABLE (SMS-04 field 4, E6)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.compose_placeholder",
+      "en": "SMS Message",
+      "vi": "Tin nhắn SMS",
+      "comment": "Placeholder of the compose field at the bottom of a conversation (MessageBubble) and of the quick-reply text field of the HL_SMS_REPLY notification action (SMS-02 API 4); at most 1,600 characters",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04", "SMS-02"]
+    },
+    {
+      "key": "sms.contacts_permission_hint",
+      "en": "Allow HandLive to read contacts on the phone to show names",
+      "vi": "Cho phép HandLive đọc danh bạ trên điện thoại để hiện tên",
+      "comment": "Hint in the Messages view when the phone reports READ_CONTACTS in permissions_missing (SMS-01 E3); numbers are shown instead of names",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.copy_number",
+      "en": "Copy Number",
+      "vi": "Sao chép số",
+      "comment": "Context menu item of a conversation in the Messages window sidebar (Mac)",
+      "platforms": ["macos"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.empty_body",
+      "en": "Messages from your phone appear here after the first sync.",
+      "vi": "Tin nhắn từ điện thoại sẽ hiện ở đây sau lần đồng bộ đầu tiên.",
+      "comment": "Empty-state sentence under sms.empty_title, shown with the SMS-01 sync status (SMS-03 E1)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.empty_title",
+      "en": "No Messages Yet",
+      "vi": "Chưa có tin nhắn",
+      "comment": "Empty state of the conversation list (SMS-03 E1), shown with the SMS-01 sync status",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.filter_all",
+      "en": "All",
+      "vi": "Tất cả",
+      "comment": "Segment of the All / Unread filter above the conversation list (iPhone, iPad)",
+      "platforms": ["ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.filter_unread",
+      "en": "Unread",
+      "vi": "Chưa đọc",
+      "comment": "Segment of the All / Unread filter above the conversation list (iPhone, iPad)",
+      "platforms": ["ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.group_reply_on_phone",
+      "en": "Reply to group conversations on the phone",
+      "vi": "Trả lời hội thoại nhóm trên điện thoại",
+      "comment": "Line shown instead of the compose field in a conversation with several recipients (SMS-04 E9)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.history_needs_connection",
+      "en": "Connect the phone to load older messages",
+      "vi": "Kết nối điện thoại để tải tin cũ hơn",
+      "comment": "Banner at the top of a conversation when older messages are needed and there is no session (SMS-03 E2); loading starts again by itself on reconnection",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.loading_older",
+      "en": "Loading older messages",
+      "vi": "Đang tải tin cũ hơn",
+      "comment": "Indicator at the top of a conversation while waiting for sms/history (SMS-03 field 10)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.mark_as_read",
+      "en": "Mark as Read",
+      "vi": "Đánh dấu đã đọc",
+      "comment": "HL_SMS_MARK_READ notification action; also the conversation context menu item (Mac) and swipe action (iPhone, iPad); marks read on this device only (SMS-05)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-02", "SMS-05"]
+    },
+    {
+      "key": "sms.new_message",
+      "en": "New Message",
+      "vi": "Tin nhắn mới",
+      "comment": "Toolbar button (⌘N) and title of the compose view for a new number (SMS-04 field 1)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.notification_hidden_body",
+      "en": "New SMS message",
+      "vi": "Tin nhắn SMS mới",
+      "comment": "Body of a new SMS notification when Show Content in Notifications (sms.preview) is off, and hiddenPreviewsBodyPlaceholder of the HL_SMS category; the APNs fallback uses push.sms_new",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-02"]
+    },
+    {
+      "key": "sms.part_count",
+      "en": {"one": "{count} message", "other": "{count} messages"},
+      "vi": {"other": "{count} tin"},
+      "comment": "Estimated number of SMS parts the text is split into (each part is billed as one SMS); used inside sms.char_counter",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "count", "type": "int"}],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.permission_instructions_body",
+      "en": "On your phone, open HandLive and go to Settings › Permissions & Background. Tap Grant Permission under SMS Messages, or Open Settings if the permission was denied, and allow SMS.",
+      "vi": "Trên điện thoại, mở HandLive và vào Cài đặt › Quyền và chạy nền. Chạm Cấp quyền ở mục Tin nhắn SMS, hoặc Mở cài đặt nếu quyền đã bị từ chối, rồi cho phép SMS.",
+      "comment": "Message of the same alert; the Android names are the catalog texts of settings.title, settings.permissions_background, settings.sms_messages, permission.grant, common.open_settings",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01", "PAIR-02"]
+    },
+    {
+      "key": "sms.permission_instructions_title",
+      "en": "Grant SMS Permission on Your Phone",
+      "vi": "Cấp quyền SMS trên điện thoại",
+      "comment": "Title of the alert opened by “View Instructions” (SMS-01 field 7, E2) or a missing SMS permission in the device details (PAIR-02 field 9)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01", "PAIR-02"]
+    },
+    {
+      "key": "sms.quick_reply_not_sent",
+      "en": "Not sent yet. Open HandLive to try again.",
+      "vi": "Chưa gửi được, mở HandLive để thử lại.",
+      "comment": "Body of the local notification when a quick reply from a notification got no ack within about 20 s (SMS-04 E8); no title",
+      "platforms": ["ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.recipient_label",
+      "en": "To:",
+      "vi": "Đến:",
+      "comment": "Label of the recipient field of New Message (SMS-04 field 1)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.reply",
+      "en": "Reply",
+      "vi": "Trả lời",
+      "comment": "Title of the HL_SMS_REPLY notification action (text input) of a new SMS notification; not offered for group conversations",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-02", "SMS-04"]
+    },
+    {
+      "key": "sms.resync",
+      "en": "Resync",
+      "vi": "Đồng bộ lại",
+      "comment": "Default button of the Resync All SMS alert (SMS-01 field 6); 1–2 words",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.resync_confirm_message",
+      "en": "Messages waiting to be sent are kept.",
+      "vi": "Tin đang chờ gửi được giữ lại.",
+      "comment": "Message of the alert confirming Resync All SMS, under sms.resync_confirm_title",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.resync_confirm_title",
+      "en": "Delete messages saved on {device_name} and download them again from the phone?",
+      "vi": "Xóa tin nhắn đã lưu trên {device_name} và tải lại từ điện thoại?",
+      "comment": "Title of the alert confirming Resync All SMS (SMS-01 field 6); {device_name} is this Mac, iPhone or iPad; message sms.resync_confirm_message, buttons common.cancel and sms.resync",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.send",
+      "en": "Send",
+      "vi": "Gửi",
+      "comment": "Send button of the quick-reply text field in the SMS notification, and accessibility label of the send button of the compose field (SMS-04 field 5)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-02", "SMS-04"]
+    },
+    {
+      "key": "sms.status_delivered",
+      "en": "Delivered",
+      "vi": "Đã nhận",
+      "comment": "Status under an outgoing message whose delivery report arrived for every part (state delivered)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03", "SMS-04"]
+    },
+    {
+      "key": "sms.status_failed",
+      "en": "Not sent",
+      "vi": "Gửi lỗi",
+      "comment": "Status of an outgoing message that failed (state failed), also the ThreadRow excerpt when the latest message failed; with a Try Again button",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03", "SMS-04"]
+    },
+    {
+      "key": "sms.status_failed_reason",
+      "en": "Not sent · {reason}",
+      "vi": "Gửi lỗi · {reason}",
+      "comment": "Status under a failed outgoing message (MessageBubble); {reason} is the error.sms_* text for last_error",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "reason", "type": "string"}],
+      "specs": ["SMS-04"]
+    },
+    {
+      "key": "sms.status_pending",
+      "en": "Waiting for phone",
+      "vi": "Đang chờ điện thoại",
+      "comment": "Status under an outgoing message queued until the phone is reachable (state pending)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03", "SMS-04"]
+    },
+    {
+      "key": "sms.status_sending",
+      "en": "Sending…",
+      "vi": "Đang gửi…",
+      "comment": "Status under an outgoing message the phone accepted and is sending (state sending)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03", "SMS-04"]
+    },
+    {
+      "key": "sms.status_sent",
+      "en": "Sent",
+      "vi": "Đã gửi",
+      "comment": "Status under an outgoing message every part of which left the phone (state sent)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03", "SMS-04"]
+    },
+    {
+      "key": "sms.sync_downloaded",
+      "en": {"one": "Downloaded {count} message", "other": "Downloaded {count} messages"},
+      "vi": {"other": "Đã tải {count} tin"},
+      "comment": "Progress under the sync banner, first sync only (SMS-01 field 2); count is printed without digit grouping (“Downloaded 1500 messages”, 0.12.1)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "count", "type": "int"}],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.sync_failed",
+      "en": "Couldn't sync — will try again when connected",
+      "vi": "Đồng bộ lỗi — sẽ thử lại khi kết nối",
+      "comment": "Status banner above the conversation list when SMS-01 stopped with an error (E4, E6, E7)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.syncing",
+      "en": "Syncing messages…",
+      "vi": "Đang đồng bộ tin nhắn…",
+      "comment": "Status banner above the conversation list while SMS-01 runs; hidden when idle or done",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-01"]
+    },
+    {
+      "key": "sms.title",
+      "en": "Messages",
+      "vi": "Tin nhắn",
+      "comment": "Title of the Messages window (Mac), and of the Messages tab and its large title (iPhone, iPad)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-03"]
+    },
+    {
+      "key": "sms.unread_count",
+      "en": {"one": "{count} unread message", "other": "{count} unread messages"},
+      "vi": {"other": "{count} tin chưa đọc"},
+      "comment": "Accessibility label of ThreadRow; the row itself shows only the unread dot (SMS-03 field 5)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "count", "type": "int"}],
+      "specs": ["SMS-03", "SMS-05"]
+    },
+    {
+      "key": "sms.unread_divider",
+      "en": "Unread messages",
+      "vi": "Tin chưa đọc",
+      "comment": "Divider placed before the first unread incoming message when a conversation opens (SMS-05 field 3)",
+      "platforms": ["macos", "ios"],
+      "specs": ["SMS-05"]
+    },
+    {
       "key": "status.channel_internet",
       "en": "Internet",
       "vi": "Qua Internet",
       "comment": "Short channel label (pill) of a device connected through the HandLive server",
       "platforms": ["android", "macos", "ios"],
-      "specs": ["PAIR-02"]
+      "specs": ["PAIR-02", "CONN-03"]
     },
     {
       "key": "status.channel_lan",
@@ -1571,7 +2435,7 @@
       "vi": "Đã kết nối qua Internet",
       "comment": "State Connected while the session goes through the relay",
       "platforms": ["android", "macos", "ios"],
-      "specs": ["0.11", "PAIR-02"]
+      "specs": ["0.11", "PAIR-02", "CONN-03"]
     },
     {
       "key": "status.connected_internet_to",
@@ -1655,7 +2519,7 @@
       "vi": "Điện thoại ngoại tuyến",
       "comment": "State WaitingPeer: the server is reachable but the phone is not",
       "platforms": ["macos", "ios"],
-      "specs": ["0.11", "PAIR-02"]
+      "specs": ["0.11", "PAIR-02", "CONN-03"]
     },
     {
       "key": "status.peer_offline_since",

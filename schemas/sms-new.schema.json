@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/sms-new.schema.json",
+  "title": "HandLive — sms/new (S→C, no ack)",
+  "description": "SMS-02 API 1 and SMS-04 API 4: a new message and its conversation summary. message.local_id only in the envelope sent to the client that created the message. The same schema covers the sms/new envelope encrypted with K_push for push (CONN-04, without local_id).",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "new" },
+    "data": {
+      "type": "object",
+      "required": ["message", "thread"],
+      "additionalProperties": false,
+      "properties": {
+        "message": { "$ref": "sms-common.schema.json#/$defs/message" },
+        "thread": { "$ref": "sms-common.schema.json#/$defs/thread" }
+      }
+    }
+  }
+}

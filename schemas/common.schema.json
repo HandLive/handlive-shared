@@ -50,14 +50,28 @@
       "type": "string",
       "pattern": "^(?:[A-Za-z0-9_-]{4})*(?:[A-Za-z0-9_-]{2,3})?$"
     },
+    "b64u-16": {
+      "description": "b64u of exactly 16 bytes: 22 characters, the last one carries only 2 data bits (canonical form); rv_id of PAIR-01 API 7.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{21}[AQgw]$"
+    },
     "b64u-32": {
-      "description": "b64u của đúng 32 byte: 43 ký tự, ký tự cuối chỉ mang 2 bit dữ liệu (dạng chuẩn tắc).",
+      "description": "b64u của đúng 32 byte: 43 ký tự, ký tự cuối chỉ mang 4 bit dữ liệu, 2 bit cuối bằng 0 (dạng chuẩn tắc).",
       "type": "string",
       "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$"
+    },
+    "b64u-64": {
+      "description": "b64u of exactly 64 bytes: 86 characters, the last one carries only 2 data bits (canonical form); Ed25519 signatures.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{85}[AQgw]$"
     },
     "ws-close-code": {
       "description": "Mã đóng WebSocket (0.8.3): 1000 đóng bình thường, 4400 BAD_REQUEST, 4401 AUTH_FAILED, 4403 PAIR_REVOKED, 4408 bắt tay quá hạn, 4409 bị thay bởi kết nối mới hơn, 4410 REKEY_FAILED, 4411 IDLE_TIMEOUT, 4426 UNSUPPORTED_VERSION, 4429 RATE_LIMITED, 4500 INTERNAL.",
       "enum": [1000, 4400, 4401, 4403, 4408, 4409, 4410, 4411, 4426, 4429, 4500]
+    },
+    "platform": {
+      "description": "Device platform (0.7.2, 0.9.4).",
+      "enum": ["android", "macos", "ios", "ipados"]
     }
   }
 }

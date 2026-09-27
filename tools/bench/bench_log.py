@@ -26,6 +26,22 @@ EVENTS: dict[str, set[str]] = {
     "state": {"to"},
     "net": {"change"},
     "wake": set(),
+    # SMS (Phase 2): new SMS notification (SMS-02) and reply confirmed as Sent (SMS-04); see README.md.
+    "sms_detected": {"msg", "box", "onchange"},
+    "sms_new_sent": {"msg", "peer", "via"},
+    "sms_new_received": {"msg", "peer"},
+    "sms_notified": {"msg"},
+    "sms_push_sent": {"msg", "peer"},
+    "sms_push_shown": {"msg"},
+    "sms_send_tap": {"local"},
+    "sms_bubble": {"local"},
+    "sms_send_sent": {"local", "peer", "attempt", "via"},
+    "sms_send_received": {"local", "peer"},
+    "sms_send_ack_sent": {"local", "peer", "ok"},
+    "sms_send_ack_received": {"local", "peer", "ok"},
+    "sms_radio_done": {"local", "result"},
+    "sms_status_sent": {"local", "peer", "status"},
+    "sms_status_received": {"local", "status"},
 }
 KEY_VALUE = re.compile(r"^([a-z_]+)=(\S+)$")
 

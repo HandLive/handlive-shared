@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/sms-common.schema.json",
+  "title": "HandLive — shared SMS objects",
+  "description": "SMS-01 API 1, \"Shared data objects\": the thread and message objects used by sms/sync, sms/history and sms/new, and the unread entry of sms/sync and sms/read_changed. $defs only; reference them as sms-common.schema.json#/$defs/<name>.",
+  "$defs": {
+    "thread-id": {
+      "description": "thread_id of the Telephony provider (0.2).",
+      "$ref": "common.schema.json#/$defs/int64",
+      "minimum": 0
+    },
+    "message-key": {
+      "description": "sms:<_id> with the _id of content://sms (0.2).",
+      "type": "string",
+      "pattern": "^sms:[0-9]+$"
+    },
+    "address": {
+      "description": "e164 (0.3): E.164 using the country of the default SIM; a string that cannot be normalized (short code, sender name such as VIETTEL) is kept as it is.",
+      "type": "string",
+      "minLength": 1
+    },
+    "sub-id": {
+      "description": "sub_id of the SIM; the provider's -1 is sent as null.",
+      "oneOf": [
+        { "$ref": "common.schema.json#/$defs/int32", "minimum": 0 },
+        { "type": "null" }
+      ]
+    },
+    "thread": {
+      "description": "Conversation summary (SMS-01 API 1, the thread object).",
+      "type": "object",
+      "required": ["thread_id", "addresses", "display_name", "snippet", "last_ts", "unread_count"],
+      "additionalProperties": false,
+      "properties": {
+        "thread_id": { "$ref": "#/$defs/thread-id" },
+        "addresses": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/address" }
+        },
+        "display_name": {
+          "description": "Contact names joined with \", \"; null without READ_CONTACTS or when the number is not in the contacts.",
+          "type": ["string", "null"]
+        },
+        "snippet": {
+          "description": "Body of the newest SMS message, cut to 160 characters.",
+          "type": "string",
+          "maxLength": 160
+        },
+        "last_ts": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "unread_count": {
+          "description": "Inbox messages with read = 0 (SMS only).",
+          "$ref": "common.schema.json#/$defs/int32",
+          "minimum": 0
+        }
+      }
+    },
+    "message": {
+      "description": "One SMS message (SMS-01 API 1, the message object). local_id only in the sms/new sent to the client that created the message (SMS-04).",
+      "type": "object",
+      "required": ["message_key", "thread_id", "address", "body", "box", "ts", "read"],
+      "additionalProperties": false,
+      "properties": {
+        "message_key": { "$ref": "#/$defs/message-key" },
+        "thread_id": { "$ref": "#/$defs/thread-id" },
+        "address": { "$ref": "#/$defs/address" },
+        "body": {
+          "description": "The body column; null in the provider is sent as \"\".",
+          "type": "string"
+        },
+        "box": {
+          "description": "From the type column: 1 inbox, 2 sent, 4 outbox, 5 failed, 6 queued; drafts (3) are never sent.",
+          "enum": ["inbox", "sent", "outbox", "failed", "queued"]
+        },
+        "ts": { "$ref": "common.schema.json#/$defs/timestamp" },
+        "ts_sent": {
+          "description": "The date_sent column; 0 is sent as null.",
+          "oneOf": [
+            { "$ref": "common.schema.json#/$defs/timestamp" },
+            { "type": "null" }
+          ]
+        },
+        "read": { "type": "boolean" },
+        "sub_id": { "$ref": "#/$defs/sub-id" },
+        "local_id": {
+          "description": "local_id of the matching sms/send (SMS-04 API 4).",
+          "$ref": "common.schema.json#/$defs/uuid-v7"
+        }
+      }
+    },
+    "synced-message": {
+      "description": "A message in an sms/sync or sms/history ack: never carries local_id.",
+      "allOf": [
+        { "$ref": "#/$defs/message" },
+        { "not": { "required": ["local_id"] } }
+      ]
+    },
+    "unread-entry": {
+      "description": "Unread state of one conversation on the phone (SMS-05 API 1): every inbox message with ts <= read_up_to_ts is read.",
+      "type": "object",
+      "required": ["thread_id", "unread_count", "read_up_to_ts"],
+      "additionalProperties": false,
+      "properties": {
+        "thread_id": { "$ref": "#/$defs/thread-id" },
+        "unread_count": {
+          "$ref": "common.schema.json#/$defs/int32",
+          "minimum": 0
+        },
+        "read_up_to_ts": { "$ref": "common.schema.json#/$defs/timestamp" }
+      }
+    }
+  }
+}

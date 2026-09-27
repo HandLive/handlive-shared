@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/relay-rv_joined.schema.json",
+  "title": "HandLive — relay op rv_joined (relay → device)",
+  "description": "0.7.3, PAIR-01 API 7: sent to both members when the second member joins (peer_present = true).",
+  "type": "object",
+  "required": ["op", "rv_id", "peer_present"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "rv_joined" },
+    "rv_id": { "$ref": "common.schema.json#/$defs/b64u-16" },
+    "peer_present": { "type": "boolean" }
+  }
+}
