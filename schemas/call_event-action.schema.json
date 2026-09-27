@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/call_event-action.schema.json",
+  "title": "HandLive — call_event/action (C→S, ack)",
+  "description": "CALL-02 API 1 (answer, reject) and CALL-03 API 1 (end). Over WebSocket Android carries out only answer, reject and end; hold, unhold, dtmf and mute always get CALL_HFP_REQUIRED (0.7.1). Android acks as soon as the Telecom method returns; the result arrives as call_event/state. Success ack: #/$defs/ack (empty data); error ack: #/$defs/ack-failure.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "action" },
+    "data": {
+      "type": "object",
+      "required": ["call_id", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "call_id": {
+          "description": "call_id of the context the client is showing.",
+          "$ref": "call_event-common.schema.json#/$defs/call-id"
+        },
+        "action": { "$ref": "#/$defs/action" },
+        "audio": {
+          "description": "Only with answer: where the user takes the call; absent → phone.",
+          "enum": ["phone", "mac"]
+        }
+      },
+      "if": { "properties": { "action": { "const": "answer" } } },
+      "else": { "not": { "required": ["audio"] } }
+    }
+  },
+  "$defs": {
+    "action": {
+      "description": "answer (Mac only), reject, end; the HFP-only actions are refused over WebSocket.",
+      "enum": ["answer", "reject", "end", "hold", "unhold", "dtmf", "mute"]
+    },
+    "hfp-action": {
+      "description": "Actions only possible through HFP commands from the Mac (CALL-03 API 3).",
+      "enum": ["hold", "unhold", "dtmf", "mute"]
+    },
+    "ack": {
+      "description": "Success ack of call_event/action: empty data, sent once Android has called acceptRingingCall() or endCall().",
+      "allOf": [
+        { "$ref": "ack.schema.json#/$defs/success" },
+        { "properties": { "data": { "type": "object", "maxProperties": 0 } } }
+      ]
+    },
+    "ack-failure": {
+      "description": "Error ack of call_event/action: the codes of CALL-02 API 1 in check order, plus INTERNAL (0.8.1), with the details each code requires.",
+      "allOf": [
+        { "$ref": "ack.schema.json#/$defs/failure" },
+        { "properties": { "error": { "$ref": "#/$defs/error" } } }
+      ]
+    },
+    "error": {
+      "type": "object",
+      "required": ["code"],
+      "properties": {
+        "code": {
+          "enum": ["FEATURE_DISABLED", "BAD_REQUEST", "CALL_HFP_REQUIRED", "CALL_NOT_FOUND", "PERMISSION_MISSING", "CALL_ACTION_NOT_ALLOWED", "INTERNAL"]
+        }
+      },
+      "allOf": [
+        {
+          "description": "CALL_HFP_REQUIRED: details.action = the action that was sent.",
+          "if": { "properties": { "code": { "const": "CALL_HFP_REQUIRED" } } },
+          "then": {
+            "required": ["details"],
+            "properties": {
+              "details": {
+                "type": "object",
+                "required": ["action"],
+                "additionalProperties": false,
+                "properties": { "action": { "$ref": "#/$defs/hfp-action" } }
+              }
+            }
+          }
+        },
+        {
+          "description": "PERMISSION_MISSING: the missing permission is ANSWER_PHONE_CALLS.",
+          "if": { "properties": { "code": { "const": "PERMISSION_MISSING" } } },
+          "then": {
+            "required": ["details"],
+            "properties": {
+              "details": {
+                "type": "object",
+                "required": ["permission"],
+                "additionalProperties": false,
+                "properties": { "permission": { "const": "android.permission.ANSWER_PHONE_CALLS" } }
+              }
+            }
+          }
+        },
+        {
+          "description": "CALL_ACTION_NOT_ALLOWED: details.state = the current state, details.reason per 0.8.1.",
+          "if": { "properties": { "code": { "const": "CALL_ACTION_NOT_ALLOWED" } } },
+          "then": {
+            "required": ["details"],
+            "properties": { "details": { "$ref": "#/$defs/not-allowed-details" } }
+          }
+        }
+      ]
+    },
+    "not-allowed-details": {
+      "description": "reason: state (answer or reject when not ringing, end when not offhook, or another command for the call_id within 3 s), waiting (a waiting call is present, so the phone is ringing), platform (answer from an iPhone/iPad, checked last, so the phone is ringing), system (Telecom refuses, for example an emergency call, while the phone is still ringing or offhook).",
+      "type": "object",
+      "required": ["state", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "state": { "enum": ["ringing", "offhook", "idle"] },
+        "reason": { "enum": ["state", "waiting", "platform", "system"] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "reason": { "enum": ["waiting", "platform"] } } },
+          "then": { "properties": { "state": { "const": "ringing" } } }
+        },
+        {
+          "if": { "properties": { "reason": { "const": "system" } } },
+          "then": { "properties": { "state": { "enum": ["ringing", "offhook"] } } }
+        }
+      ]
+    }
+  }
+}

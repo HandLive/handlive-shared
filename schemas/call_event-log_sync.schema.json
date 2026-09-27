@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/call_event-log_sync.schema.json",
+  "title": "HandLive — call_event/log_sync (C→S, ack with data)",
+  "description": "CALL-04 API 1. The client repeats the request with the cursor of the page it just stored while has_more = true; a first sync (no cursor, or reset) covers at most 500 entries of the last 90 days (CALLLOG_SYNC_WINDOW). Success ack: one page, #/$defs/ack; error ack: #/$defs/ack-failure.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "log_sync" },
+    "data": {
+      "type": "object",
+      "required": ["limit"],
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "description": "The cursor received with the previous page or the previous sync; absent on the first sync.",
+          "$ref": "#/$defs/cursor"
+        },
+        "limit": {
+          "description": "Maximum number of entries in the page: the client sends 200; Android accepts 1–500.",
+          "$ref": "common.schema.json#/$defs/int32",
+          "minimum": 1,
+          "maximum": 500
+        }
+      }
+    }
+  },
+  "$defs": {
+    "cursor": {
+      "description": "Opaque to the client; Android writes b64u of the JSON {\"v\":1,\"id\":<largest _ID covered>}.",
+      "$ref": "common.schema.json#/$defs/b64u",
+      "minLength": 2
+    },
+    "ack": {
+      "description": "Success ack of call_event/log_sync.",
+      "allOf": [
+        { "$ref": "ack.schema.json#/$defs/success" },
+        { "properties": { "data": { "$ref": "#/$defs/ack-data" } } }
+      ]
+    },
+    "ack-data": {
+      "description": "One page, entries in ascending entry_id order; Android closes a page at 180 KiB of plaintext, so the envelope stays below 256 KiB.",
+      "type": "object",
+      "required": ["entries", "cursor", "has_more", "reset"],
+      "additionalProperties": false,
+      "properties": {
+        "entries": {
+          "type": "array",
+          "maxItems": 500,
+          "items": { "$ref": "call_event-common.schema.json#/$defs/entry" }
+        },
+        "cursor": {
+          "description": "The cursor after this page; the client stores it in the same transaction as the page.",
+          "$ref": "#/$defs/cursor"
+        },
+        "has_more": { "type": "boolean" },
+        "reset": {
+          "description": "true when Android ignored the cursor it received and returns the first page of a first sync (CALL-04 E5); the client then deletes the pair's call log in the same transaction.",
+          "type": "boolean"
+        }
+      }
+    },
+    "ack-failure": {
+      "description": "Error ack of call_event/log_sync: FEATURE_DISABLED, PERMISSION_MISSING (READ_CALL_LOG), BAD_REQUEST (limit outside 1–500), INTERNAL.",
+      "allOf": [
+        { "$ref": "ack.schema.json#/$defs/failure" },
+        { "properties": { "error": { "$ref": "#/$defs/error" } } }
+      ]
+    },
+    "error": {
+      "type": "object",
+      "required": ["code"],
+      "properties": {
+        "code": { "enum": ["FEATURE_DISABLED", "PERMISSION_MISSING", "BAD_REQUEST", "INTERNAL"] }
+      },
+      "if": { "properties": { "code": { "const": "PERMISSION_MISSING" } } },
+      "then": {
+        "required": ["details"],
+        "properties": {
+          "details": {
+            "type": "object",
+            "required": ["permission"],
+            "additionalProperties": false,
+            "properties": { "permission": { "const": "android.permission.READ_CALL_LOG" } }
+          }
+        }
+      }
+    }
+  }
+}
