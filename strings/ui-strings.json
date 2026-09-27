@@ -64,12 +64,28 @@
       "specs": ["CALL-01", "CALL-02"]
     },
     {
+      "key": "call.answering",
+      "en": "Answering…",
+      "vi": "Đang trả lời…",
+      "comment": "In-progress label of the Mac call panel after Answer, until the ack or the next state arrives; the buttons stay locked (CALL-02 field 9)",
+      "platforms": ["macos"],
+      "specs": ["CALL-02"]
+    },
+    {
       "key": "call.caller_id_permission_hint",
       "en": "Allow HandLive to read the call log on the phone to show caller numbers",
       "vi": "Cho phép HandLive đọc nhật ký cuộc gọi trên điện thoại để hiện số gọi đến",
       "comment": "Hint under call.unknown_caller in the Mac call panel and the iPhone/iPad banner when the phone's permissions_missing contains READ_CALL_LOG (CALL-01 field 12, E2)",
       "platforms": ["macos", "ios"],
       "specs": ["CALL-01"]
+    },
+    {
+      "key": "call.custom_message_ellipsis",
+      "en": "Custom Message…",
+      "vi": "Tin khác…",
+      "comment": "Last item of the Decline with Message… menu: opens a single-line field (placeholder sms.compose_placeholder, button sms.send), at most 160 characters; nothing is sent when it is empty after trimming whitespace (CALL-02 field 7)",
+      "platforms": ["macos"],
+      "specs": ["CALL-02"]
     },
     {
       "key": "call.decline",
@@ -80,12 +96,28 @@
       "specs": ["CALL-01", "CALL-02"]
     },
     {
+      "key": "call.decline_failed",
+      "en": "Couldn't decline the call. It's still ringing on the phone.",
+      "vi": "Không gửi được lệnh từ chối. Cuộc gọi vẫn đổ chuông trên điện thoại.",
+      "comment": "Body of the local notification (no title) the iPhone/iPad posts when Decline on the incoming-call notification could not reach the phone within 15 s (CALL-02 E8, field 11, step B3)",
+      "platforms": ["ios"],
+      "specs": ["CALL-02"]
+    },
+    {
       "key": "call.decline_with_message_ellipsis",
       "en": "Decline with Message…",
       "vi": "Từ chối kèm tin nhắn…",
       "comment": "Text button of the ringing Mac call panel opening the quick-reply menu (the call.quick_replies templates, then call.custom_message_ellipsis); only when controls.reject = true, the number is known, SMS is in effect and the phone can send SMS (CALL-01 field 8, CALL-02 field 5)",
       "platforms": ["macos"],
       "specs": ["CALL-01", "CALL-02"]
+    },
+    {
+      "key": "call.declining",
+      "en": "Declining…",
+      "vi": "Đang từ chối…",
+      "comment": "In-progress label of the Mac call panel and the iPhone/iPad banner after Decline or a quick reply, until the ack or the next state arrives; the buttons stay locked (CALL-02 field 9)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-02"]
     },
     {
       "key": "call.ignore",
@@ -136,6 +168,22 @@
       "comment": "Shown instead of the caller's name and number when the caller withholds the number (presentation = restricted): Mac call panel, iPhone/iPad banner, notification titles; also the call log row and the missed-call notification title when number = null (CALL-01 field 3, CALL-04 fields 2, 8)",
       "platforms": ["macos", "ios"],
       "specs": ["CALL-01", "CALL-04"]
+    },
+    {
+      "key": "call.quick_reply_call_back",
+      "en": "I'll call you back later",
+      "vi": "Tôi sẽ gọi lại sau",
+      "comment": "First default template of call.quick_replies, written into the setting in the language active when the Mac creates the defaults; after that it is user data and never translated (CALL-02 field 6, 0.12.4); at most 160 characters",
+      "platforms": ["macos"],
+      "specs": ["CALL-02", "0.12.4"]
+    },
+    {
+      "key": "call.quick_reply_in_meeting",
+      "en": "I'm in a meeting",
+      "vi": "Tôi đang họp",
+      "comment": "Second default template of call.quick_replies, written into the setting in the language active when the Mac creates the defaults; after that it is user data and never translated (CALL-02 field 6, 0.12.4); at most 160 characters",
+      "platforms": ["macos"],
+      "specs": ["CALL-02", "0.12.4"]
     },
     {
       "key": "call.unknown_caller",
@@ -579,6 +627,54 @@
       "comment": "Mac form of common.view_instructions: the button opens the SMS-01 field 7 alert, so it ends with “…”",
       "platforms": ["macos"],
       "specs": ["SMS-01"]
+    },
+    {
+      "key": "error.call_action_not_allowed",
+      "en": "The call was answered on the phone",
+      "vi": "Cuộc gọi đã được nghe trên điện thoại",
+      "comment": "Mac call panel, iPhone/iPad banner: Answer or Decline refused with CALL_ACTION_NOT_ALLOWED (already answered on the phone, another device was faster, a waiting call); End refused with reason system uses error.call_end_on_phone (CALL-02 E2, field 10)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-02"]
+    },
+    {
+      "key": "error.call_answer_permission",
+      "en": "The phone hasn't allowed HandLive to answer calls",
+      "vi": "Điện thoại chưa cho phép HandLive trả lời cuộc gọi",
+      "comment": "Mac call panel, iPhone/iPad banner: PERMISSION_MISSING for android.permission.ANSWER_PHONE_CALLS; the Answer, Decline and End buttons hide until the phone grants it (CALL-02 E3, field 10)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-02"]
+    },
+    {
+      "key": "error.call_audio_switch_failed",
+      "en": "Couldn't switch the audio to the Mac",
+      "vi": "Không chuyển được âm thanh sang Mac",
+      "comment": "Mac call panel after Answer on Mac when moving the audio fails (CALL_ROUTE_FAILED, CALL_BT_NOT_CONNECTED, SHIZUKU_NOT_RUNNING, CALL_AUDIO_CAPTURE_UNSUPPORTED); the call stays answered with the audio on the phone (CALL-02 E7, field 10)",
+      "platforms": ["macos"],
+      "specs": ["CALL-02"]
+    },
+    {
+      "key": "error.call_command_not_sent",
+      "en": "Couldn't send the command to the phone",
+      "vi": "Không gửi được lệnh tới điện thoại",
+      "comment": "Mac call panel, iPhone/iPad banner: no ack within REQUEST_TIMEOUT or the session was lost; the panel returns to its previous state and the command is never re-sent with a new id (CALL-02 E5, field 10; End: CALL-03 step 6)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-02", "CALL-03"]
+    },
+    {
+      "key": "error.call_message_not_sent",
+      "en": "The call was answered, so the message wasn't sent",
+      "vi": "Cuộc gọi đã được nghe, tin nhắn không được gửi",
+      "comment": "Mac call panel: Decline with Message… while the call was answered on the phone (state offhook); the quick reply is not sent (CALL-02 E9)",
+      "platforms": ["macos"],
+      "specs": ["CALL-02"]
+    },
+    {
+      "key": "error.call_not_found",
+      "en": "The call has ended",
+      "vi": "Cuộc gọi đã kết thúc",
+      "comment": "Mac call panel, iPhone/iPad banner: CALL_NOT_FOUND, the call has ended or the call_id is stale (CALL-02 E1, field 10, CALL-03 E1)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-02", "CALL-03"]
     },
     {
       "key": "error.clip_content_too_large",
@@ -2255,9 +2351,9 @@
       "key": "sms.compose_placeholder",
       "en": "SMS Message",
       "vi": "Tin nhắn SMS",
-      "comment": "Placeholder of the compose field at the bottom of a conversation (MessageBubble) and of the quick-reply text field of the HL_SMS_REPLY notification action (SMS-02 API 4); at most 1,600 characters",
+      "comment": "Placeholder of the compose field at the bottom of a conversation (MessageBubble) and of the quick-reply text field of the HL_SMS_REPLY notification action (SMS-02 API 4); at most 1,600 characters; also the single-line field of Custom Message… in Decline with Message… (CALL-02 field 7, at most 160 characters)",
       "platforms": ["macos", "ios"],
-      "specs": ["SMS-04", "SMS-02"]
+      "specs": ["SMS-04", "SMS-02", "CALL-02"]
     },
     {
       "key": "sms.contacts_permission_hint",
@@ -2433,9 +2529,9 @@
       "key": "sms.send",
       "en": "Send",
       "vi": "Gửi",
-      "comment": "Send button of the quick-reply text field in the SMS notification, and accessibility label of the send button of the compose field (SMS-04 field 5)",
+      "comment": "Send button of the quick-reply text field in the SMS notification, and accessibility label of the send button of the compose field (SMS-04 field 5); also the Send button of the Custom Message… field of Decline with Message… (CALL-02 field 7)",
       "platforms": ["macos", "ios"],
-      "specs": ["SMS-02", "SMS-04"]
+      "specs": ["SMS-02", "SMS-04", "CALL-02"]
     },
     {
       "key": "sms.status_delivered",
