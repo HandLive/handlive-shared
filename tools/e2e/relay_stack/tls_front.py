@@ -9,7 +9,8 @@ Each connection carries one request: the front appends the client address to `X-
 ALPN offers only `http/1.1`. The relay must trust the front (`RELAY_TRUSTED_PROXIES=127.0.0.1`).
 
 The log has one line per request as soon as the relay answers — client address, method, path without the query,
-the status, the TLS version, the User-Agent and the time to the answer — plus a closing line with the duration and
+the status, the TLS version, the User-Agent, the time to the answer and its split (TLS handshake, request head,
+relay) — plus a closing line with the duration and
 bytes each way for a WebSocket, and one line per failed TLS handshake with the TLS alert, which is how a client that
 refuses the certificate shows up (CONN-03 E7). No body and no header value other than the User-Agent is logged.
 """
@@ -111,12 +112,14 @@ class Front:
             return
         tls = writer.get_extra_info("ssl_object")
         tls_version = tls.version() if tls is not None else "?"
+        handshake_done = time.monotonic()
         try:
             head = await asyncio.wait_for(reader.readuntil(b"\r\n\r\n"), HEAD_TIMEOUT_S)
         except (asyncio.IncompleteReadError, asyncio.LimitOverrunError, asyncio.TimeoutError, ConnectionError,
                 ssl.SSLError):
             writer.close()
             return
+        head_done = time.monotonic()
         new_head, info = rewrite_head(head, peer[0])
         try:
             up_reader, up_writer = await asyncio.open_connection(*self.upstream, limit=MAX_HEAD)
@@ -135,8 +138,12 @@ class Front:
             # Logged as soon as the relay answers, so an open WebSocket shows up at once.
             status[0] = first.split(b" ", 2)[1].decode("latin-1", "replace") if b" " in first else "-"
             kind = " websocket" if info["upgrade"] and status[0] == "101" else ""
+            now = time.monotonic()
+            # Where the time went: TLS handshake, then the request head, then the relay's answer.
+            split = (f"tls={int((handshake_done - started) * 1000)} head={int((head_done - handshake_done) * 1000)} "
+                     f"relay={int((now - head_done) * 1000)}")
             self.log.write(f"{line} {status[0]}{kind} {tls_version} ua={info['ua']!r}"
-                           + ("" if kind else f" {int((time.monotonic() - started) * 1000)}ms"))
+                           + (f" {split}" if kind else f" {int((now - started) * 1000)}ms {split}"))
 
         await asyncio.gather(_pipe(reader, up_writer, sent), _pipe(up_reader, writer, received, answered))
         if info["upgrade"] and status[0] == "101":
