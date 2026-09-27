@@ -1123,6 +1123,14 @@
       "specs": ["PAIR-01"]
     },
     {
+      "key": "error.pin_expired",
+      "en": "The PIN has expired. Get a new PIN on your Mac or iPhone and try again.",
+      "vi": "Mã PIN đã hết hạn. Lấy mã PIN mới trên Mac hoặc iPhone rồi thử lại.",
+      "comment": "PAIR-01 E2 in the PIN flow on the phone: the 120 s window closed without a pair (PAIRING_CLOSED)",
+      "platforms": ["android"],
+      "specs": ["PAIR-01"]
+    },
+    {
       "key": "error.pin_invalid",
       "en": "The PIN is incorrect. Check the code on your Mac and try again.",
       "vi": "Mã PIN không đúng. Kiểm tra mã trên Mac rồi nhập lại.",
