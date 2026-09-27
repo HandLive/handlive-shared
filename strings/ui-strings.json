@@ -72,6 +72,14 @@
       "specs": ["CALL-01", "CALL-02"]
     },
     {
+      "key": "call.answer_tooltip",
+      "en": "Answer the call",
+      "vi": "Trả lời cuộc gọi",
+      "comment": "Tooltip of the round Answer button of the ringing Mac call panel (CALL-01 field 6); at most 75 characters",
+      "platforms": ["macos"],
+      "specs": ["CALL-01"]
+    },
+    {
       "key": "call.answering",
       "en": "Answering…",
       "vi": "Đang trả lời…",
@@ -144,6 +152,14 @@
       "specs": ["CALL-02"]
     },
     {
+      "key": "call.decline_tooltip",
+      "en": "Decline the call",
+      "vi": "Từ chối cuộc gọi",
+      "comment": "Tooltip of the round Decline button of the ringing Mac call panel (CALL-01 field 7); at most 75 characters",
+      "platforms": ["macos"],
+      "specs": ["CALL-01"]
+    },
+    {
       "key": "call.decline_with_message_ellipsis",
       "en": "Decline with Message…",
       "vi": "Từ chối kèm tin nhắn…",
@@ -172,6 +188,14 @@
       "en": "End & Answer",
       "vi": "Kết thúc và nghe",
       "comment": "Call-waiting button of the in-call Mac call panel, only with a Bluetooth HFP link: ends the active call and answers the waiting one (CALL-03 field 11)",
+      "platforms": ["macos"],
+      "specs": ["CALL-03"]
+    },
+    {
+      "key": "call.end_tooltip",
+      "en": "End the call",
+      "vi": "Kết thúc cuộc gọi",
+      "comment": "Tooltip of the round End button of the in-call Mac call panel (CALL-03 field 5); at most 75 characters",
       "platforms": ["macos"],
       "specs": ["CALL-03"]
     },
@@ -287,7 +311,7 @@
       "key": "call.mute_tooltip",
       "en": "Mute the microphone on the Mac",
       "vi": "Tắt tiếng micro trên Mac",
-      "comment": "Tooltip of call.mute in the Mac call panel (design system CallPanel); at most 75 characters",
+      "comment": "Tooltip of call.mute in the in-call Mac call panel (CALL-03 field 9); at most 75 characters",
       "platforms": ["macos"],
       "specs": ["CALL-03"]
     },
@@ -2086,6 +2110,14 @@
       "specs": ["SET-02"]
     },
     {
+      "key": "settings.focus_permission_hint",
+      "en": "To ring, allow HandLive to read your Focus status in System Settings › Privacy & Security › Focus.",
+      "vi": "Để đổ chuông, hãy cho phép HandLive đọc trạng thái Tập trung trong Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Tập trung.",
+      "comment": "Hint under Ring on Mac in the Mac Calls pane while HandLive may not read the Focus status, so the panel shows without ringing (SET-02 field 12, CALL-01 E4); macOS names as the system shows them, to be checked on a real Mac",
+      "platforms": ["macos"],
+      "specs": ["SET-02", "CALL-01"]
+    },
+    {
       "key": "settings.general",
       "en": "General",
       "vi": "Chung",
@@ -2217,9 +2249,33 @@
       "key": "settings.quick_replies",
       "en": "Quick Replies",
       "vi": "Tin trả lời nhanh",
-      "comment": "Title of the list of call.quick_replies templates in the Mac Calls pane: add, edit, delete, reorder, at most 6 templates of 160 characters (CALL-02 field 8; design system Settings)",
+      "comment": "Title of the list of call.quick_replies templates in the Mac Calls pane (SET-02 field 33): add (settings.quick_reply_add), edit, remove (settings.quick_reply_remove), reorder, at most 6 templates of 160 characters, caption settings.quick_replies_footer (CALL-02 field 8)",
       "platforms": ["macos"],
       "specs": ["CALL-02", "SET-02"]
+    },
+    {
+      "key": "settings.quick_replies_footer",
+      "en": "Up to 6 replies of 160 characters. Choose one when you decline a call on this Mac.",
+      "vi": "Tối đa 6 tin, mỗi tin 160 ký tự. Chọn một tin khi từ chối cuộc gọi trên Mac này.",
+      "comment": "Caption under the Quick Replies list of the Mac Calls pane (CALL-02 field 8)",
+      "platforms": ["macos"],
+      "specs": ["CALL-02"]
+    },
+    {
+      "key": "settings.quick_reply_add",
+      "en": "Add Quick Reply",
+      "vi": "Thêm tin trả lời nhanh",
+      "comment": "Adds a template to the Quick Replies list of the Mac Calls pane: the add button's label, or its accessibility label and tooltip when the button only shows +; unavailable at 6 templates (CALL-02 field 8)",
+      "platforms": ["macos"],
+      "specs": ["CALL-02"]
+    },
+    {
+      "key": "settings.quick_reply_remove",
+      "en": "Remove Quick Reply",
+      "vi": "Xóa tin trả lời nhanh",
+      "comment": "Removes the selected template from the Quick Replies list of the Mac Calls pane: the remove button's label, or its accessibility label and tooltip when the button only shows − (CALL-02 field 8)",
+      "platforms": ["macos"],
+      "specs": ["CALL-02"]
     },
     {
       "key": "settings.remove_from_server",
