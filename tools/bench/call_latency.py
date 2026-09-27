@@ -14,9 +14,11 @@ Decline from an iPhone/iPad notification (CALL-02 B1–B3): from `call_action_ta
 IDLE callback. Target: 2 s (over the relay).
 Missed call (CALL-04): from the phone's IDLE callback of a missed call to the client's `call_missed_notified`.
 Target: 1.5 s.
-Incoming push (CALL-01 API 4): from the moment the number is known — or the end of the 300 ms wait for it — to
-`call_push_sent status=202`, phone only, target 300 ms; and from RINGING to the extension's `call_push_shown`, no
-target (APNs).
+Incoming push (CALL-01 API 4 logic 2): from the moment the caller's number is settled (the first `call_changed` with
+`settled=true`: the broadcast that brought the number, the second ringing copy without it that marks a withheld
+caller, or RINGING itself without READ_CALL_LOG) — or the end of the 300 ms wait when nothing settled it within the
+wait — to `call_push_sent status=202`, phone only, target 300 ms; and from RINGING to the extension's
+`call_push_shown`, no target (APNs).
 Focus (CALL-01 E4, API 5): every `call_alert` of the Mac follows the rule — Focus on: no panel, no ringtone, a
 time-sensitive notification; Focus status not readable: the panel without ringtone; otherwise the panel with a
 passive notification — and no panel is shown while a Focus is on.
@@ -105,7 +107,7 @@ class Push:
     device: str
     reason: str
     status: str
-    after_number_ms: float | None  # number known (or the wait over) → push answered, phone only (call_incoming)
+    after_number_ms: float | None  # number settled (or the wait over) → push answered, phone only (call_incoming)
     shown_ms: float | None  # first RINGING callback → shown by the extension (call_incoming)
 
 
@@ -213,8 +215,10 @@ def pushes(log: Log, clocks: ClockModel) -> list[Push]:
         after_number = shown_ms = None
         if reason == "call_incoming" and ring is not None:
             ring_os = float(ring.get("os"))
-            known = next((float(c.get("os")) for c in _changes(log, sent.dev, call) if c.get("number") == "known"), None)
-            start = known if known is not None and known <= ring_os + NUMBER_WAIT_MS else ring_os + NUMBER_WAIT_MS
+            # A number settled after the wait did not hold the push back: it left when the wait ended.
+            settled = next((float(c.get("os")) for c in _changes(log, sent.dev, call) if c.get("settled") == "true"),
+                           None)
+            start = settled if settled is not None and settled <= ring_os + NUMBER_WAIT_MS else ring_os + NUMBER_WAIT_MS
             after_number = sent.wall_ms - start if sent.get("status") == "202" else None
             display = next((e for e in log.of("call_push_shown") if e.dev == sent.get("peer")
                             and e.get("call") == call and e.get("reason") == reason), None)

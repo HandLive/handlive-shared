@@ -110,7 +110,7 @@ def build(line, mac, phone, ipad):
     truth["missed"] = 900.0
     # D: the iPad has no session: push once the number is known, then Decline from the notification over the relay.
     s.change(60000, CALL["D"], "ringing", number="none")
-    s.change(60120, CALL["D"], "ringing", trigger="broadcast", number="known")
+    s.change(60120, CALL["D"], "ringing", trigger="broadcast", number="known", settled="true")
     s.add(phone, 60300, "call_push_sent", call=CALL["D"], peer=ipad, reason="call_incoming", status=202)
     s.add(ipad, 61100, "call_push_shown", call=CALL["D"], reason="call_incoming", late="false")
     truth["push"] = (180.0, 1100.0)
