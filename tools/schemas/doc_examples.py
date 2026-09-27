@@ -52,10 +52,10 @@ PLACEHOLDER_BY_KEY = {
 # Không sửa docs/ ở thẻ S0.2; đề xuất sửa nằm trong báo cáo phase-00-S0.2.md.
 KNOWN_SPEC_ISSUES: dict[tuple[str, int], str] = {}
 
-HEADING_TYPE_OP = re.compile(r"WS (session|capability|sms|clipboard|pair|ping)/([a-z_]+)")
-HEADING_TYPE_ONLY = re.compile(r"`(session|capability|sms|clipboard|pair|ping)` op")
+HEADING_TYPE_OP = re.compile(r"WS (session|capability|sms|clipboard|pair|ping|call_event)/([a-z_]+)")
+HEADING_TYPE_ONLY = re.compile(r"`(session|capability|sms|clipboard|pair|ping|call_event)` op")
 PLACEHOLDER = re.compile(r"^<[^<>]+>$")
-SCOPED_TYPES = ("session", "capability", "sms", "clipboard", "pair", "ping")
+SCOPED_TYPES = ("session", "capability", "sms", "clipboard", "pair", "ping", "call_event")
 
 # Thân JSON không phải payload envelope: (mẫu tiêu đề mục, điều kiện trên đối tượng, schema).
 BODY_RULES = [
@@ -77,6 +77,12 @@ BODY_RULES = [
     (re.compile(r"APNs HTTP/2"), lambda o: "aps" in o, "push#apns-payload"),
     # Nội dung thông báo SMS (SMS-02 API 4): nhận theo categoryIdentifier HL_SMS…, vì tiêu đề mục khác nhau giữa hai bản ngôn ngữ.
     (re.compile(r""), lambda o: str(o.get("categoryIdentifier", "")).startswith("HL_SMS"), "sms-notification"),
+    # Call notification content (CALL-01 API 6, CALL-04 API 4), recognized the same way: the incoming call by its
+    # HL_CALL_INCOMING… category, the missed call by its call-missed: identifier or HL_CALL_MISSED category.
+    (re.compile(r""), lambda o: str(o.get("categoryIdentifier", "")).startswith("HL_CALL_INCOMING"),
+     "call-notification#incoming"),
+    (re.compile(r""), lambda o: str(o.get("identifier", "")).startswith("call-missed:")
+     or o.get("categoryIdentifier") == "HL_CALL_MISSED", "call-notification#missed"),
 ]
 
 
@@ -195,6 +201,9 @@ def classify(ex: Example, strict_payload: bool, known: frozenset[str] | set[str]
         ack = f"{scoped_type}-{scoped_op}#ack"
         if scoped_type and scoped_op and obj.get("ok") is True and ack in known:
             return ack
+        # An op whose spec lists its error codes and their details has its own error ack (call_event ops).
+        if scoped_type and scoped_op and obj.get("ok") is False and f"{ack}-failure" in known:
+            return f"{ack}-failure"
         if scoped_type == "session" and scoped_op == "rekey" and obj.get("ok") is True:
             return "session-rekey#ack"
         return "ack"

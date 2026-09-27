@@ -4,11 +4,12 @@ Chạy: tools/.venv/bin/python tools/schemas/check_schemas.py
 1. Mọi schema hợp lệ theo metaschema draft 2020-12, $id khớp tên file, mọi $ref phân giải được;
    enum mã lỗi, mã đóng WebSocket và type khớp bảng 0.8.1, 0.8.3 và 0.7.1; op sms, op điều khiển relay,
    endpoint REST, mã lỗi relay, reason và loc-key push khớp 0.7.1, 0.7.3, 0.7.4, 0.8.2, CONN-04
-   (relay_sms_spec_checks.py).
+   (relay_sms_spec_checks.py); op call_event, trường, enum và mã lỗi của cuộc gọi khớp 0.7.1, 0.8.1, 0.9.3 và
+   CALL-01…04 (call_spec_checks.py).
 2. Ví dụ JSON trong 00-common-specs.md (bắt buộc, mọi khối ```json phải được phân loại) và ví dụ trong
    01–08 (khối ```json, thân JSON trong khối ```http, inline) có schema thì phải qua schema tương ứng:
-   envelope/ack/session/capability/sms/clipboard, bọc định tuyến và tin điều khiển relay, thân REST relay,
-   thân push; env_b64/hl phải giải ra một envelope hợp lệ.
+   envelope/ack/session/capability/sms/clipboard/call_event, bọc định tuyến và tin điều khiển relay, thân REST
+   relay, thân push, nội dung thông báo SMS và cuộc gọi; env_b64/hl phải giải ra một envelope hợp lệ.
 3. Mẫu dương tự viết phải qua; mẫu âm phải bị từ chối.
 4. Ví dụ catalog chuỗi giao diện (khối ```jsonc có "strings" trong 00-common-specs, mục 0.12.1) qua
    strings/ui-strings.schema.json và các quy tắc của tools/strings/catalog_rules.py (trừ thứ tự khóa).
@@ -30,9 +31,11 @@ from referencing import Registry, Resource
 
 sys.dont_write_bytecode = True  # không để lại __pycache__ trong kho
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import call_spec_checks  # noqa: E402
 import doc_examples  # noqa: E402
 import relay_sms_spec_checks  # noqa: E402
 import sample_messages  # noqa: E402
+import sample_messages_call  # noqa: E402
 import sample_messages_relay  # noqa: E402
 import sample_messages_sms  # noqa: E402
 
@@ -50,7 +53,7 @@ if not COMMON_SPECS.is_file():
 ID_BASE = "https://handlive.app/schemas/v1/"
 VECTORS_DIR = SHARED_ROOT / "test-vectors"
 CATALOG = SHARED_ROOT / "strings" / "ui-strings.json"
-SAMPLE_MODULES = (sample_messages, sample_messages_sms, sample_messages_relay)
+SAMPLE_MODULES = (sample_messages, sample_messages_sms, sample_messages_relay, sample_messages_call)
 
 
 class Report:
@@ -132,6 +135,10 @@ def check_enums_match_spec(schemas: dict[str, dict], report: Report) -> None:
     else:
         report.fail(f"envelope.type lệch 0.7.1: spec {sorted(spec_types)}, schema {sorted(schema_types)}")
     relay_sms_spec_checks.check_tables(schemas, COMMON_SPECS, DOCS_DIR, CATALOG, report)
+    try:
+        call_spec_checks.check_tables(schemas, DOCS_DIR, report)
+    except (ValueError, AttributeError, KeyError, IndexError) as exc:  # a heading or table the checks read moved
+        report.fail(f"call_spec_checks: cannot read the call tables of the specs: {exc!r}")
 
 
 def make_validators(schemas: dict[str, dict], registry: Registry) -> dict[str, Draft202012Validator]:
