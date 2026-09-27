@@ -18,8 +18,15 @@ PERMISSION_ALLOW = "com.android.permissioncontroller:id/permission_allow_button"
 
 
 def run(ctx) -> None:
-    adb, ui, rec, client = ctx.adb, ctx.ui, ctx.rec, ctx.client
-    if ctx.args.apk:
+    if ensure_paired(ctx, ctx.client, thorough=True):
+        check_session(ctx)
+
+
+def ensure_paired(ctx, client, thorough: bool = False) -> bool:
+    """Installs when asked (once), taps through the first run when it shows, and pairs `client` unless the phone
+    already knows its pair. `thorough` adds the wrong-PIN and early-connect checks of a first pairing."""
+    adb, ui, rec = ctx.adb, ctx.ui, ctx.rec
+    if ctx.args.apk and client is ctx.client and not getattr(ctx, "installed", False):
         t0 = time.monotonic()
         adb.uninstall()
         adb.install(ctx.args.apk)
@@ -27,6 +34,7 @@ def run(ctx) -> None:
                   latency_ms=(time.monotonic() - t0) * 1000)
         client.forget_pair()          # a new install has a new device_id and no pair
         adb.logcat_clear()
+        ctx.installed = True
     adb.forward(client.port)
     adb.start_app()
     ui.pause()
@@ -34,17 +42,29 @@ def run(ctx) -> None:
                          devices=dict(text=en("pairing.add_device")))
     if screen is None:
         rec.check("the app shows its first screen", "SET-01 step 1", False, "no known screen")
-        return
+        return False
     if screen[0] == "welcome":
         first_run(ctx)
-    elif client.record.paired:
-        rec.info("already set up and paired; reconnecting only", "SET-01")
-        check_session(ctx)
-        return
+    elif client.record.paired and _pair_known(client):
+        rec.info(f"{client.record.name} is already paired with this phone", "PAIR-01")
+        return True
     elif screen[0] == "devices":
+        if client.record.paired:
+            client.forget_pair()
         ui.tap_text(en("pairing.add_device"))
-    pair(ctx)
-    check_session(ctx)
+    return pair(ctx, client, thorough, first=screen[0] == "welcome")
+
+
+def _pair_known(client) -> bool:
+    try:
+        s = client.session()
+        s.open()
+        s.close()
+        return True
+    except SessionRefused as exc:
+        return exc.code not in ("PAIR_UNKNOWN", "PAIR_REVOKED")
+    except (TransportClosed, OSError):
+        return True
 
 
 def first_run(ctx) -> None:
@@ -102,16 +122,20 @@ def _attempt_async(pairing, pin: str, left: int, timeout: float):
     return th, box
 
 
-def pair(ctx) -> None:
-    """PAIR-01 A1–A5 with the Mac's PIN; also the wrong-PIN path (E7) and the client connecting early."""
-    ui, rec, client = ctx.ui, ctx.rec, ctx.client
+def pair(ctx, client, thorough: bool = True, first: bool = False) -> bool:
+    """PAIR-01 A1–A5 with the client's PIN; `thorough` adds the wrong-PIN path (E7) and the client connecting early."""
+    ui, rec = ctx.ui, ctx.rec
     pairing = client.pin_pairing()
     pin = C.new_pin()
     wrong = f"{(int(pin) + 1) % 1_000_000:06d}"
-    rec.info("the Mac shows a 6-digit PIN (CSPRNG)", "PAIR-01 A2")
+    rec.info(f"{client.record.name} shows a 6-digit PIN (CSPRNG)", "PAIR-01 A2")
     ui.tap_text(en("pairing.enter_pin"))
     rec.check("“Enter PIN” opens the PIN entry with its hint", "PAIR-01 A3, field 6",
               ui.wait(20, text=en("pairing.pin_entry_hint")) is not None)
+    if not thorough:
+        _type_pin(ui, pin)
+        res = pairing.attempt(pin, attempts_left_if_wrong=2, offer_timeout=40)
+        return _paired(ctx, client, res, first)
     # E7: a wrong PIN typed on the phone, then the Mac connects and sees the offer's mac fail.
     _type_pin(ui, wrong)
     res = pairing.attempt(pin, attempts_left_if_wrong=2, offer_timeout=40)
@@ -139,23 +163,31 @@ def pair(ctx) -> None:
         ui.tap_text(en("pairing.enter_pin"))
         _type_pin(ui, pin)
         res = pairing.attempt(pin, attempts_left_if_wrong=2, offer_timeout=40)
+    return _paired(ctx, client, res, first)
+
+
+def _paired(ctx, client, res, first: bool) -> bool:
+    ui, rec = ctx.ui, ctx.rec
     rec.check("pairing completes: offer, confirm, done verified", "PAIR-01 steps 9–11, API 3–5",
               res.outcome == "paired", f"{res.outcome} {res.code or ''}", latency_ms=res.timings.get("total_ms"),
               target_ms=5000)
     rec.check("pair messages match the schemas", "0.5.1, shared/schemas", not res.violations,
               "; ".join(res.violations[:2]))
     if res.outcome != "paired":
-        return
+        return False
     client.save()
     title = ui.wait(20, text=en("pairing.paired_with", device_name=client.record.name))
     grouped = f"{res.security_code[:4]} {res.security_code[4:]}"
-    rec.check("“Paired with <Mac>” on the phone", "PAIR-01 step 12", title is not None)
-    rec.check("same Security Code on the phone and the Mac", "PAIR-02 field 10",
+    rec.check(f"“Paired with {client.record.name}” on the phone", "PAIR-01 step 12", title is not None)
+    rec.check("same Security Code on the phone and the client", "PAIR-02 field 10",
               ui.wait(5, text=grouped) is not None, f"Mac {res.security_code}")
     ui.tap_text(en("common.done"))
-    feature_list = ui.wait_any(8, perms=dict(text=en("permission.grant")), sms=dict(text=en("settings.sms_messages")))
-    rec.check("after the first pairing the app opens the feature list", "SET-01 step 8", feature_list is not None,
-              "" if feature_list else f"screen: {ui.screen_texts()[:6]}")
+    if first:
+        feature_list = ui.wait_any(8, perms=dict(text=en("permission.grant")),
+                                   sms=dict(text=en("settings.sms_messages")))
+        rec.check("after the first pairing the app opens the feature list", "SET-01 step 8", feature_list is not None,
+                  "" if feature_list else f"screen: {ui.screen_texts()[:6]}")
+    return True
 
 
 def check_session(ctx) -> None:

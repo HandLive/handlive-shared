@@ -45,7 +45,11 @@ def run(ctx) -> None:
     _read_changed(ctx, s, incoming)
     rec.check("no schema violation in the SMS messages", "shared/schemas", not s.violations,
               "; ".join(s.violations[:3]))
-    _permission_lost(ctx)
+    if ctx.args.shared_device:
+        rec.skip("READ_SMS revoked: PERMISSION_MISSING and the suggestion notification", "SMS-01 E2, SET-01 field 17",
+                 "revoking a permission restarts the app, which would cut the other clients of a shared emulator")
+    else:
+        _permission_lost(ctx)
 
 
 def _seed(ctx) -> None:
