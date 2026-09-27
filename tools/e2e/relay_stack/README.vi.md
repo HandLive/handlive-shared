@@ -64,6 +64,13 @@ Không có hai bản vá, ứng dụng hiện tại không dùng được relay 
 5. Đường push: ghép nối một iPhone giả (`platform ios`), gửi token bằng `PUT /v1/devices/me/push-token` (`provider` `apns_sandbox`, `topic` `app.handlive.ios`, token dạng hex; token bắt đầu bằng `dead` nhận 410). Khi iPhone không có phiên, gửi SMS hoặc gọi tới máy ảo (`adb emu sms send`, `adb emu gsm call`, chỉ dùng số giả): ứng dụng gửi `POST /v1/push`, và `captures --provider apns --prk <PRK>` cho thấy push đó cùng type và op của envelope đã giải mã.
 6. `check android` tổng hợp những gì ứng dụng đã làm.
 
+Những chỗ dễ vấp:
+
+- Giữ phiên của client mở vài giây. Ứng dụng ghi capability của client một cách bất đồng bộ và bỏ việc ghi khi phiên kết thúc. Phiên đóng ngay sau `capability/hello` để lại capability rỗng, và khi đó ứng dụng không gửi push nào cho iPhone đó.
+- Thu hồi cặp khi ứng dụng đang ở `/v1/relay`, hoặc hủy ghép nối trên điện thoại. Nếu thiết bị giả thu hồi cặp rồi tự xóa khỏi relay (`DELETE /v1/devices/me`), dòng của cặp cũng bị xóa. Ứng dụng đang offline sẽ không bao giờ nhận `pair_revoked` và giữ cặp đó cho LAN.
+- APK tin CA của một thư mục trạng thái. Hãy dùng lại cùng `--state-dir` (`down --wipe` giữ nguyên khóa). Thư mục trạng thái mới là CA mới, cần build lại.
+- Mạng của máy ảo đôi khi rớt (`IpReachabilityMonitor … NUD_FAILED` trong logcat). Khi đó ứng dụng kết nối lại `/v1/relay`, log của TLS front ghi một dòng `101` mới.
+
 Sau `down` rồi `up`, relay có JWT secret mới. Ứng dụng hiện tại giữ token cũ và nhận `401 SIGNATURE_INVALID` ở `/v1/relay` cho tới khi token hết hạn (tối đa 15 phút). Hãy khởi động lại ứng dụng (cài lại APK) sau khi khởi động lại relay.
 
 ## Những gì không chứng minh được

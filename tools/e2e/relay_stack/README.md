@@ -64,6 +64,13 @@ The app registers its device when its service starts with the relay on. It asks 
 5. Push path: pair a fake iPhone (`platform ios`), put its token with `PUT /v1/devices/me/push-token` (`provider` `apns_sandbox`, `topic` `app.handlive.ios`, the token in hex; one that starts with `dead` gets 410). With the iPhone off its session, send an SMS or ring the emulator (`adb emu sms send`, `adb emu gsm call`, fake numbers only): the app sends `POST /v1/push`, and `captures --provider apns --prk <PRK>` shows it with the decrypted envelope type and op.
 6. `check android` sums up what the app did.
 
+Things that bite:
+
+- Keep the client's session open a few seconds. The app records a client's capability asynchronously and drops the recording when the session ends; a session closed right after `capability/hello` leaves the capability empty, and the app then sends that iPhone no push at all.
+- Revoke while the app is on `/v1/relay`, or unpair on the phone. A fake device that revokes the pair and then deletes itself from the relay (`DELETE /v1/devices/me`) removes the pair row too, so an app that was offline never gets `pair_revoked` and keeps the pair for the LAN.
+- The APK trusts the CA of one state directory: keep using the same `--state-dir` (`down --wipe` keeps the keys); a new state directory means a new CA and a new build.
+- The emulator's network sometimes drops (`IpReachabilityMonitor … NUD_FAILED` in logcat); the app then reconnects to `/v1/relay`, which the front's log shows as a new `101`.
+
 After `down` and `up` the relay has a new JWT secret. The current app keeps its token and gets `401 SIGNATURE_INVALID` on `/v1/relay` until the token expires (up to 15 minutes); restart the app (install the APK again) after restarting the stack.
 
 ## What it cannot prove
