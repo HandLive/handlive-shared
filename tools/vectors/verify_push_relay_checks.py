@@ -2,7 +2,8 @@
 
 - K_push: HKDF with hashlib/hmac (verify_common), chained to the PRK of pair-prk.json.
 - SMS text cut (verify_push_truncation_checks): every sms/new push is run through the CONN-04 step 5b rule again.
-- Push reason and collapse key (verify_push_call_checks) re-derived from the decrypted plaintext of every push.
+- Call pushes (verify_push_call_checks): reason, collapse key and controls of each call push, and across vectors the
+  missed-call push that replaces an incoming one.
 - Envelopes: decoded as I-NSE does (strict standard base64 → UTF-8 JSON → AAD rebuilt from the parsed fields) and
   decrypted two ways (libsodium, and HChaCha20 + ChaCha20-Poly1305 as on Apple); every negative vector must fail for
   its stated reason and only for it.
@@ -71,6 +72,8 @@ def _check_envelope(c, n: str, v: dict, keys: dict, pair_prk: dict) -> tuple[lis
     c.eq(f"{n} push reason of the message", v["reason"], reason)
     if body["op"] == "new":
         c.true(f"{n} push envelope carries no local_id", "local_id" not in body["data"]["message"])
+    else:
+        verify_push_call_checks.check_call(c, n, v, body)
     req = json.loads(v["push_request"])
     # SMS-02 API 2: the message_key itself (already sms:<_id>); CONN-04 step 5b and CALL-04 API 5: call:<call_id> for
     # a call, calllog:<entry_id> for a missed call whose call_id is unknown.
@@ -133,13 +136,16 @@ def check_push_envelope(c, doc, all_docs) -> None:
         if v["kind"] == "key":
             _check_key(c, f"push-envelope/{v['name']}", v, pair_prk)
             keys[v["pair_name"]] = k_push(H(pair_prk[v["pair_name"]]["prk"])).hex()
-    cuts = []
+    cuts, calls = [], []
     for v in doc["vectors"]:
         if v["kind"] == "envelope":
-            steps, _ = _check_envelope(c, f"push-envelope/{v['name']}", v, keys, pair_prk)
+            steps, body = _check_envelope(c, f"push-envelope/{v['name']}", v, keys, pair_prk)
             if steps is not None:
                 cuts.append((v, steps))
+            if v["type"] == "call_event":
+                calls.append((v, body))
     verify_push_truncation_checks.check_coverage(c, cuts)
+    verify_push_call_checks.check_coverage(c, calls)
     c.true("push-envelope: K_push for every pair of pair-prk.json", set(keys) == set(pair_prk))
     c.true("push-envelope: sms and call_event envelopes",
            {v["type"] for v in doc["vectors"] if v["kind"] == "envelope"} == {"sms", "call_event"})

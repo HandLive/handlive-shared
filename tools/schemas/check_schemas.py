@@ -13,7 +13,8 @@ Chạy: tools/.venv/bin/python tools/schemas/check_schemas.py
 3. Mẫu dương tự viết phải qua; mẫu âm phải bị từ chối.
 4. Ví dụ catalog chuỗi giao diện (khối ```jsonc có "strings" trong 00-common-specs, mục 0.12.1) qua
    strings/ui-strings.schema.json và các quy tắc của tools/strings/catalog_rules.py (trừ thứ tự khóa).
-5. Tin trên dây trong shared/test-vectors (yêu cầu relay-auth, pairs_request) qua schema relay REST.
+5. Tin trên dây trong shared/test-vectors (yêu cầu relay-auth, pairs_request, plaintext pair/*, thân push, plaintext
+   sms/new và call_event của push) qua schema tương ứng.
 Thoát 0 khi mọi mục xanh.
 """
 
