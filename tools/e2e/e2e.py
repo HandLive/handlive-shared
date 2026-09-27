@@ -22,7 +22,7 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from adb_device import Adb  # noqa: E402
+from adb_device import Adb, AdbError  # noqa: E402
 from fake_mac import FakeClient  # noqa: E402
 from mac_session import MacSession, SessionRefused  # noqa: E402
 from steps import Recorder  # noqa: E402
@@ -167,6 +167,10 @@ def main(argv: list[str]) -> int:
             with DeviceLock(args.lock_dir, args.serial, f"{name} (fake Mac, tools/e2e)"):
                 rec.begin(name)
                 try:
+                    since = adb.device_time()
+                except AdbError:
+                    since = None
+                try:
                     adb.keep_awake()
                     module, func = ENTRY.get(name, (f"scenario_{name}", "run"))
                     getattr(importlib.import_module(module), func)(ctx)
@@ -175,7 +179,7 @@ def main(argv: list[str]) -> int:
                     rec.check("scenario finished", name, False, f"stopped: {type(exc).__name__}: {exc} "
                                                                 f"({Path(where.filename).name}:{where.lineno})")
                 try:
-                    crashes = adb.crashes()
+                    crashes = adb.crashes(since)
                     rec.check("no app crash or ANR during the scenario", "E2E", not crashes, "; ".join(crashes[:3]))
                 except Exception as exc:  # noqa: BLE001 — the emulator itself went away
                     rec.check("the emulator still answers after the scenario", "E2E", False, str(exc))

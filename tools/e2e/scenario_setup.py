@@ -38,8 +38,14 @@ def ensure_paired(ctx, client, thorough: bool = False) -> bool:
     adb.forward(client.port)
     adb.start_app()
     ui.pause()
-    screen = ui.wait_any(40, welcome=dict(text=en("setup.welcome_title")), pair=dict(text=en("pairing.pair_a_device")),
-                         devices=dict(text=en("pairing.add_device")))
+    screens = dict(welcome=dict(text=en("setup.welcome_title")), pair=dict(text=en("pairing.pair_a_device")),
+                   devices=dict(text=en("pairing.add_device")))
+    screen = ui.wait_any(40, **screens)
+    if screen is None:                    # a subscreen or another tab is open: back to the Devices tab once
+        adb.shell("input keyevent KEYCODE_BACK")
+        adb.start_app()
+        ui.tap_text(en("pairing.devices"), timeout=10)
+        screen = ui.wait_any(30, **screens)
     if screen is None:
         rec.check("the app shows its first screen", "SET-01 step 1", False, "no known screen")
         return False

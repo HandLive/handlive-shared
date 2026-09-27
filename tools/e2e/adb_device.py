@@ -159,11 +159,17 @@ class Adb:
         return subprocess.Popen([self.adb, "-s", self.serial, "logcat", "-v", "epoch", *filters], stdout=f,
                                 stderr=subprocess.DEVNULL)
 
-    def crashes(self, package: str = PACKAGE) -> list[str]:
-        """FATAL EXCEPTION / ANR lines of the app since the last clear (crash buffer and main buffer)."""
-        out = self.run("logcat", "-d", "-b", "crash", timeout=30, check=False)
+    def device_time(self) -> str:
+        """The device clock in logcat's -T format, to read only what happened after this moment."""
+        return self.shell("date +'%m-%d %H:%M:%S.000'", timeout=20).strip()
+
+    def crashes(self, since: str | None = None, package: str = PACKAGE) -> list[str]:
+        """FATAL EXCEPTION / ANR lines of the app (crash and main buffers), since `since` when given; buffers are
+        never cleared here, so other users of a shared emulator keep their logs."""
+        window = ["-T", since] if since else []
+        out = self.run("logcat", "-d", "-b", "crash", *window, timeout=30, check=False)
         lines = [ln for ln in out.splitlines() if package in ln or "FATAL" in ln]
-        anr = self.run("logcat", "-d", "-s", "ActivityManager", timeout=30, check=False)
+        anr = self.run("logcat", "-d", "-s", "ActivityManager", *window, timeout=30, check=False)
         return lines + [ln for ln in anr.splitlines() if "ANR in" in ln and package in ln]
 
     # ----- telephony (emulator modem) --------------------------------------------------------------------------
