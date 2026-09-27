@@ -14,7 +14,7 @@
       "minLength": 1
     },
     "incoming": {
-      "description": "Incoming call: the iPhone/iPad notification rebuilt by I-NSE (category HL_CALL_INCOMING, API 6) or the Mac communication notification (HL_CALL_INCOMING_MAC, identifier = call_id, API 7). A push that arrives more than 60 s after started_at (CALL-01 E7) is shown late: body call.incoming_late, no category, level active — the only content without a category and the only one at the active level. A locked iPhone keeps the push's own generic content and is not described here (E6).",
+      "description": "Incoming call: the iPhone/iPad notification rebuilt by I-NSE (API 6) or the Mac communication notification (identifier = call_id, API 7). The category is set only when the notification offers its actions, so content without buttons has none and keeps its passive or timeSensitive level. A push that arrives more than 60 s after started_at (CALL-01 E7) is shown late: body call.incoming_late, no category, level active — the only incoming content at the active level. A locked iPhone keeps the push's own generic content and is not described here (E6).",
       "type": "object",
       "required": ["title", "body", "threadIdentifier", "userInfo"],
       "additionalProperties": false,
@@ -31,7 +31,7 @@
         },
         "threadIdentifier": { "const": "calls" },
         "categoryIdentifier": {
-          "description": "HL_CALL_INCOMING (iOS: action HL_CALL_REJECT) or HL_CALL_INCOMING_MAC (actions HL_CALL_ANSWER, HL_CALL_REJECT).",
+          "description": "HL_CALL_INCOMING (iOS: action HL_CALL_REJECT), set when controls.reject is true; HL_CALL_INCOMING_MAC (actions HL_CALL_ANSWER, HL_CALL_REJECT), set when controls.answer and controls.reject are both true. Absent otherwise, and for a late push (E7).",
           "enum": ["HL_CALL_INCOMING", "HL_CALL_INCOMING_MAC"]
         },
         "interruptionLevel": {
@@ -59,14 +59,6 @@
           },
           "then": {
             "not": { "anyOf": [{ "required": ["categoryIdentifier"] }, { "required": ["identifier"] }] }
-          }
-        },
-        {
-          "description": "Content without a category is the late push, shown at the active level.",
-          "if": { "not": { "required": ["categoryIdentifier"] } },
-          "then": {
-            "required": ["interruptionLevel"],
-            "properties": { "interruptionLevel": { "const": "active" } }
           }
         }
       ]
