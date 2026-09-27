@@ -4,6 +4,15 @@
   "languages": ["en", "vi"],
   "strings": [
     {
+      "key": "a11y.call_incoming_from",
+      "en": "Incoming call from {caller}",
+      "vi": "Cuộc gọi đến từ {caller}",
+      "comment": "VoiceOver announcement when the Mac call panel or the iPhone/iPad in-app banner appears (CALL-01 special requirements, API 5 logic 5); {caller} = the contact name, else the number in national format, else call.no_caller_id or call.unknown_caller",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "caller", "type": "string"}],
+      "specs": ["CALL-01"]
+    },
+    {
       "key": "a11y.sms_bubble_received",
       "en": "{sender}, {time}",
       "vi": "{sender}, {time}",
@@ -29,6 +38,128 @@
       "platforms": ["macos", "ios"],
       "args": [{"name": "count", "type": "int"}],
       "specs": ["SMS-02", "SMS-05"]
+    },
+    {
+      "key": "call.answer",
+      "en": "Answer",
+      "vi": "Trả lời",
+      "comment": "Round Answer button of the Mac call panel (call-accept-fill, on the right, key Return; also its accessibility label), the HL_CALL_ANSWER action of the Mac incoming-call notification and the Answer item of the ringing call in the menu bar menu (also after Ignore); only when controls.answer = true (CALL-01 fields 6, 15, CALL-02 field 1)",
+      "platforms": ["macos"],
+      "specs": ["CALL-01", "CALL-02"]
+    },
+    {
+      "key": "call.answer_on_mac",
+      "en": "Answer on Mac",
+      "vi": "Nghe trên Mac",
+      "comment": "Mac call panel: takes the place of call.answer, next to call.answer_on_phone, when call audio is in effect (Take Calls on Mac accepted on both sides); answers with the audio on the Mac (CALL-01 field 6, CALL-02 field 2)",
+      "platforms": ["macos"],
+      "specs": ["CALL-01", "CALL-02"]
+    },
+    {
+      "key": "call.answer_on_phone",
+      "en": "Answer on Phone",
+      "vi": "Nghe trên điện thoại",
+      "comment": "Mac call panel: takes the place of call.answer, next to call.answer_on_mac, when call audio is in effect; answers with the audio staying on the phone (CALL-01 field 6, CALL-02 field 2)",
+      "platforms": ["macos"],
+      "specs": ["CALL-01", "CALL-02"]
+    },
+    {
+      "key": "call.caller_id_permission_hint",
+      "en": "Allow HandLive to read the call log on the phone to show caller numbers",
+      "vi": "Cho phép HandLive đọc nhật ký cuộc gọi trên điện thoại để hiện số gọi đến",
+      "comment": "Hint under call.unknown_caller in the Mac call panel and the iPhone/iPad banner when the phone's permissions_missing contains READ_CALL_LOG (CALL-01 field 12, E2)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-01"]
+    },
+    {
+      "key": "call.decline",
+      "en": "Decline",
+      "vi": "Từ chối",
+      "comment": "Round Decline button of the Mac call panel (call-decline-fill, on the left, key ⌘⌫; also its accessibility label) and of the iPhone/iPad banner, the HL_CALL_REJECT action of the incoming-call notification (destructive; iOS asks to unlock first) and the Decline item of the ringing call in the Mac menu bar menu; only when controls.reject = true (CALL-01 fields 7, 15, API 6, CALL-02 fields 3, 4)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-01", "CALL-02"]
+    },
+    {
+      "key": "call.decline_with_message_ellipsis",
+      "en": "Decline with Message…",
+      "vi": "Từ chối kèm tin nhắn…",
+      "comment": "Text button of the ringing Mac call panel opening the quick-reply menu (the call.quick_replies templates, then call.custom_message_ellipsis); only when controls.reject = true, the number is known, SMS is in effect and the phone can send SMS (CALL-01 field 8, CALL-02 field 5)",
+      "platforms": ["macos"],
+      "specs": ["CALL-01", "CALL-02"]
+    },
+    {
+      "key": "call.ignore",
+      "en": "Ignore",
+      "vi": "Bỏ qua",
+      "comment": "Text button of the ringing Mac call panel (key Esc): closes the panel and silences the ringtone on the Mac only; the call keeps ringing on the phone and stays in the menu bar menu (CALL-01 field 9)",
+      "platforms": ["macos"],
+      "specs": ["CALL-01"]
+    },
+    {
+      "key": "call.incoming_body",
+      "en": "Incoming call",
+      "vi": "Cuộc gọi đến",
+      "comment": "Body of the incoming-call notification when no SIM label is known (Mac communication notification, iPhone/iPad notification rebuilt by the service extension), and hiddenPreviewsBodyPlaceholder of the HL_CALL_INCOMING and HL_CALL_INCOMING_MAC categories; with a SIM label: call.incoming_body_sim (CALL-01 fields 11, 15, API 6, API 7)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-01"]
+    },
+    {
+      "key": "call.incoming_body_sim",
+      "en": "Incoming call · {sim_label}",
+      "vi": "Cuộc gọi đến · {sim_label}",
+      "comment": "Body of the incoming-call notification when the phone has more than one SIM and the ringing SIM is known; {sim_label} = sim_label of call_event/state, the SIM name set on the phone (never translated); the design system's call panel shows the same line under the caller (CALL-01 fields 4, 11, 15, API 6, API 7)",
+      "platforms": ["macos", "ios"],
+      "args": [{"name": "sim_label", "type": "string"}],
+      "specs": ["CALL-01"]
+    },
+    {
+      "key": "call.incoming_late",
+      "en": "Incoming call at {time}",
+      "vi": "Cuộc gọi đến lúc {time}",
+      "comment": "Body the iPhone/iPad notification service extension shows, without the Decline action, when the incoming-call push arrives more than 60 s after started_at (CALL-01 E7, API 6 logic 2); {time} = started_at formatted by the system (“2:05 PM”)",
+      "platforms": ["ios"],
+      "args": [{"name": "time", "type": "string"}],
+      "specs": ["CALL-01"]
+    },
+    {
+      "key": "call.incoming_title",
+      "en": "Incoming Call",
+      "vi": "Cuộc gọi đến",
+      "comment": "Title of the ringing Mac call panel and of the iPhone/iPad in-app banner; call.waiting_title for a call waiting during another call (CALL-01 field 1)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-01"]
+    },
+    {
+      "key": "call.no_caller_id",
+      "en": "No Caller ID",
+      "vi": "Số ẩn",
+      "comment": "Shown instead of the caller's name and number when the caller withholds the number (presentation = restricted): Mac call panel, iPhone/iPad banner, notification titles; also the call log row and the missed-call notification title when number = null (CALL-01 field 3, CALL-04 fields 2, 8)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-01", "CALL-04"]
+    },
+    {
+      "key": "call.unknown_caller",
+      "en": "Unknown Caller",
+      "vi": "Không rõ số",
+      "comment": "Shown instead of the caller's number when it is unknown (presentation = unknown, for example READ_CALL_LOG missing on the phone, then with call.caller_id_permission_hint), and for a waiting caller without number and name (CALL-01 fields 3, 5, E2)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-01"]
+    },
+    {
+      "key": "call.waiting_handle_on_phone",
+      "en": "Handle it on the phone or connect via Bluetooth",
+      "vi": "Xử lý trên điện thoại hoặc nối Bluetooth",
+      "comment": "Line under the waiting caller in the Mac call panel while the Mac has no Bluetooth HFP link to the phone (hfp_connected = false): over Wi-Fi a waiting call is information only (CALL-01 field 5, E9, CALL-03 E7)",
+      "platforms": ["macos"],
+      "specs": ["CALL-01", "CALL-03"]
+    },
+    {
+      "key": "call.waiting_title",
+      "en": "Call Waiting",
+      "vi": "Cuộc gọi chờ",
+      "comment": "Title of the Mac call panel and of the iPhone/iPad banner instead of call.incoming_title when a second call rings during a call (waiting = true) (CALL-01 field 1, E9)",
+      "platforms": ["macos", "ios"],
+      "specs": ["CALL-01"]
     },
     {
       "key": "clipboard.auto_send_off_on_phone",
@@ -1384,9 +1515,9 @@
       "key": "push.call_incoming",
       "en": "Incoming call on your phone",
       "vi": "Cuộc gọi đến trên điện thoại",
-      "comment": "APNs aps.alert.loc-key for reason call_incoming when the extension cannot decrypt (iPhone locked)",
+      "comment": "APNs aps.alert.loc-key for reason call_incoming when the extension cannot decrypt (iPhone locked, CALL-01 E6); no title (the system shows the app name) and no Decline action",
       "platforms": ["ios"],
-      "specs": ["CONN-04"]
+      "specs": ["CONN-04", "CALL-01"]
     },
     {
       "key": "push.call_missed",
