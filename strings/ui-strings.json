@@ -1707,6 +1707,14 @@
       "specs": ["SET-01"]
     },
     {
+      "key": "permission.calls_primer",
+      "en": "To announce incoming calls and let you answer or decline them on your Mac, HandLive needs to read the phone state, the call log, and your contacts.",
+      "vi": "Để báo cuộc gọi đến và cho bạn trả lời, từ chối trên Mac, HandLive cần đọc trạng thái điện thoại, nhật ký cuộc gọi và danh bạ.",
+      "comment": "Android explanation before the call permission dialogs (READ_PHONE_STATE, READ_CALL_LOG, ANSWER_PHONE_CALLS, READ_CONTACTS), from Grant Permission on the Calls card or when Calls is turned on (SET-01 part B). Proposed text (design system Requesting permission); SET-01 field 12 does not quote it yet",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
       "key": "permission.camera_qr_primer",
       "en": "HandLive uses the camera to scan the QR code on your Mac, iPhone, or iPad.",
       "vi": "HandLive dùng camera để quét mã QR trên Mac, iPhone hoặc iPad.",
@@ -1949,11 +1957,27 @@
       "specs": ["CALL-04"]
     },
     {
+      "key": "settings.call_notify",
+      "en": "Call Notifications",
+      "vi": "Thông báo cuộc gọi",
+      "comment": "Option for call.notify under Calls (SET-02 field 11, CALL-01 field 13): checkbox in the Mac Calls pane, switch in the Calls group on iPhone and iPad; off → the Mac shows no panel, ringtone or notification (the call only appears in the menu bar menu), iPhone and iPad show no banner and get no push",
+      "platforms": ["macos", "ios"],
+      "specs": ["SET-02", "CALL-01"]
+    },
+    {
+      "key": "settings.call_ringtone",
+      "en": "Ring on Mac",
+      "vi": "Đổ chuông trên Mac",
+      "comment": "Checkbox for call.ringtone under Calls in the Mac Calls pane (SET-02 field 12, CALL-01 field 14); turning it on asks for the Focus status permission (infoplist.focus_status_usage)",
+      "platforms": ["macos"],
+      "specs": ["SET-02", "CALL-01"]
+    },
+    {
       "key": "settings.calls",
       "en": "Calls",
       "vi": "Cuộc gọi",
-      "comment": "Mac Settings pane title (toolbar item); the Calls feature card name on Android (SET-01 field 10)",
-      "platforms": ["android", "macos"],
+      "comment": "Mac Settings pane title (toolbar item); the switch for feature.call (SET-02 field 10) in that pane, on the Android Settings tab and in the Calls group of the iPhone/iPad Settings tab, which it also heads; the Calls feature card name on Android (SET-01 field 10)",
+      "platforms": ["android", "macos", "ios"],
       "specs": ["SET-02", "SET-01"]
     },
     {
@@ -2155,6 +2179,14 @@
       "comment": "Header of the first Settings group with the paired phone's DeviceRow (iPhone, iPad)",
       "platforms": ["ios"],
       "specs": ["SET-02", "PAIR-02"]
+    },
+    {
+      "key": "settings.quick_replies",
+      "en": "Quick Replies",
+      "vi": "Tin trả lời nhanh",
+      "comment": "Title of the list of call.quick_replies templates in the Mac Calls pane: add, edit, delete, reorder, at most 6 templates of 160 characters (CALL-02 field 8; design system Settings)",
+      "platforms": ["macos"],
+      "specs": ["CALL-02", "SET-02"]
     },
     {
       "key": "settings.remove_from_server",
