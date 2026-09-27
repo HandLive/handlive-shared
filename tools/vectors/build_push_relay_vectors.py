@@ -53,7 +53,7 @@ CALL_RINGING = {"op": "state", "data": {
     "number": "+84900000123", "display_name": "Nguyễn Văn A", "presentation": "allowed", "sub_id": 1,
     "sim_label": "SIM 1", "waiting_number": None, "waiting_display_name": None, "started_at": 1727150400123,
     "answered_at": None, "ended_at": None, "end_reason": None,
-    "controls": {"answer": True, "reject": True, "end": False, "hold": "unavailable", "dtmf": "unavailable",
+    "controls": {"answer": False, "reject": True, "end": False, "hold": "unavailable", "dtmf": "unavailable",
                  "mute": "unavailable"},
     "hfp_connected": False, "audio_on": "phone"}}
 # (name, envelope type, id, ts, plaintext, push reason, collapse_key, ttl_s, APNs thread-id)
