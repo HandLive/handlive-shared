@@ -1,0 +1,195 @@
+{
+  "description": "Revoke statement (PAIR-03): message = \"HLREVOKE1\" ‖ pair_id (16 raw UUID bytes) ‖ by = device_id of the revoking device (16 raw bytes, 0.2) ‖ revoked_at (u64 big-endian, ms); sig = Ed25519(ik_sig of the revoking device, message), 64 bytes, b64u on the wire. revoke_request = body of POST /v1/pairs/{pair_id}/revoke; revocation = one item of revocations[] in DELETE /v1/devices/me?revoke_pairs=true; pair_revoked = the relay frame forwarded to the peer. The relay accepts a statement when sig verifies with the caller's stored ik_sig_pub, by = the JWT subject and |relay_now − revoked_at| ≤ 600,000 ms, else 400 BAD_REQUEST. A receiver acts on pair_revoked only when by = peer_device_id of that pair and sig verifies with peer_ik_sig_pub (strict: S < L); otherwise it ignores the frame. Every invalid_vectors entry must be refused by the side named in check, for its reason.",
+  "source": "docs/detailed-design/00-common-specs.md 0.6, 0.7.3, 0.7.4; 02-pairing.md PAIR-03; keys from RFC 8032 §7.1 TEST 1–3 (device-id.json)",
+  "vectors": [
+    {
+      "name": "macOS revokes its pair with Android (TEST 1)",
+      "ik_sig_seed": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+      "ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "revoked_at": 1727160000000,
+      "message": "484c5245564f4b45313f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d21fe31dfa1548261a26bf854046fd2270000019222c21e00",
+      "sig": "4e19faecdfb2c311b763b446268cf490ee0013ef0e8a57b3cdb71acf0251ee09ef4201bc00799bb060ba715244a2a40b8cab471eebca203cc15ab9441d86400c",
+      "sig_b64u": "Thn67N-ywxG3Y7RGJoz0kO4AE-8OilezzbcazwJR7gnvQgG8AHmbsGC6cVJEoqQLjKtHHuvKIDzBWrlEHYZADA",
+      "peer_device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "peer_ik_sig_pub": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c",
+      "relay_now": 1727160001500,
+      "revoke_request": "{\"revoked_at\":1727160000000,\"sig\":\"Thn67N-ywxG3Y7RGJoz0kO4AE-8OilezzbcazwJR7gnvQgG8AHmbsGC6cVJEoqQLjKtHHuvKIDzBWrlEHYZADA\"}",
+      "revocation": "{\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"revoked_at\":1727160000000,\"sig\":\"Thn67N-ywxG3Y7RGJoz0kO4AE-8OilezzbcazwJR7gnvQgG8AHmbsGC6cVJEoqQLjKtHHuvKIDzBWrlEHYZADA\"}",
+      "pair_revoked": "{\"op\":\"pair_revoked\",\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"by\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"revoked_at\":1727160000000,\"sig\":\"Thn67N-ywxG3Y7RGJoz0kO4AE-8OilezzbcazwJR7gnvQgG8AHmbsGC6cVJEoqQLjKtHHuvKIDzBWrlEHYZADA\"}"
+    },
+    {
+      "name": "Android revokes its pair with macOS (TEST 2)",
+      "ik_sig_seed": "4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb",
+      "ik_sig_pub": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c",
+      "device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "revoked_at": 1727160000123,
+      "message": "484c5245564f4b45313f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d39f713d0a644853f84529421b9f51b9b0000019222c21e7b",
+      "sig": "8daaa691f9f43b2f7769e933181dd8ebb14b1f5146a15e05728a4b8da111ff03f3d362d37157e708287fffee2462869732cff71c1bb87be3ce05a97a9dd84a0c",
+      "sig_b64u": "jaqmkfn0Oy93aekzGB3Y67FLH1FGoV4FcopLjaER_wPz02LTcVfnCCh__-4kYoaXMs_3HBu4e-POBal6ndhKDA",
+      "peer_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "peer_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "relay_now": 1727160001623,
+      "revoke_request": "{\"revoked_at\":1727160000123,\"sig\":\"jaqmkfn0Oy93aekzGB3Y67FLH1FGoV4FcopLjaER_wPz02LTcVfnCCh__-4kYoaXMs_3HBu4e-POBal6ndhKDA\"}",
+      "revocation": "{\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"revoked_at\":1727160000123,\"sig\":\"jaqmkfn0Oy93aekzGB3Y67FLH1FGoV4FcopLjaER_wPz02LTcVfnCCh__-4kYoaXMs_3HBu4e-POBal6ndhKDA\"}",
+      "pair_revoked": "{\"op\":\"pair_revoked\",\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"by\":\"39f713d0-a644-853f-8452-9421b9f51b9b\",\"revoked_at\":1727160000123,\"sig\":\"jaqmkfn0Oy93aekzGB3Y67FLH1FGoV4FcopLjaER_wPz02LTcVfnCCh__-4kYoaXMs_3HBu4e-POBal6ndhKDA\"}"
+    },
+    {
+      "name": "iOS revokes its pair with Android (TEST 3)",
+      "ik_sig_seed": "c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7",
+      "ik_sig_pub": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025",
+      "device_id": "dac073e0-123b-8ea5-9dd9-b3bda9cf6037",
+      "pair_id": "7a1e2b3c-4d5e-4f60-9172-83a4b5c6d7e8",
+      "revoked_at": 1727170000456,
+      "message": "484c5245564f4b45317a1e2b3c4d5e4f60917283a4b5c6d7e8dac073e0123b8ea59dd9b3bda9cf603700000192235ab648",
+      "sig": "8e807ac362d852ae09ca9fab2c9ea9700b688fe501662963cc26ab9cdb4bf62bdbe65d0987f90bd23ed97835654778843d8a93d263fb6e1d739738adb8185500",
+      "sig_b64u": "joB6w2LYUq4Jyp-rLJ6pcAtoj-UBZiljzCarnNtL9ivb5l0Jh_kL0j7ZeDVlR3iEPYqT0mP7bh1zlzituBhVAA",
+      "peer_device_id": "39f713d0-a644-853f-8452-9421b9f51b9b",
+      "peer_ik_sig_pub": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c",
+      "relay_now": 1727170001956,
+      "revoke_request": "{\"revoked_at\":1727170000456,\"sig\":\"joB6w2LYUq4Jyp-rLJ6pcAtoj-UBZiljzCarnNtL9ivb5l0Jh_kL0j7ZeDVlR3iEPYqT0mP7bh1zlzituBhVAA\"}",
+      "revocation": "{\"pair_id\":\"7a1e2b3c-4d5e-4f60-9172-83a4b5c6d7e8\",\"revoked_at\":1727170000456,\"sig\":\"joB6w2LYUq4Jyp-rLJ6pcAtoj-UBZiljzCarnNtL9ivb5l0Jh_kL0j7ZeDVlR3iEPYqT0mP7bh1zlzituBhVAA\"}",
+      "pair_revoked": "{\"op\":\"pair_revoked\",\"pair_id\":\"7a1e2b3c-4d5e-4f60-9172-83a4b5c6d7e8\",\"by\":\"dac073e0-123b-8ea5-9dd9-b3bda9cf6037\",\"revoked_at\":1727170000456,\"sig\":\"joB6w2LYUq4Jyp-rLJ6pcAtoj-UBZiljzCarnNtL9ivb5l0Jh_kL0j7ZeDVlR3iEPYqT0mP7bh1zlzituBhVAA\"}"
+    }
+  ],
+  "invalid_vectors": [
+    {
+      "name": "pair_revoked / by is not the peer (third device signs for itself)",
+      "check": "receiver",
+      "reason": "by_not_peer",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "peer_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "peer_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "pair_revoked": "{\"op\":\"pair_revoked\",\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"by\":\"dac073e0-123b-8ea5-9dd9-b3bda9cf6037\",\"revoked_at\":1727160000000,\"sig\":\"Agxxu6NsUrgC8cm2RiKGaiZ1_fETBtkZtddYsWSoCKA2bjPDd8KDsorK9tePVqTujouvLHTaFmYPtM09B3gKAA\"}",
+      "signed_message": "484c5245564f4b45313f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5ddac073e0123b8ea59dd9b3bda9cf60370000019222c21e00",
+      "signer_pub": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
+    },
+    {
+      "name": "pair_revoked / third device signs in the peer's name",
+      "check": "receiver",
+      "reason": "wrong_key",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "peer_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "peer_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "pair_revoked": "{\"op\":\"pair_revoked\",\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"by\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"revoked_at\":1727160000000,\"sig\":\"EH-Z456yYA3GaRwD7tCrS-ZRcu0p1GUtgoyeKIoQY2JVcm-FP_6BzHCaAQ-daOVOYxgG2u1Fko9KDKUdX_tBDg\"}",
+      "signed_message": "484c5245564f4b45313f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d21fe31dfa1548261a26bf854046fd2270000019222c21e00",
+      "signer_pub": "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025"
+    },
+    {
+      "name": "pair_revoked / revoked_at changed after signing",
+      "check": "receiver",
+      "reason": "message_tampered",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "peer_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "peer_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "pair_revoked": "{\"op\":\"pair_revoked\",\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"by\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"revoked_at\":1727160000001,\"sig\":\"Thn67N-ywxG3Y7RGJoz0kO4AE-8OilezzbcazwJR7gnvQgG8AHmbsGC6cVJEoqQLjKtHHuvKIDzBWrlEHYZADA\"}",
+      "signed_message": "484c5245564f4b45313f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d21fe31dfa1548261a26bf854046fd2270000019222c21e00"
+    },
+    {
+      "name": "pair_revoked / statement of another pair replayed",
+      "check": "receiver",
+      "reason": "message_tampered",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "peer_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "peer_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "pair_revoked": "{\"op\":\"pair_revoked\",\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"by\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"revoked_at\":1727160000000,\"sig\":\"2Mb9q2DGpEyCnKnAWe_M-BJGcKkN1Al0jG5jxGqHU7JibWDSxWfVhn4BrcdoLjvMv60sAE75GuFb8j4Vz118CQ\"}",
+      "signed_message": "484c5245564f4b45317a1e2b3c4d5e4f60917283a4b5c6d7e821fe31dfa1548261a26bf854046fd2270000019222c21e00"
+    },
+    {
+      "name": "pair_revoked / signed with label HLAUTH1",
+      "check": "receiver",
+      "reason": "wrong_label",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "peer_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "peer_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "pair_revoked": "{\"op\":\"pair_revoked\",\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"by\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"revoked_at\":1727160000000,\"sig\":\"TiSlh70IvqL8PcnAwkGBa3t-d76ZymOQ2OfiYxCf01F7irHvl7GKDRI6kCrUSPozDDbnHCV1pJepJyRjjyU6CA\"}",
+      "signed_message": "484c41555448313f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d21fe31dfa1548261a26bf854046fd2270000019222c21e00"
+    },
+    {
+      "name": "pair_revoked / S + L (not canonical)",
+      "check": "receiver",
+      "reason": "signature_not_canonical",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "peer_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "peer_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "pair_revoked": "{\"op\":\"pair_revoked\",\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"by\":\"21fe31df-a154-8261-a26b-f854046fd227\",\"revoked_at\":1727160000000,\"sig\":\"Thn67N-ywxG3Y7RGJoz0kO4AE-8OilezzbcazwJR7gncFvcYG9ytCDdXafUinIMgjKtHHuvKIDzBWrlEHYZAHA\"}",
+      "signed_message": "484c5245564f4b45313f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d21fe31dfa1548261a26bf854046fd2270000019222c21e00"
+    },
+    {
+      "name": "pair_revoked / no statement (row revoked before signed revocation)",
+      "check": "receiver",
+      "reason": "missing_statement",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "peer_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "peer_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "pair_revoked": "{\"op\":\"pair_revoked\",\"pair_id\":\"3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d\",\"by\":\"21fe31df-a154-8261-a26b-f854046fd227\"}"
+    },
+    {
+      "name": "revoke / revoked_at 10 min + 1 ms before the relay clock",
+      "check": "relay",
+      "reason": "stale",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "caller_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "caller_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "relay_now": 1727160600001,
+      "revoke_request": "{\"revoked_at\":1727160000000,\"sig\":\"Thn67N-ywxG3Y7RGJoz0kO4AE-8OilezzbcazwJR7gnvQgG8AHmbsGC6cVJEoqQLjKtHHuvKIDzBWrlEHYZADA\"}",
+      "signed_message": "484c5245564f4b45313f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d21fe31dfa1548261a26bf854046fd2270000019222c21e00"
+    },
+    {
+      "name": "revoke / revoked_at 10 min + 1 ms after the relay clock",
+      "check": "relay",
+      "reason": "stale",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "caller_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "caller_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "relay_now": 1727159399999,
+      "revoke_request": "{\"revoked_at\":1727160000000,\"sig\":\"Thn67N-ywxG3Y7RGJoz0kO4AE-8OilezzbcazwJR7gnvQgG8AHmbsGC6cVJEoqQLjKtHHuvKIDzBWrlEHYZADA\"}",
+      "signed_message": "484c5245564f4b45313f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d21fe31dfa1548261a26bf854046fd2270000019222c21e00"
+    },
+    {
+      "name": "revoke / statement names the peer instead of the caller",
+      "check": "relay",
+      "reason": "by_not_caller",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "caller_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "caller_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "relay_now": 1727160000000,
+      "revoke_request": "{\"revoked_at\":1727160000000,\"sig\":\"hQjVXXn8hr4zQ5KYQJGNoD9gywv6EUwXWKMgImfJBGaYINdIzLvbqNy-Fjvr9v-x2L3SsaSzq9TlA-tKauXtAg\"}",
+      "signed_message": "484c5245564f4b45313f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d39f713d0a644853f84529421b9f51b9b0000019222c21e00",
+      "signer_pub": "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
+    },
+    {
+      "name": "revoke / revoked_at changed after signing",
+      "check": "relay",
+      "reason": "message_tampered",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "caller_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "caller_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "relay_now": 1727160000000,
+      "revoke_request": "{\"revoked_at\":1727160000001,\"sig\":\"Thn67N-ywxG3Y7RGJoz0kO4AE-8OilezzbcazwJR7gnvQgG8AHmbsGC6cVJEoqQLjKtHHuvKIDzBWrlEHYZADA\"}",
+      "signed_message": "484c5245564f4b45313f2b1c4d5e6f4a7b8c9d0e1f2a3b4c5d21fe31dfa1548261a26bf854046fd2270000019222c21e00"
+    },
+    {
+      "name": "revoke / sig 63 bytes",
+      "check": "relay",
+      "reason": "signature_length",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "caller_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "caller_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "relay_now": 1727160000000,
+      "revoke_request": "{\"revoked_at\":1727160000000,\"sig\":\"Thn67N-ywxG3Y7RGJoz0kO4AE-8OilezzbcazwJR7gnvQgG8AHmbsGC6cVJEoqQLjKtHHuvKIDzBWrlEHYZA\"}"
+    },
+    {
+      "name": "revoke / no sig",
+      "check": "relay",
+      "reason": "missing_statement",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "caller_device_id": "21fe31df-a154-8261-a26b-f854046fd227",
+      "caller_ik_sig_pub": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "relay_now": 1727160000000,
+      "revoke_request": "{\"revoked_at\":1727160000000}"
+    }
+  ]
+}

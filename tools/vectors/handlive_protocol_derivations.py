@@ -126,3 +126,8 @@ def registration_message(device_id: str, ik_sig_pub: bytes, platform: str, ts: i
 def auth_message(challenge: bytes, device_id: str) -> bytes:
     """0.6.4 bước 2, CONN-03 API 3: "HLAUTH1" ‖ challenge (32 byte thô) ‖ device_id (16)."""
     return b"HLAUTH1" + challenge + uuid_bytes(device_id)
+
+
+def revoke_message(pair_id: str, by_device_id: str, revoked_at: int) -> bytes:
+    """PAIR-03 revoke statement: "HLREVOKE1" ‖ pair_id (16) ‖ by = device_id (16) ‖ revoked_at (u64 BE, ms)."""
+    return b"HLREVOKE1" + uuid_bytes(pair_id) + uuid_bytes(by_device_id) + struct.pack(">Q", revoked_at)
