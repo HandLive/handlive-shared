@@ -5,10 +5,11 @@ Chạy: tools/.venv/bin/python tools/schemas/check_schemas.py
    enum mã lỗi, mã đóng WebSocket và type khớp bảng 0.8.1, 0.8.3 và 0.7.1; op sms, op điều khiển relay,
    endpoint REST, mã lỗi relay, reason và loc-key push khớp 0.7.1, 0.7.3, 0.7.4, 0.8.2, CONN-04
    (relay_sms_spec_checks.py); op call_event, trường, enum và mã lỗi của cuộc gọi khớp 0.7.1, 0.8.1, 0.9.3 và
-   CALL-01…04 (call_spec_checks.py).
+   CALL-01…04 (call_spec_checks.py); op web, id trình duyệt, features.web và giới hạn URL/tiêu đề khớp 0.7.1,
+   0.7.2 và 0.10 (web_spec_checks.py).
 2. Ví dụ JSON trong 00-common-specs.md (bắt buộc, mọi khối ```json phải được phân loại) và ví dụ trong
-   01–08 (khối ```json, thân JSON trong khối ```http, inline) có schema thì phải qua schema tương ứng:
-   envelope/ack/session/capability/sms/clipboard/call_event, bọc định tuyến và tin điều khiển relay, thân REST
+   01–09 (khối ```json, thân JSON trong khối ```http, inline) có schema thì phải qua schema tương ứng:
+   envelope/ack/session/capability/sms/clipboard/call_event/web, bọc định tuyến và tin điều khiển relay, thân REST
    relay, thân push, nội dung thông báo SMS và cuộc gọi; env_b64/hl phải giải ra một envelope hợp lệ.
 3. Mẫu dương tự viết phải qua; mẫu âm phải bị từ chối.
 4. Ví dụ catalog chuỗi giao diện (khối ```jsonc có "strings" trong 00-common-specs, mục 0.12.1) qua
@@ -39,6 +40,8 @@ import sample_messages  # noqa: E402
 import sample_messages_call  # noqa: E402
 import sample_messages_relay  # noqa: E402
 import sample_messages_sms  # noqa: E402
+import sample_messages_web  # noqa: E402
+import web_spec_checks  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "strings"))
 import catalog_rules  # noqa: E402
@@ -54,7 +57,8 @@ if not COMMON_SPECS.is_file():
 ID_BASE = "https://handlive.app/schemas/v1/"
 VECTORS_DIR = SHARED_ROOT / "test-vectors"
 CATALOG = SHARED_ROOT / "strings" / "ui-strings.json"
-SAMPLE_MODULES = (sample_messages, sample_messages_sms, sample_messages_relay, sample_messages_call)
+SAMPLE_MODULES = (sample_messages, sample_messages_sms, sample_messages_relay, sample_messages_call,
+                  sample_messages_web)
 
 
 class Report:
@@ -140,6 +144,10 @@ def check_enums_match_spec(schemas: dict[str, dict], report: Report) -> None:
         call_spec_checks.check_tables(schemas, DOCS_DIR, report)
     except (ValueError, AttributeError, KeyError, IndexError) as exc:  # a heading or table the checks read moved
         report.fail(f"call_spec_checks: cannot read the call tables of the specs: {exc!r}")
+    try:
+        web_spec_checks.check_tables(schemas, DOCS_DIR, report)
+    except (ValueError, AttributeError, KeyError, IndexError) as exc:  # a heading or table the checks read moved
+        report.fail(f"web_spec_checks: cannot read the web tables of the specs: {exc!r}")
 
 
 def make_validators(schemas: dict[str, dict], registry: Registry) -> dict[str, Draft202012Validator]:
@@ -183,7 +191,7 @@ def _check_example(ex, strict: bool, validators, report: Report) -> None:
         report.fail(f"{ex.where}: {exc}")
         return
     _validate_one(f"{ex.where} [{schema}]", schema, instance, validators, report, known,
-                  bucket="ví dụ 00-common-specs" if strict else "ví dụ 01–08",
+                  bucket="ví dụ 00-common-specs" if strict else "ví dụ 01–09",
                   subs=ex.substitutions)
     relay_sms_spec_checks.validate_embedded_envelope(schema, instance, validators, report, ex.where)
     if schema == "envelope":

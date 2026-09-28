@@ -54,10 +54,10 @@ PLACEHOLDER_BY_KEY = {
 # Không sửa docs/ ở thẻ S0.2; đề xuất sửa nằm trong báo cáo phase-00-S0.2.md.
 KNOWN_SPEC_ISSUES: dict[tuple[str, int], str] = {}
 
-HEADING_TYPE_OP = re.compile(r"WS (session|capability|sms|clipboard|pair|ping|call_event)/([a-z_]+)")
-HEADING_TYPE_ONLY = re.compile(r"`(session|capability|sms|clipboard|pair|ping|call_event)` op")
+HEADING_TYPE_OP = re.compile(r"WS (session|capability|sms|clipboard|pair|ping|call_event|web)/([a-z_]+)")
+HEADING_TYPE_ONLY = re.compile(r"`(session|capability|sms|clipboard|pair|ping|call_event|web)` op")
 PLACEHOLDER = re.compile(r"^<[^<>]+>$")
-SCOPED_TYPES = ("session", "capability", "sms", "clipboard", "pair", "ping", "call_event")
+SCOPED_TYPES = ("session", "capability", "sms", "clipboard", "pair", "ping", "call_event", "web")
 
 # Thân JSON không phải payload envelope: (mẫu tiêu đề mục, điều kiện trên đối tượng, schema).
 BODY_RULES = [
