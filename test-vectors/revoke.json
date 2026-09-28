@@ -1,6 +1,6 @@
 {
   "description": "Revoke statement (PAIR-03): message = \"HLREVOKE1\" ‖ pair_id (16 raw UUID bytes) ‖ by = device_id of the revoking device (16 raw bytes, 0.2) ‖ revoked_at (u64 big-endian, ms); sig = Ed25519(ik_sig of the revoking device, message), 64 bytes, b64u on the wire. revoke_request = body of POST /v1/pairs/{pair_id}/revoke; revocation = one item of revocations[] in DELETE /v1/devices/me?revoke_pairs=true; pair_revoked = the relay frame forwarded to the peer. The relay accepts a statement when sig verifies with the caller's stored ik_sig_pub, by = the JWT subject and |relay_now − revoked_at| ≤ 600,000 ms, else 400 BAD_REQUEST. A receiver acts on pair_revoked only when by = peer_device_id of that pair and sig verifies with peer_ik_sig_pub (strict: S < L); otherwise it ignores the frame. Every invalid_vectors entry must be refused by the side named in check, for its reason.",
-  "source": "docs/detailed-design/00-common-specs.md 0.6, 0.7.3, 0.7.4; 02-pairing.md PAIR-03; keys from RFC 8032 §7.1 TEST 1–3 (device-id.json)",
+  "source": "docs/detailed-design/00-common-specs.md 0.6.2, 0.7.3, 0.7.4; 02-pairing.md PAIR-03; keys from RFC 8032 §7.1 TEST 1–3 (device-id.json)",
   "vectors": [
     {
       "name": "macOS revokes its pair with Android (TEST 1)",

@@ -15,7 +15,7 @@ from build_signature_vectors import _s_plus_l
 from handlive_protocol_derivations import b64u, compact_json, device_id_from_pub, ed25519_sign, revoke_message
 
 H = bytes.fromhex
-SPEC = "docs/detailed-design/00-common-specs.md 0.6, 0.7.3, 0.7.4; 02-pairing.md PAIR-03"
+SPEC = "docs/detailed-design/00-common-specs.md 0.6.2, 0.7.3, 0.7.4; 02-pairing.md PAIR-03"
 REVOKE_SKEW_MS = 600_000  # relay accepts revoked_at within ±10 minutes of its clock
 # Two pairs: macOS (TEST 1) ↔ Android (TEST 2) and iOS (TEST 3) ↔ Android (TEST 2).
 PAIR_MAC = "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d"
