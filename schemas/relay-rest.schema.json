@@ -231,7 +231,11 @@
       "additionalProperties": false,
       "properties": {
         "revoked_at": { "$ref": "common.schema.json#/$defs/timestamp" },
-        "sig": { "$ref": "common.schema.json#/$defs/b64u-64" }
+        "sig": { "$ref": "common.schema.json#/$defs/b64u-64" },
+        "reason": {
+          "description": "Informational, not signed and not stored; lost_device when the user unpairs remotely while the peer is offline.",
+          "enum": ["user", "reinstall", "lost_device"]
+        }
       }
     },
     "push-request": {
