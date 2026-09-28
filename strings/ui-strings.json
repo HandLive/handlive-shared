@@ -57,6 +57,32 @@
       "specs": ["SMS-02", "SMS-05"]
     },
     {
+      "key": "a11y.web_badge",
+      "en": "HandLive, page from your phone available",
+      "vi": "HandLive, có trang từ điện thoại",
+      "comment": "VoiceOver label of the menu bar icon in its badge variant while a page from the phone is kept (WEB-02 field 1, special requirements)",
+      "platforms": ["macos"],
+      "specs": ["WEB-02"]
+    },
+    {
+      "key": "a11y.web_ios_banner",
+      "en": "Continue browsing: {title_or_host}, {host}",
+      "vi": "Duyệt web tiếp: {title_or_host}, {host}",
+      "comment": "VoiceOver label of the iPhone/iPad page banner, read as a button (WEB-05 special requirements); {title_or_host} = the page title, else its host; {host} = the page host",
+      "platforms": ["ios"],
+      "args": [{"name": "title_or_host", "type": "string"}, {"name": "host", "type": "string"}],
+      "specs": ["WEB-05"]
+    },
+    {
+      "key": "a11y.web_menu_item",
+      "en": "Page from {device_name}: {title_or_host}",
+      "vi": "Trang từ {device_name}: {title_or_host}",
+      "comment": "VoiceOver label of the page menu item web.menu_item (WEB-02 special requirements); {device_name} = the phone; {title_or_host} = the page title, else its host",
+      "platforms": ["macos"],
+      "args": [{"name": "device_name", "type": "string"}, {"name": "title_or_host", "type": "string"}],
+      "specs": ["WEB-02"]
+    },
+    {
       "key": "call.answer",
       "en": "Answer",
       "vi": "Trả lời",
@@ -804,9 +830,9 @@
       "key": "common.agree",
       "en": "Agree",
       "vi": "Đồng ý",
-      "comment": "ConsentSheet primary button (right on Mac, full width at the bottom on Android); max 2 words",
+      "comment": "ConsentSheet primary button (right on Mac, full width at the bottom on Android); max 2 words; also the Continue Browsing disclosure (WEB-01 field 4)",
       "platforms": ["android", "macos"],
-      "specs": ["CLIP-01"]
+      "specs": ["CLIP-01", "WEB-01"]
     },
     {
       "key": "common.app_name",
@@ -828,9 +854,9 @@
       "key": "common.close",
       "en": "Close",
       "vi": "Đóng",
-      "comment": "VoiceOver label of an xmark close button, e.g. the new-content banner (CLIP-04 field 3; design system 1-foundations/08)",
+      "comment": "VoiceOver label of an xmark close button, e.g. the new-content banner (CLIP-04 field 3) and the page banner (WEB-05 field 5; design system 1-foundations/08)",
       "platforms": ["ios"],
-      "specs": ["CLIP-04"]
+      "specs": ["CLIP-04", "WEB-05"]
     },
     {
       "key": "common.continue",
@@ -900,9 +926,9 @@
       "key": "common.open_system_settings",
       "en": "Open System Settings",
       "vi": "Mở Cài đặt hệ thống",
-      "comment": "Mac button that opens the right page of System Settings (paste permission, login items, local network)",
+      "comment": "Mac button that opens the right page of System Settings (paste permission, login items, local network, Automation of a browser: WEB-03 field 3)",
       "platforms": ["macos"],
-      "specs": ["SET-03", "CLIP-02"]
+      "specs": ["SET-03", "CLIP-02", "WEB-03"]
     },
     {
       "key": "common.retry",
@@ -1292,6 +1318,23 @@
       "specs": ["CONN-01"]
     },
     {
+      "key": "error.web_no_app",
+      "en": "No app can open this page.",
+      "vi": "Không có ứng dụng nào mở được trang này.",
+      "comment": "Android toast when no app handles the page URL after a tap on the page notification (WEB-04 E4, ActivityNotFoundException)",
+      "platforms": ["android"],
+      "specs": ["WEB-04"]
+    },
+    {
+      "key": "infoplist.apple_events_usage",
+      "plist_key": "NSAppleEventsUsageDescription",
+      "en": "HandLive reads the address of the page open in your browser so you can continue on your phone.",
+      "vi": "HandLive đọc địa chỉ trang đang mở trong trình duyệt để bạn xem tiếp trên điện thoại.",
+      "comment": "Purpose string of the Automation permission, asked once per browser the first time it comes to the front with web.send on (WEB-03 field 4, API 3)",
+      "platforms": ["macos"],
+      "specs": ["WEB-03"]
+    },
+    {
       "key": "infoplist.focus_status_usage",
       "plist_key": "NSFocusStatusUsageDescription",
       "en": "HandLive reads your Focus status so it doesn't ring or show calls while a Focus is on.",
@@ -1405,6 +1448,22 @@
       "comment": "Name of Android notification channel hl_service (ongoing foreground service notification, IMPORTANCE_LOW)",
       "platforms": ["android"],
       "specs": ["SET-01"]
+    },
+    {
+      "key": "notification.channel_web_description",
+      "en": "The web page open on your Mac, to continue on this phone.",
+      "vi": "Trang web đang mở trên Mac, để xem tiếp trên điện thoại này.",
+      "comment": "Description of Android notification channel hl_web (WEB-04 field 4)",
+      "platforms": ["android"],
+      "specs": ["WEB-04"]
+    },
+    {
+      "key": "notification.channel_web_name",
+      "en": "Pages from your devices",
+      "vi": "Trang từ thiết bị của bạn",
+      "comment": "Name of Android notification channel hl_web, IMPORTANCE_LOW (WEB-04 field 4)",
+      "platforms": ["android"],
+      "specs": ["WEB-04"]
     },
     {
       "key": "notification.permission_call",
@@ -3228,6 +3287,170 @@
       "platforms": ["macos", "ios"],
       "args": [{"name": "duration", "type": "string"}],
       "specs": ["CONN-02"]
+    },
+    {
+      "key": "web.a11y_service.label",
+      "en": "HandLive Browser Pages",
+      "vi": "Trang trình duyệt HandLive",
+      "comment": "Label of the separate Accessibility service (android:label), shown by Android in Settings › Accessibility (WEB-01 field 5); also named in web.disclosure.purpose",
+      "platforms": ["android"],
+      "specs": ["WEB-01"]
+    },
+    {
+      "key": "web.a11y_service.summary",
+      "en": "Reads the address of the page open in supported browsers so you can continue on your Mac, iPhone, or iPad.",
+      "vi": "Đọc địa chỉ trang đang mở trong các trình duyệt được hỗ trợ để bạn xem tiếp trên Mac, iPhone, iPad.",
+      "comment": "Summary of the HandLive Browser Pages Accessibility service (android:summary / description), shown by Android in Settings › Accessibility (WEB-01 field 5)",
+      "platforms": ["android"],
+      "specs": ["WEB-01"]
+    },
+    {
+      "key": "web.automation.not_allowed",
+      "en": "Not allowed",
+      "vi": "Không được phép",
+      "comment": "Mac status of a browser row in the Browsers list when Automation was denied (WEB-03 field 3, E2), next to common.open_system_settings",
+      "platforms": ["macos"],
+      "specs": ["WEB-03"]
+    },
+    {
+      "key": "web.browsers",
+      "en": "Browsers",
+      "vi": "Trình duyệt",
+      "comment": "Header of the per-browser list web.browsers (SET-02 field 37): one switch (Android) or checkbox (Mac) per supported browser; browser names are proper names and are not in the catalog",
+      "platforms": ["android", "macos"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "web.card.needs_accessibility",
+      "en": "Browser pages aren't on yet",
+      "vi": "Chưa bật trang trình duyệt",
+      "comment": "Status of the Continue Browsing feature card when the HandLive Browser Pages service is off (WEB-01 field 6, E3; SET-01 field 10), shown with the Grant Permission button",
+      "platforms": ["android"],
+      "specs": ["WEB-01", "SET-01"]
+    },
+    {
+      "key": "web.description",
+      "en": "Continue on one device the web page you're viewing on another.",
+      "vi": "Xem tiếp trên thiết bị này trang web đang xem trên thiết bị khác.",
+      "comment": "Android description under the Continue Browsing switch (SET-02 field 34)",
+      "platforms": ["android"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "web.disclosure.events",
+      "en": "The service receives events only from those browsers. It never reads other apps or what you type, and never sends pages from incognito or private tabs. Addresses are never stored.",
+      "vi": "Dịch vụ chỉ nhận sự kiện từ các trình duyệt đó. Dịch vụ không đọc ứng dụng khác hay nội dung bạn gõ, và không gửi trang trong tab ẩn danh hoặc riêng tư. Địa chỉ không bao giờ được lưu.",
+      "comment": "Continue Browsing disclosure (WEB-01 field 3), paragraph 2 of 3; changing its meaning needs a new key and a new consent",
+      "platforms": ["android"],
+      "specs": ["WEB-01"]
+    },
+    {
+      "key": "web.disclosure.not_now",
+      "en": "Not Now",
+      "vi": "Để sau",
+      "comment": "Second choice of the Continue Browsing disclosure (WEB-01 field 4, E2): feature.web stays off; the first choice is common.agree",
+      "platforms": ["android"],
+      "specs": ["WEB-01"]
+    },
+    {
+      "key": "web.disclosure.purpose",
+      "en": "HandLive uses a separate Accessibility service, HandLive Browser Pages, only to read the address and title of the page open in supported browsers, then sends them (end-to-end encrypted) to your paired Mac, iPhone, and iPad.",
+      "vi": "HandLive dùng một dịch vụ Hỗ trợ tiếp cận riêng, Trang trình duyệt HandLive, chỉ để đọc địa chỉ và tiêu đề của trang đang mở trong các trình duyệt được hỗ trợ, rồi gửi (mã hóa đầu-cuối) tới Mac, iPhone, iPad đã ghép nối.",
+      "comment": "Continue Browsing disclosure (WEB-01 field 3), paragraph 1 of 3; the service name must equal web.a11y_service.label; changing its meaning needs a new key and a new consent (web.a11y_consent_at)",
+      "platforms": ["android"],
+      "specs": ["WEB-01"]
+    },
+    {
+      "key": "web.disclosure.title",
+      "en": "Continue Browsing on Your Other Devices",
+      "vi": "Duyệt web tiếp trên thiết bị khác",
+      "comment": "Title of the full-screen Accessibility disclosure shown the first time Continue Browsing is turned on (WEB-01 field 2), like the clipboard disclosure",
+      "platforms": ["android"],
+      "specs": ["WEB-01"]
+    },
+    {
+      "key": "web.disclosure.turn_off",
+      "en": "You can turn this off at any time.",
+      "vi": "Bạn có thể tắt bất cứ lúc nào.",
+      "comment": "Continue Browsing disclosure (WEB-01 field 3), paragraph 3 of 3",
+      "platforms": ["android"],
+      "specs": ["WEB-01"]
+    },
+    {
+      "key": "web.ios_banner",
+      "en": "Continue browsing: {title_or_host}",
+      "vi": "Duyệt web tiếp: {title_or_host}",
+      "comment": "iPhone/iPad banner laid over the top of the visible tab (WEB-05 field 1), with the host under it and a close button (common.close); {title_or_host} = the page title, else its host",
+      "platforms": ["ios"],
+      "args": [{"name": "title_or_host", "type": "string"}],
+      "specs": ["WEB-05"]
+    },
+    {
+      "key": "web.lock_screen",
+      "en": "Page from {device_name}",
+      "vi": "Trang từ {device_name}",
+      "comment": "Public (lock screen) version of the Android page notification (WEB-04 field 6, VISIBILITY_PRIVATE); {device_name} = the Mac",
+      "platforms": ["android"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["WEB-04"]
+    },
+    {
+      "key": "web.mac_notification_body",
+      "en": "{host} — from {device_name}",
+      "vi": "{host} — từ {device_name}",
+      "comment": "Body of the optional Mac page notification (WEB-02 field 4); the title is the page title, else its host (user content); {host} = the page host (punycode per QW7); {device_name} = the phone",
+      "platforms": ["macos"],
+      "args": [{"name": "host", "type": "string"}, {"name": "device_name", "type": "string"}],
+      "specs": ["WEB-02"]
+    },
+    {
+      "key": "web.menu_item",
+      "en": "{title_or_host} — from {device_name}",
+      "vi": "{title_or_host} — từ {device_name}",
+      "comment": "First item of the Mac menu bar menu while a page from the phone is kept (WEB-02 field 2), with the browser glyph and ⌘O; {title_or_host} = the page title, else its host; {device_name} = the phone",
+      "platforms": ["macos"],
+      "args": [{"name": "title_or_host", "type": "string"}, {"name": "device_name", "type": "string"}],
+      "specs": ["WEB-02"]
+    },
+    {
+      "key": "web.notify",
+      "en": "Page Notifications",
+      "vi": "Thông báo trang",
+      "comment": "Settings option web.notify (SET-02 field 36): Android shows the Mac's page as a notification (WEB-04 field 5); Mac posts a notification besides the menu item (WEB-02 field 5)",
+      "platforms": ["android", "macos"],
+      "specs": ["SET-02", "WEB-02", "WEB-04"]
+    },
+    {
+      "key": "web.open_on_phone",
+      "en": "Open on this phone",
+      "vi": "Mở trên điện thoại này",
+      "comment": "Text of the Android page notification (WEB-04 field 2); the title is the page title, else its host",
+      "platforms": ["android"],
+      "specs": ["WEB-04"]
+    },
+    {
+      "key": "web.send_mac",
+      "en": "Send Pages from This Mac",
+      "vi": "Gửi trang từ Mac này",
+      "comment": "Mac settings switch web.send under Continue Browsing (SET-02 field 35, WEB-03 field 1)",
+      "platforms": ["macos"],
+      "specs": ["SET-02", "WEB-03"]
+    },
+    {
+      "key": "web.send_phone",
+      "en": "Send Pages from This Phone",
+      "vi": "Gửi trang từ điện thoại này",
+      "comment": "Android settings switch web.send (SET-02 field 35, WEB-01 field 7); the Mac uses web.send_mac",
+      "platforms": ["android"],
+      "specs": ["SET-02", "WEB-01"]
+    },
+    {
+      "key": "web.title",
+      "en": "Continue Browsing",
+      "vi": "Duyệt web tiếp",
+      "comment": "Name of the Continue Browsing feature: settings switch (SET-02 field 34, feature.web), feature card in the feature list (SET-01 field 10), iPhone/iPad settings switch (WEB-05 field 4); title-style",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["SET-02", "WEB-01", "WEB-05"]
     }
   ]
 }
