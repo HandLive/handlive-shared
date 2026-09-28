@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from jsonschema import Draft202012Validator
 
 GROUPS = ("common", "setup", "settings", "pairing", "status", "menu", "clipboard", "sms", "call", "call_audio",
-          "camera", "permission", "notification", "push", "error", "a11y", "infoplist")
+          "camera", "web", "permission", "notification", "push", "error", "a11y", "infoplist")
 # CLDR plural categories each language uses for integers; a language missing here needs "other" and CLDR names.
 PLURAL_CATEGORIES = {"en": {"one", "other"}, "vi": {"other"}}
 CLDR_CATEGORIES = {"zero", "one", "two", "few", "many", "other"}

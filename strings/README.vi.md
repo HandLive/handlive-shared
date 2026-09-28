@@ -26,7 +26,7 @@
 
 | Trường | Quy tắc |
 |--------|---------|
-| `key` | Chữ thường `[a-z0-9_]`, 2–5 đoạn nối bằng dấu chấm. Đoạn đầu là nhóm: `common`, `setup`, `settings`, `pairing`, `status`, `menu`, `clipboard`, `sms`, `call`, `call_audio`, `camera`, `permission`, `notification`, `push`, `error`, `a11y`, `infoplist`. Sửa câu chữ thì giữ khóa; đổi nghĩa thì tạo khóa mới. Khóa vẫn duy nhất sau khi đổi `.` thành `_` (tên tài nguyên Android). |
+| `key` | Chữ thường `[a-z0-9_]`, 2–5 đoạn nối bằng dấu chấm. Đoạn đầu là nhóm: `common`, `setup`, `settings`, `pairing`, `status`, `menu`, `clipboard`, `sms`, `call`, `call_audio`, `camera`, `web`, `permission`, `notification`, `push`, `error`, `a11y`, `infoplist`. Sửa câu chữ thì giữ khóa; đổi nghĩa thì tạo khóa mới. Khóa vẫn duy nhất sau khi đổi `.` thành `_` (tên tài nguyên Android). |
 | `en`, `vi` | Chuỗi, hoặc object số nhiều theo CLDR: `en` có `one` và `other`, `vi` chỉ có `other`. Có đủ mọi ngôn ngữ trong `languages`, không rỗng. |
 | `args` | Tham số `{tên}` với `type` là `string`, `int` hoặc `double`. Mọi bản dịch dùng đúng cùng một tập, thứ tự trong câu tự do (bộ sinh đổi sang tham số có vị trí). Ngày, giờ, số, dung lượng, thời lượng được formatter của hệ thống định dạng trước khi truyền vào, nên có kiểu `string`. |
 | `comment` | Bắt buộc: chuỗi xuất hiện ở đâu, giới hạn độ dài nếu có — ngữ cảnh cho người dịch. |
