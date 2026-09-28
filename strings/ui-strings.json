@@ -1509,8 +1509,8 @@
     },
     {
       "key": "pairing.empty_body_android",
-      "en": "Pair a Mac, iPhone, or iPad to share the clipboard with this phone.",
-      "vi": "Ghép nối Mac, iPhone hoặc iPad để dùng chung bảng nhớ tạm với điện thoại này.",
+      "en": "Pair a Mac, iPhone, or iPad to share the clipboard, messages, and calls with this phone.",
+      "vi": "Ghép nối Mac, iPhone hoặc iPad để dùng chung bảng nhớ tạm, tin nhắn và cuộc gọi với điện thoại này.",
       "comment": "Sentence under pairing.empty_title_android on the empty Devices tab, above pairing.add_device. Proposed text",
       "platforms": ["android"],
       "specs": ["PAIR-02"]
@@ -2558,6 +2558,14 @@
       "comment": "Mac first run when the app does not run from /Applications; buttons setup.applications_later, setup.applications_move",
       "platforms": ["macos"],
       "specs": ["SET-03"]
+    },
+    {
+      "key": "setup.autostart_body",
+      "en": "Some phones stop apps that run in the background. These settings keep HandLive connected to your Mac, iPhone, and iPad.",
+      "vi": "Một số điện thoại dừng các ứng dụng chạy nền. Các cài đặt này giúp HandLive luôn kết nối với Mac, iPhone và iPad.",
+      "comment": "Sentence under setup.autostart_title on every manufacturer, above the manufacturer steps and Pause app activity if unused (SET-01 field 8)",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
     },
     {
       "key": "setup.autostart_done",
