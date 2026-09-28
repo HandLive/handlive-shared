@@ -25,7 +25,7 @@ REST_BODIES = {
     ("POST", "/v1/auth/challenge"): ["auth-challenge-request", "auth-challenge-response"],
     ("POST", "/v1/auth/token"): ["auth-token-request", "auth-token-response"],
     ("PUT", "/v1/devices/me/push-token"): ["push-token-request"],
-    ("DELETE", "/v1/devices/me?revoke_pairs=<bool>"): [],
+    ("DELETE", "/v1/devices/me?revoke_pairs=<bool>"): ["devices-delete-request", "revocation"],
     ("POST", "/v1/pairs"): ["pairs-request", "pairs-response"],
     ("GET", "/v1/pairs"): ["pairs-list-response"],
     ("POST", "/v1/pairs/{pair_id}/revoke"): ["pair-revoke-request"],
@@ -60,6 +60,9 @@ VECTOR_MESSAGES = [
     ("relay-frame.json", "outbound",
      lambda v: "relay-wrapper" if v.get("kind") == "text_rewrite" and "spoofed_from" not in v else None),
     ("relay-frame.json", "inbound", lambda v: "relay-wrapper" if v.get("kind") == "text_rewrite" else None),
+    ("revoke.json", "revoke_request", "relay-rest#pair-revoke-request"),
+    ("revoke.json", "revocation", "relay-rest#revocation"),
+    ("revoke.json", "pair_revoked", "relay-pair_revoked"),
 ]
 EMBEDDED_ENVELOPE = {"relay-rest#push-request": "env_b64", "push#apns-payload": "hl"}
 

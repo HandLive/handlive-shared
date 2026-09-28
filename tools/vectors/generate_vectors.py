@@ -16,6 +16,7 @@ import build_message_vectors  # noqa: E402
 import build_pair_handshake_vectors  # noqa: E402
 import build_primitive_vectors  # noqa: E402
 import build_push_relay_vectors  # noqa: E402
+import build_revoke_vectors  # noqa: E402
 import build_signature_vectors  # noqa: E402
 
 OUT_DIR = Path(__file__).resolve().parents[2] / "test-vectors"  # gốc kho shared/
@@ -28,6 +29,7 @@ def render_all() -> dict[str, str]:
     files.update(build_message_vectors.build(ctx))
     files.update(build_push_relay_vectors.build(ctx, files))
     files.update(build_signature_vectors.build())
+    files.update(build_revoke_vectors.build())
     files.update(build_pair_handshake_vectors.build(ctx))
     files.update(build_discovery_hint_vectors.build(ctx))
     return {name: json.dumps(doc, indent=2, ensure_ascii=False) + "\n" for name, doc in sorted(files.items())}

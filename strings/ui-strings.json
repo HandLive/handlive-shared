@@ -2972,6 +2972,15 @@
       "specs": ["SMS-02", "SMS-04", "CALL-02", "CALL-04"]
     },
     {
+      "key": "sms.send_rate_limited_body",
+      "en": "HandLive stopped sending messages from {device_name} for now. Too many were sent in a short time.",
+      "vi": "HandLive tạm dừng gửi tin nhắn từ {device_name}. Có quá nhiều tin nhắn được gửi trong thời gian ngắn.",
+      "comment": "Body of the Android notification (channel permission) shown at most once per pair per day when a pair goes over the sms/send limit (10 per minute, 100 per rolling day) and the phone answers RATE_LIMITED (SMS-04 field 12, E11); {device_name} = the client's name, for example Lan's MacBook",
+      "platforms": ["android"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["SMS-04"]
+    },
+    {
       "key": "sms.status_delivered",
       "en": "Delivered",
       "vi": "Đã nhận",

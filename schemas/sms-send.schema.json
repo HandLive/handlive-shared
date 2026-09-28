@@ -45,11 +45,56 @@
   },
   "$defs": {
     "ack": {
-      "description": "Success ack of sms/send. Error acks use ack.schema.json#/$defs/failure (FEATURE_DISABLED, PERMISSION_MISSING, BAD_REQUEST, PAYLOAD_TOO_LARGE, SMS_INVALID_ADDRESS, SMS_SIM_UNAVAILABLE).",
+      "description": "Success ack of sms/send. Error acks: #/$defs/ack-failure.",
       "allOf": [
         { "$ref": "ack.schema.json#/$defs/success" },
         { "properties": { "data": { "$ref": "#/$defs/ack-data" } } }
       ]
+    },
+    "ack-failure": {
+      "description": "Error ack of sms/send (SMS-04 API 1): FEATURE_DISABLED, PERMISSION_MISSING, BAD_REQUEST, PAYLOAD_TOO_LARGE, SMS_INVALID_ADDRESS, SMS_SIM_UNAVAILABLE, RATE_LIMITED (per pair at most 10 sms/send per minute and 100 per rolling day; details.retry_after_ms), INTERNAL.",
+      "allOf": [
+        { "$ref": "ack.schema.json#/$defs/failure" },
+        { "properties": { "error": { "$ref": "#/$defs/error" } } }
+      ]
+    },
+    "error": {
+      "type": "object",
+      "required": ["code"],
+      "properties": {
+        "code": {
+          "enum": [
+            "FEATURE_DISABLED",
+            "PERMISSION_MISSING",
+            "BAD_REQUEST",
+            "PAYLOAD_TOO_LARGE",
+            "SMS_INVALID_ADDRESS",
+            "SMS_SIM_UNAVAILABLE",
+            "RATE_LIMITED",
+            "INTERNAL"
+          ]
+        }
+      },
+      "if": {
+        "properties": { "code": { "const": "RATE_LIMITED" } }
+      },
+      "then": {
+        "description": "RATE_LIMITED: details.retry_after_ms = milliseconds until the pair may send again.",
+        "required": ["details"],
+        "properties": {
+          "details": {
+            "type": "object",
+            "required": ["retry_after_ms"],
+            "additionalProperties": false,
+            "properties": {
+              "retry_after_ms": {
+                "$ref": "common.schema.json#/$defs/int64",
+                "minimum": 1
+              }
+            }
+          }
+        }
+      }
     },
     "ack-data": {
       "type": "object",

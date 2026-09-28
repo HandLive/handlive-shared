@@ -44,6 +44,8 @@ PLACEHOLDER_BY_KEY = {
     "hl": ENVELOPE_B64,
     "prk_check": base64.urlsafe_b64encode(bytes(32)).decode().rstrip("="),  # b64u 32 byte (PAIR-01 API 4–5)
     "by": "00000000-0000-8000-8000-000000000000",  # device_id (uuid-v8) của pair_revoked
+    "revoked_by": "00000000-0000-8000-8000-000000000000",  # device_id (uuid-v8) in GET /v1/pairs
+    "revoke_sig": base64.urlsafe_b64encode(bytes(64)).decode().rstrip("="),  # HLREVOKE1 signature, b64u 64 byte
     "code": "BAD_REQUEST",  # mã lỗi có trong cả 0.8.1 và 0.8.2
     "message": "diagnostic",  # chuỗi chẩn đoán tiếng Anh, chỉ để ghi log (0.12.4)
 }
@@ -69,7 +71,9 @@ BODY_RULES = [
     (re.compile(r"`POST /v1/pairs`"), lambda o: "attestation" in o, "relay-rest#pairs-request"),
     (re.compile(r"`POST /v1/pairs`"), lambda o: set(o) == {"pair_id", "created_at"}, "relay-rest#pairs-response"),
     (re.compile(r"`GET /v1/pairs`"), lambda o: "pairs" in o, "relay-rest#pairs-list-response"),
-    (re.compile(r"`POST /v1/pairs/\{pair_id\}/revoke`"), lambda o: "reason" in o, "relay-rest#pair-revoke-request"),
+    (re.compile(r"`POST /v1/pairs/\{pair_id\}/revoke`"), lambda o: "sig" in o or "reason" in o,
+     "relay-rest#pair-revoke-request"),
+    (re.compile(r"`DELETE /v1/devices/me"), lambda o: "revocations" in o, "relay-rest#devices-delete-request"),
     (re.compile(r"`POST /v1/push`"), lambda o: "kind" in o, "relay-rest#push-request"),
     (re.compile(r"`POST /v1/push`"), lambda o: set(o) == {"accepted"}, "relay-rest#push-response"),
     (re.compile(r"FCM HTTP v1"), lambda o: "message" in o, "push#fcm-request"),

@@ -25,9 +25,10 @@ jobs:
     timeout-minutes: 5
     if: github.event_name != 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Không có danh tính hay trailer của công cụ AI trong commit mới
         env:
@@ -56,25 +57,31 @@ jobs:
           OWNER: ${{ github.repository_owner }}
           GH_TOKEN: ${{ secrets.HANDLIVE_REPOS_TOKEN || github.token }}
         run: |
+          # gh reads GH_TOKEN from the environment: the token never appears in a URL or on a command line.
           resolve() {
-            if git ls-remote --exit-code --heads "https://x-access-token:${GH_TOKEN}@github.com/${OWNER}/$1.git" "$BRANCH" >/dev/null 2>&1; then echo "$BRANCH"; else echo main; fi
+            # The branch name is data: URL-encoded in the path and passed to jq with --arg, never spliced into code.
+            enc="$(jq -rn --arg b "$BRANCH" '$b|@uri')"
+            n="$(gh api "repos/${OWNER}/$1/git/matching-refs/heads/${enc}" 2>/dev/null | jq --arg r "refs/heads/$BRANCH" 'map(select(.ref == $r)) | length' 2>/dev/null || echo 0)"
+            if [ "$n" = 1 ]; then echo "$BRANCH"; else echo main; fi
           }
           hub="$(resolve handlive)"; shared="$(resolve handlive-shared)"
           echo "hub=$hub" >> "$GITHUB_OUTPUT"; echo "shared=$shared" >> "$GITHUB_OUTPUT"
           echo "hub → $hub, handlive-shared → $shared"
 
       - name: Kho hub handlive ở gốc workspace
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: ${{ github.repository_owner }}/handlive
           ref: ${{ steps.refs.outputs.hub }}
           token: ${{ secrets.HANDLIVE_REPOS_TOKEN || github.token }}
+          persist-credentials: false
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           path: shared
+          persist-credentials: false
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: "3.14"
           cache: pip
