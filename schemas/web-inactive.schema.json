@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/web-inactive.schema.json",
+  "title": "HandLive — web/inactive (both ways, no ack)",
+  "description": "WEB-01 API 2 and 00-common-specs 0.7.1: the page is no longer open in the sender's foreground; the receiver removes its stored page only when page_id matches.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "inactive" },
+    "data": {
+      "type": "object",
+      "required": ["page_id"],
+      "additionalProperties": false,
+      "properties": {
+        "page_id": {
+          "description": "page_id of the web/active that ended.",
+          "$ref": "common.schema.json#/$defs/uuid-v7"
+        }
+      }
+    }
+  }
+}

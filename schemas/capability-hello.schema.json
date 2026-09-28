@@ -43,7 +43,8 @@
         "call": { "$ref": "#/$defs/feature-call" },
         "call_audio": { "$ref": "#/$defs/feature-call-audio" },
         "camera": { "$ref": "#/$defs/feature-camera" },
-        "relay": { "$ref": "#/$defs/feature-relay" }
+        "relay": { "$ref": "#/$defs/feature-relay" },
+        "web": { "$ref": "#/$defs/feature-web" }
       }
     },
     "feature-clipboard": {
@@ -175,6 +176,17 @@
       "additionalProperties": false,
       "properties": {
         "enabled": { "type": "boolean" }
+      }
+    },
+    "feature-web": {
+      "description": "Continue Browsing (0.7.2, P6). enabled = feature.web; send: Android web.send and the HandLive Browser Pages service running, Mac web.send, iOS/iPadOS always false; receive: Android web.notify and notifications allowed, Mac and iOS/iPadOS true.",
+      "type": "object",
+      "required": ["enabled", "send", "receive"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "send": { "type": "boolean" },
+        "receive": { "type": "boolean" }
       }
     }
   }

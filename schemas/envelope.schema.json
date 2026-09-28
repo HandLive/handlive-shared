@@ -27,7 +27,7 @@
   },
   "$defs": {
     "type": {
-      "description": "Nhóm tin (0.7.1): tập đã chốt cộng session, camera.",
+      "description": "Nhóm tin (0.7.1): tập đã chốt cộng session, camera, web.",
       "enum": [
         "clipboard",
         "sms",
@@ -38,7 +38,8 @@
         "ping",
         "capability",
         "session",
-        "camera"
+        "camera",
+        "web"
       ]
     }
   }
