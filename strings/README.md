@@ -26,7 +26,7 @@ English | [Tiếng Việt](README.vi.md)
 
 | Field | Rule |
 |-------|------|
-| `key` | Lowercase `[a-z0-9_]`, 2–5 segments joined by dots. The first segment is the group: `common`, `setup`, `settings`, `pairing`, `status`, `menu`, `clipboard`, `sms`, `call`, `call_audio`, `camera`, `permission`, `notification`, `push`, `error`, `a11y`, `infoplist`. A key never changes when the wording changes; a new meaning gets a new key. Keys stay unique after `.` becomes `_` (Android resource names). |
+| `key` | Lowercase `[a-z0-9_]`, 2–5 segments joined by dots. The first segment is the group: `common`, `setup`, `settings`, `pairing`, `status`, `menu`, `clipboard`, `sms`, `call`, `call_audio`, `camera`, `web`, `permission`, `notification`, `push`, `error`, `a11y`, `infoplist`. A key never changes when the wording changes; a new meaning gets a new key. Keys stay unique after `.` becomes `_` (Android resource names). |
 | `en`, `vi` | A string, or a CLDR plural object: `en` has `one` and `other`, `vi` has only `other`. Every language of `languages` is present and non-empty. |
 | `args` | Placeholders `{name}` with `type` `string`, `int` or `double`. Every translation uses exactly the same set, in any order (generators turn them into positional arguments). Dates, times, numbers, sizes and durations are formatted by the system before they are passed in, so they are `string`. |
 | `comment` | Required: where the string appears and any length limit — context for translators. |

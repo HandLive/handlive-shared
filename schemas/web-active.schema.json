@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/web-active.schema.json",
+  "title": "HandLive — web/active (both ways, no ack)",
+  "description": "WEB-01 API 1 and 00-common-specs 0.7.1: the page open in the sender's foreground browser; latest wins by observed_at. Android sends it to Mac and iPhone/iPad, the Mac to Android; iPhone/iPad never send it. JSON Schema counts characters, so the WEB_URL_MAX byte limit (8 KiB of UTF-8) and the host check are also done in code; an invalid payload is dropped silently.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "active" },
+    "data": {
+      "type": "object",
+      "required": ["page_id", "url", "browser", "observed_at"],
+      "additionalProperties": false,
+      "properties": {
+        "page_id": {
+          "description": "UUIDv7, new for each page (new URL); the same while only the title changes, on a WEB_REFRESH re-send and after a reconnect.",
+          "$ref": "common.schema.json#/$defs/uuid-v7"
+        },
+        "url": {
+          "description": "The URL as the browser shows it, fragment kept; http or https only, with a host; at most WEB_URL_MAX (8192 bytes of UTF-8, so at most 8192 characters).",
+          "type": "string",
+          "pattern": "^https?://[^/?#\\s]",
+          "maxLength": 8192
+        },
+        "title": {
+          "description": "The page title, at most WEB_TITLE_MAX (256) characters; absent when the browser does not expose it or it is empty.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "browser": { "$ref": "#/$defs/browser" },
+        "observed_at": {
+          "description": "When the sender read the URL that settled (sender clock).",
+          "$ref": "common.schema.json#/$defs/timestamp"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "browser": {
+      "description": "Browser id of the 0.7.1 table; receivers treat an unknown value as other (0.5.1 rule 6).",
+      "enum": ["chrome", "samsung", "firefox", "edge", "brave", "opera", "vivaldi", "duckduckgo", "safari", "arc", "other"]
+    }
+  }
+}

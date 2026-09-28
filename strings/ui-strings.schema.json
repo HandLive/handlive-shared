@@ -27,7 +27,7 @@
     "key": {
       "description": "Lowercase [a-z0-9_], 2-5 dot-separated segments; the first segment is the group. Stable: rewording keeps the key, a new meaning gets a new key.",
       "type": "string",
-      "pattern": "^(common|setup|settings|pairing|status|menu|clipboard|sms|call|call_audio|camera|permission|notification|push|error|a11y|infoplist)(\\.[a-z0-9_]+){1,4}$"
+      "pattern": "^(common|setup|settings|pairing|status|menu|clipboard|sms|call|call_audio|camera|web|permission|notification|push|error|a11y|infoplist)(\\.[a-z0-9_]+){1,4}$"
     },
     "text": {"type": "string", "minLength": 1},
     "plural": {
