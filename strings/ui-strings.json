@@ -2314,11 +2314,27 @@
       "specs": ["SET-02"]
     },
     {
+      "key": "settings.check_again",
+      "en": "Check Again",
+      "vi": "Kiểm Tra Lại",
+      "comment": "Mac Permissions pane: re-probe notifications, local network and paste access after the user changes System Settings",
+      "platforms": ["macos"],
+      "specs": ["SET-03"]
+    },
+    {
       "key": "settings.local_network",
       "en": "Local Network",
       "vi": "Mạng cục bộ",
       "comment": "Row in the Permissions group with the local network permission state, values common.on / common.off (SET-03 field 9)",
-      "platforms": ["ios"],
+      "platforms": ["ios", "macos"],
+      "specs": ["SET-03"]
+    },
+    {
+      "key": "settings.local_network_unknown",
+      "en": "Not Checked",
+      "vi": "Chưa Kiểm Tra",
+      "comment": "Mac Permissions pane value for local network before the first probe, or while the probe runs",
+      "platforms": ["macos"],
       "specs": ["SET-03"]
     },
     {
@@ -2333,8 +2349,8 @@
       "key": "settings.notifications",
       "en": "Notifications",
       "vi": "Thông báo",
-      "comment": "Row with the notification permission state: Android Settings › Permissions & Background (SET-01 field 3, SET-02 field 23); iPhone Permissions group (SET-03 field 7)",
-      "platforms": ["android", "ios"],
+      "comment": "Row with the notification permission state: Android Settings › Permissions & Background (SET-01 field 3, SET-02 field 23); iPhone Permissions group (SET-03 field 7); Mac Permissions pane",
+      "platforms": ["android", "ios", "macos"],
       "specs": ["SET-01", "SET-02", "SET-03"]
     },
     {
@@ -2365,8 +2381,8 @@
       "key": "settings.permissions",
       "en": "Permissions",
       "vi": "Quyền",
-      "comment": "Header of the Settings group with the Notifications and Local Network rows (iPhone, iPad)",
-      "platforms": ["ios"],
+      "comment": "Header of the Settings group with the Notifications and Local Network rows (iPhone, iPad); Mac Settings tab title",
+      "platforms": ["ios", "macos"],
       "specs": ["SET-02", "SET-03"]
     },
     {
@@ -2376,6 +2392,14 @@
       "comment": "Android settings row opening the feature permission cards and the background state",
       "platforms": ["android"],
       "specs": ["SET-02", "SET-01"]
+    },
+    {
+      "key": "settings.permissions_footer_mac",
+      "en": "HandLive needs Local Network to find your phone on Wi-Fi. Turn it on in System Settings › Privacy & Security › Local Network, then tap Check Again.",
+      "vi": "HandLive cần Mạng cục bộ để tìm điện thoại trên Wi-Fi. Bật trong Cài đặt hệ thống › Quyền riêng tư & Bảo mật › Mạng cục bộ, rồi nhấn Kiểm Tra Lại.",
+      "comment": "Footer of the Mac Permissions pane (SET-03 field 9, E4)",
+      "platforms": ["macos"],
+      "specs": ["SET-03"]
     },
     {
       "key": "settings.phone",
