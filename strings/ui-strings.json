@@ -2186,6 +2186,14 @@
       "specs": ["SET-02"]
     },
     {
+      "key": "settings.check_again",
+      "en": "Check Again",
+      "vi": "Kiểm Tra Lại",
+      "comment": "Mac Permissions pane: re-probe notifications, local network and paste access after the user changes System Settings",
+      "platforms": ["macos"],
+      "specs": ["SET-03"]
+    },
+    {
       "key": "settings.clipboard",
       "en": "Clipboard",
       "vi": "Bảng nhớ tạm",
@@ -2312,14 +2320,6 @@
       "comment": "Language option, always written in its own language",
       "platforms": ["android"],
       "specs": ["SET-02"]
-    },
-    {
-      "key": "settings.check_again",
-      "en": "Check Again",
-      "vi": "Kiểm Tra Lại",
-      "comment": "Mac Permissions pane: re-probe notifications, local network and paste access after the user changes System Settings",
-      "platforms": ["macos"],
-      "specs": ["SET-03"]
     },
     {
       "key": "settings.local_network",
