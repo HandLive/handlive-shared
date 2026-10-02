@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handlive.app/schemas/v1/call_event-app_call.schema.json",
+  "title": "HandLive — call_event/app_call (S→C, no ack)",
+  "description": "CALL-05 API 1: a call from another app on the phone (Telegram…), read from the app's call notification by A-CALL's NotificationListenerService. Sent to every session for which features.call.app_calls is in effect (Mac only; iPhone/iPad report false), on every change of the app-call context, latest wins per call_id; ended is sent once, then the context is forgotten. Never in a push. caller is personal data: E2E only, never logged, never stored. The allOf rules restate the context rules of API 1.",
+  "type": "object",
+  "required": ["op", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "op": { "const": "app_call" },
+    "data": { "$ref": "#/$defs/app-call-data" }
+  },
+  "$defs": {
+    "timestamp-or-null": {
+      "oneOf": [
+        { "$ref": "common.schema.json#/$defs/timestamp" },
+        { "type": "null" }
+      ]
+    },
+    "app": {
+      "description": "The calling app: its Android package name and its label from PackageManager (display only, cut to 64 characters).",
+      "type": "object",
+      "required": ["package", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "package": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "pattern": "^[A-Za-z][A-Za-z0-9_]*(?:\\.[A-Za-z][A-Za-z0-9_]*)+$"
+        },
+        "label": { "type": "string", "minLength": 1, "maxLength": 64 }
+      }
+    },
+    "controls": {
+      "description": "Actions the Mac may send with call_event/action: answer and decline while ringing, from the answer and decline intents of the ringing notification; end while ongoing, when the in-call notification has an end action (its android.hangUpIntent, else its only action).",
+      "type": "object",
+      "required": ["answer", "decline", "end"],
+      "additionalProperties": false,
+      "properties": {
+        "answer": { "type": "boolean" },
+        "decline": { "type": "boolean" },
+        "end": { "type": "boolean" }
+      }
+    },
+    "app-call-data": {
+      "description": "Every field is always present (null where the spec allows it).",
+      "type": "object",
+      "required": [
+        "call_id", "app", "caller", "state", "controls", "answer_mode", "audio", "started_at", "answered_at",
+        "ended_at", "end_reason"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "call_id": {
+          "description": "One per app call; stays the same from ringing to ongoing to ended.",
+          "$ref": "call_event-common.schema.json#/$defs/call-id"
+        },
+        "app": { "$ref": "#/$defs/app" },
+        "caller": {
+          "description": "callPerson.name of the CallStyle notification, else its title, cut to 128 characters; null when absent, never an empty string.",
+          "type": ["string", "null"],
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "state": {
+          "description": "ringing (CallStyle callType 1), ongoing (CallStyle callType 2, or the ringing context linked to an ongoing notification within APP_CALL_LINK_WINDOW), ended (the in-call notification removed, or the ringing one removed without a link).",
+          "enum": ["ringing", "ongoing", "ended"]
+        },
+        "controls": { "$ref": "#/$defs/controls" },
+        "answer_mode": {
+          "description": "direct: HandLive holds a background-activity-start exemption (its Accessibility service is bound) and sends the answer intent itself; tap: Answer posts a tap-to-answer notification on the phone.",
+          "enum": ["direct", "tap"]
+        },
+        "audio": {
+          "description": "Where the app call's audio is: always phone in v1 (mac is reserved).",
+          "const": "phone"
+        },
+        "started_at": {
+          "description": "When the context was created (Android clock).",
+          "$ref": "common.schema.json#/$defs/timestamp"
+        },
+        "answered_at": {
+          "description": "When a ringing context became ongoing; null while ringing, for a context created ongoing, and for a call that ended as declined, missed or unknown.",
+          "$ref": "#/$defs/timestamp-or-null"
+        },
+        "ended_at": {
+          "description": "Only when state = ended.",
+          "$ref": "#/$defs/timestamp-or-null"
+        },
+        "end_reason": {
+          "description": "Only when state = ended: ended (the in-call notification was removed), declined (HandLive sent the decline), unknown (HandLive sent the answer but no in-call notification followed, or the listener was lost mid-call; answered_at stays null), missed (otherwise).",
+          "enum": ["declined", "ended", "missed", "unknown", null]
+        }
+      },
+      "allOf": [
+        {
+          "description": "ended_at and end_reason are set exactly when state = ended.",
+          "if": { "properties": { "state": { "const": "ended" } } },
+          "then": { "properties": { "ended_at": { "type": "integer" }, "end_reason": { "type": "string" } } },
+          "else": { "properties": { "ended_at": { "type": "null" }, "end_reason": { "type": "null" } } }
+        },
+        {
+          "description": "controls.answer and controls.decline need a ringing call.",
+          "if": {
+            "anyOf": [
+              { "properties": { "controls": { "properties": { "answer": { "const": true } } } } },
+              { "properties": { "controls": { "properties": { "decline": { "const": true } } } } }
+            ]
+          },
+          "then": { "properties": { "state": { "const": "ringing" } } }
+        },
+        {
+          "description": "controls.end needs an ongoing call.",
+          "if": { "properties": { "controls": { "properties": { "end": { "const": true } } } } },
+          "then": { "properties": { "state": { "const": "ongoing" } } }
+        },
+        {
+          "description": "A ringing call, or one that ended as declined, missed or unknown, was never ongoing: no answered_at.",
+          "if": {
+            "anyOf": [
+              { "properties": { "state": { "const": "ringing" } } },
+              { "properties": { "end_reason": { "enum": ["declined", "missed", "unknown"] } } }
+            ]
+          },
+          "then": { "properties": { "answered_at": { "type": "null" } } }
+        }
+      ]
+    }
+  }
+}

@@ -86,9 +86,9 @@
       "key": "call.answer",
       "en": "Answer",
       "vi": "Trả lời",
-      "comment": "Round Answer button of the Mac call panel (call-accept-fill, on the right, key Return; also its accessibility label), the HL_CALL_ANSWER action of the Mac incoming-call notification and the Answer item of the ringing call in the menu bar menu (also after Ignore); only when controls.answer = true (CALL-01 fields 6, 15, CALL-02 field 1)",
+      "comment": "Round Answer button of the Mac call panel (call-accept-fill, on the right, key Return; also its accessibility label), the HL_CALL_ANSWER action of the Mac incoming-call notification and the Answer item of the ringing call in the menu bar menu (also after Ignore); only when controls.answer = true (CALL-01 fields 6, 15, CALL-02 field 1); also the Answer button of the app-call panel when controls.answer = true (CALL-05 field 3)",
       "platforms": ["macos"],
-      "specs": ["CALL-01", "CALL-02"]
+      "specs": ["CALL-01", "CALL-02", "CALL-05"]
     },
     {
       "key": "call.answer_on_mac",
@@ -102,9 +102,9 @@
       "key": "call.answer_on_phone",
       "en": "Answer on Phone",
       "vi": "Nghe trên điện thoại",
-      "comment": "Mac call panel: takes the place of call.answer, next to call.answer_on_mac, when call audio is in effect; answers with the audio staying on the phone (CALL-01 field 6, CALL-02 field 2)",
+      "comment": "Mac call panel: takes the place of call.answer, next to call.answer_on_mac, when call audio is in effect; answers with the audio staying on the phone (CALL-01 field 6, CALL-02 field 2); in the app-call panel it replaces call.answer while call audio is in effect, without call.answer_on_mac, since an app call's audio stays on the phone (CALL-05 field 3)",
       "platforms": ["macos"],
-      "specs": ["CALL-01", "CALL-02"]
+      "specs": ["CALL-01", "CALL-02", "CALL-05"]
     },
     {
       "key": "call.answer_tooltip",
@@ -123,6 +123,32 @@
       "specs": ["CALL-02"]
     },
     {
+      "key": "call.app_incoming_title",
+      "en": "{app_name} Call",
+      "vi": "Cuộc gọi {app_name}",
+      "comment": "Title of the Mac call panel, incoming and in-call, for a call from another app on the phone; {app_name} = app.label of call_event/app_call, the app's name as the phone reports it (never translated), e.g. “Telegram Call” (CALL-05 field 1)",
+      "platforms": ["macos"],
+      "args": [{"name": "app_name", "type": "string"}],
+      "specs": ["CALL-05"]
+    },
+    {
+      "key": "call.app_tap_to_answer_hint",
+      "en": "Tap the notification on your phone to answer.",
+      "vi": "Chạm vào thông báo trên điện thoại để nghe.",
+      "comment": "Line of the Mac app-call panel after Answer succeeded with answer_mode = tap (no background-start exemption on the phone): it replaces the Answer button until the call state changes; Decline stays (CALL-05 field 6, E7)",
+      "platforms": ["macos"],
+      "specs": ["CALL-05"]
+    },
+    {
+      "key": "call.app_tap_to_answer_title",
+      "en": "Answer {app_name} Call",
+      "vi": "Nghe cuộc gọi {app_name}",
+      "comment": "Title of the Android tap-to-answer notification (channel hl_app_call) posted when the Mac answers a call from another app with answer_mode = tap; tapping it runs the app's answer intent; its text is the caller when known; {app_name} = the app's label (never translated) (CALL-05 field 12, API 5)",
+      "platforms": ["android"],
+      "args": [{"name": "app_name", "type": "string"}],
+      "specs": ["CALL-05"]
+    },
+    {
       "key": "call.audio_on_mac",
       "en": "Audio: Mac",
       "vi": "Âm thanh: Mac",
@@ -134,9 +160,9 @@
       "key": "call.audio_on_phone",
       "en": "Audio: Phone",
       "vi": "Âm thanh: Điện thoại",
-      "comment": "In-call Mac call panel: the call audio plays on the phone (audio_on = phone) (CALL-03 field 4)",
+      "comment": "In-call Mac call panel: the call audio plays on the phone (audio_on = phone) (CALL-03 field 4); always shown in the in-call app-call panel, whose audio stays on the phone (CALL-05 field 8)",
       "platforms": ["macos"],
-      "specs": ["CALL-03"]
+      "specs": ["CALL-03", "CALL-05"]
     },
     {
       "key": "call.call_log_permission_hint",
@@ -174,9 +200,9 @@
       "key": "call.decline",
       "en": "Decline",
       "vi": "Từ chối",
-      "comment": "Round Decline button of the Mac call panel (call-decline-fill, on the left, key ⌘⌫; also its accessibility label) and of the iPhone/iPad banner, the HL_CALL_REJECT action of the incoming-call notification (destructive; iOS asks to unlock first) and the Decline item of the ringing call in the Mac menu bar menu; only when controls.reject = true (CALL-01 fields 7, 15, API 6, CALL-02 fields 3, 4)",
+      "comment": "Round Decline button of the Mac call panel (call-decline-fill, on the left, key ⌘⌫; also its accessibility label) and of the iPhone/iPad banner, the HL_CALL_REJECT action of the incoming-call notification (destructive; iOS asks to unlock first) and the Decline item of the ringing call in the Mac menu bar menu; only when controls.reject = true (CALL-01 fields 7, 15, API 6, CALL-02 fields 3, 4); also the Decline button of the app-call panel when controls.decline = true (CALL-05 field 4)",
       "platforms": ["macos", "ios"],
-      "specs": ["CALL-01", "CALL-02"]
+      "specs": ["CALL-01", "CALL-02", "CALL-05"]
     },
     {
       "key": "call.decline_failed",
@@ -230,9 +256,9 @@
       "key": "call.end",
       "en": "End",
       "vi": "Kết thúc",
-      "comment": "Red round End button of the in-call Mac call panel (phone.down.fill; also its accessibility label); shown when waiting = false and controls.end = true or the Mac has a Bluetooth HFP link (CALL-03 field 5)",
+      "comment": "Red round End button of the in-call Mac call panel (phone.down.fill; also its accessibility label); shown when waiting = false and controls.end = true or the Mac has a Bluetooth HFP link (CALL-03 field 5); also the End button of the in-call app-call panel when controls.end = true (CALL-05 field 9)",
       "platforms": ["macos"],
-      "specs": ["CALL-03"]
+      "specs": ["CALL-03", "CALL-05"]
     },
     {
       "key": "call.end_and_answer",
@@ -270,9 +296,9 @@
       "key": "call.ignore",
       "en": "Ignore",
       "vi": "Bỏ qua",
-      "comment": "Text button of the ringing Mac call panel (key Esc): closes the panel and silences the ringtone on the Mac only; the call keeps ringing on the phone and stays in the menu bar menu (CALL-01 field 9)",
+      "comment": "Text button of the ringing Mac call panel (key Esc): closes the panel and silences the ringtone on the Mac only; the call keeps ringing on the phone and stays in the menu bar menu (CALL-01 field 9); also in the incoming app-call panel (CALL-05 field 5)",
       "platforms": ["macos"],
-      "specs": ["CALL-01"]
+      "specs": ["CALL-01", "CALL-05"]
     },
     {
       "key": "call.incoming_body",
@@ -523,9 +549,9 @@
       "key": "call.unknown_caller",
       "en": "Unknown Caller",
       "vi": "Không rõ số",
-      "comment": "Shown instead of the caller's number when it is unknown (presentation = unknown, for example READ_CALL_LOG missing on the phone, then with call.caller_id_permission_hint), for a waiting caller without number and name (CALL-01 fields 3, 5, E2), and as the missed-call notification title without the call log, flow A (CALL-04 field 8, API 4)",
+      "comment": "Shown instead of the caller's number when it is unknown (presentation = unknown, for example READ_CALL_LOG missing on the phone, then with call.caller_id_permission_hint), for a waiting caller without number and name (CALL-01 fields 3, 5, E2), and as the missed-call notification title without the call log, flow A (CALL-04 field 8, API 4); also the caller line of the app-call panel when caller is null (CALL-05 field 2)",
       "platforms": ["macos", "ios"],
-      "specs": ["CALL-01", "CALL-04"]
+      "specs": ["CALL-01", "CALL-04", "CALL-05"]
     },
     {
       "key": "call.waiting_handle_on_phone",
@@ -1952,6 +1978,22 @@
       "specs": ["SET-03"]
     },
     {
+      "key": "permission.notification_access_body",
+      "en": "HandLive reads only call notifications from calling apps, to show them on your Mac. Other notifications are ignored and never leave your phone.",
+      "vi": "HandLive chỉ đọc thông báo cuộc gọi của các ứng dụng gọi điện để hiện trên Mac. Các thông báo khác bị bỏ qua và không bao giờ rời khỏi điện thoại.",
+      "comment": "Body of the Android PermissionPrimer before the system Notification access page, under permission.notification_access_title; single button common.continue, footer permission.primer_footer (SET-01 field 19, step N1; CALL-05 field 14)",
+      "platforms": ["android"],
+      "specs": ["SET-01", "CALL-05"]
+    },
+    {
+      "key": "permission.notification_access_title",
+      "en": "Allow Notification Access",
+      "vi": "Cho phép truy cập thông báo",
+      "comment": "Title of the Android PermissionPrimer before the system Notification access page, shown when calls from other apps are turned on without that access or from Grant Permission on their card; body permission.notification_access_body (SET-01 field 19, step N1)",
+      "platforms": ["android"],
+      "specs": ["SET-01", "CALL-05"]
+    },
+    {
       "key": "permission.notifications_primer_android",
       "en": "Notifications show the connection status and let you confirm requests from your Mac, such as turning on the camera.",
       "vi": "Thông báo cho bạn biết trạng thái kết nối và để bạn xác nhận yêu cầu từ Mac, ví dụ bật camera.",
@@ -2143,6 +2185,22 @@
       "comment": "One-line description under Block Sensitive Content (SET-02 field 5). Proposed text",
       "platforms": ["android"],
       "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.call_app_calls",
+      "en": "Calls from Other Apps",
+      "vi": "Cuộc gọi từ ứng dụng khác",
+      "comment": "Option for call.app_calls under Calls (SET-02 field 38, CALL-05 field 13): switch on the Android Settings tab, checkbox in the Mac Calls pane shown dimmed while Calls is off; also the Android feature card name (SET-01 field 10) and the name of the Android notification channel hl_app_call of the tap-to-answer notification (CALL-05 API 5)",
+      "platforms": ["android", "macos"],
+      "specs": ["SET-02", "SET-01", "CALL-05"]
+    },
+    {
+      "key": "settings.call_app_calls_footer",
+      "en": "Show calls from apps like Telegram on your Mac. Audio stays on your phone.",
+      "vi": "Hiện cuộc gọi từ các ứng dụng như Telegram trên Mac. Âm thanh vẫn ở trên điện thoại.",
+      "comment": "Footer under Calls from Other Apps (SET-02 field 38, CALL-05 field 13)",
+      "platforms": ["android", "macos"],
+      "specs": ["SET-02", "CALL-05"]
     },
     {
       "key": "settings.call_log_last_sync",
@@ -2791,6 +2849,14 @@
       "en": "If Android shows “Restricted setting”: open Settings › Apps › HandLive, tap ⋮ at the top, choose “Allow restricted settings”, authenticate, then come back and turn on HandLive in Accessibility.",
       "vi": "Nếu Android báo “Chế độ cài đặt bị hạn chế”: mở Cài đặt › Ứng dụng › HandLive, chạm ⋮ ở góc trên, chọn “Cho phép chế độ cài đặt bị hạn chế”, xác thực, rồi quay lại bật HandLive trong Hỗ trợ tiếp cận.",
       "comment": "Android 13+ guide for installs outside Google Play before opening Accessibility settings; system names as Android shows them",
+      "platforms": ["android"],
+      "specs": ["SET-01"]
+    },
+    {
+      "key": "setup.restricted_settings_help_notification_access",
+      "en": "If Android shows “Restricted setting”: open Settings › Apps › HandLive, tap ⋮ at the top, choose “Allow restricted settings”, authenticate, then come back and turn on HandLive in Notification access.",
+      "vi": "Nếu Android báo “Chế độ cài đặt bị hạn chế”: mở Cài đặt › Ứng dụng › HandLive, chạm ⋮ ở góc trên, chọn “Cho phép chế độ cài đặt bị hạn chế”, xác thực, rồi quay lại bật HandLive trong Truy cập thông báo.",
+      "comment": "Android 13+ guide for installs outside Google Play before opening the Notification access page (calls from other apps); system names as Android shows them",
       "platforms": ["android"],
       "specs": ["SET-01"]
     },

@@ -1,4 +1,4 @@
-"""Hand-written samples for the call schemas (call_event-*, call-notification).
+"""Hand-written samples for the call schemas (call_event-*, call-notification), app calls (CALL-05) included.
 
 POSITIVE samples use real values (no placeholders) and must pass; each NEGATIVE sample changes one thing in a
 positive sample and must be rejected because of exactly that change. Same shape as sample_messages.py:
@@ -38,10 +38,28 @@ ENTRY = {"entry_id": 5120, "number": "+84900000123", "display_name": "Nguyễn V
          "ts": 1727150400123, "duration_s": 0, "sub_id": 1}
 WITHHELD_ENTRY = {"entry_id": 5121, "number": None, "display_name": None, "type": "rejected", "ts": 1727150500000,
                   "duration_s": 0, "sub_id": None}
+APP_CALL_ID = "0192f3f6-2c3d-7e4f-8a5b-6c7d8e9f0a1b"
+NO_APP_CONTROLS = {"answer": False, "decline": False, "end": False}
+APP_RINGING = {
+    "call_id": APP_CALL_ID, "app": {"package": "org.telegram.messenger", "label": "Telegram"},
+    "caller": "Nguyễn Văn A", "state": "ringing", "controls": {"answer": True, "decline": True, "end": False},
+    "answer_mode": "direct", "audio": "phone", "started_at": 1727150400123, "answered_at": None, "ended_at": None,
+    "end_reason": None,
+}
+APP_ONGOING = {**APP_RINGING, "state": "ongoing", "controls": {**NO_APP_CONTROLS, "end": True},
+               "answered_at": 1727150405321}
+APP_ENDED = {**APP_ONGOING, "state": "ended", "controls": NO_APP_CONTROLS, "ended_at": 1727150530456,
+             "end_reason": "ended"}
+APP_MISSED = {**APP_RINGING, "state": "ended", "controls": NO_APP_CONTROLS, "ended_at": 1727150425456,
+              "end_reason": "missed"}
 
 
 def _state(name: str, data: dict):
     return (name, "call_event-state", {"op": "state", "data": data})
+
+
+def _app_call(name: str, data: dict):
+    return (name, "call_event-app_call", {"op": "app_call", "data": data})
 
 
 def _failure(name: str, schema: str, code: str, details: dict | None = None):
@@ -100,6 +118,19 @@ POSITIVE = [
              {"permission": "android.permission.ANSWER_PHONE_CALLS"}),
     _failure("action call not found", "call_event-action#ack-failure", "CALL_NOT_FOUND"),
     _failure("action feature off", "call_event-action#ack-failure", "FEATURE_DISABLED", {}),
+    _failure("action app call answer on the Mac", "call_event-action#ack-failure", "CALL_ROUTE_FAILED"),
+    _failure("action app call action unavailable", "call_event-action#ack-failure", "CALL_APP_ACTION_UNAVAILABLE"),
+    _app_call("app_call ringing", APP_RINGING),
+    _app_call("app_call ringing tap to answer", {**APP_RINGING, "answer_mode": "tap"}),
+    _app_call("app_call ringing without caller", {**APP_RINGING, "caller": None}),
+    _app_call("app_call ringing without an answer intent", {**APP_RINGING, "controls": {**NO_APP_CONTROLS, "decline": True}}),
+    _app_call("app_call ongoing", APP_ONGOING),
+    _app_call("app_call ongoing without an end action", {**APP_ONGOING, "controls": NO_APP_CONTROLS}),
+    _app_call("app_call created ongoing", {**APP_ONGOING, "answered_at": None}),
+    _app_call("app_call ended", APP_ENDED),
+    _app_call("app_call ended missed", APP_MISSED),
+    _app_call("app_call ended declined", {**APP_MISSED, "end_reason": "declined"}),
+    _app_call("app_call ended unknown", {**APP_MISSED, "end_reason": "unknown"}),
     ("log_sync first", "call_event-log_sync", {"op": "log_sync", "data": {"limit": 200}}),
     ("log_sync incremental", "call_event-log_sync", {"op": "log_sync", "data": {"cursor": CURSOR, "limit": 500}}),
     ("log_sync ack page", "call_event-log_sync#ack",
@@ -183,6 +214,7 @@ S = "call_event-state"
 A = "call_event-action"
 L = "call_event-log_sync"
 N = "call-notification"
+AC = "call_event-app_call"
 
 # (name, schema, positive sample it starts from, change).
 NEGATIVE_SPECS = [
@@ -248,6 +280,30 @@ NEGATIVE_SPECS = [
      _set(["error", "details", "state"], "offhook")),
     ("action refused by Telecom while idle", A + "#ack-failure", "action end refused by Telecom",
      _set(["error", "details", "state"], "idle")),
+    ("action app call unavailable code of SMS", A + "#ack-failure", "action app call action unavailable",
+     _set(["error", "code"], "SMS_NO_SERVICE")),
+    ("app_call op other", AC, "app_call ringing", _set(["op"], "app")),
+    ("app_call without caller", AC, "app_call ringing", _drop(["data", "caller"])),
+    ("app_call empty caller", AC, "app_call ringing", _set(["data", "caller"], "")),
+    ("app_call caller over 128 characters", AC, "app_call ringing", _set(["data", "caller"], "A" * 129)),
+    ("app_call extra field", AC, "app_call ringing", _set(["data", "number"], "+84900000123")),
+    ("app_call call_id not v7", AC, "app_call ringing", _set(["data", "call_id"], PAIR_ID)),
+    ("app_call package without a dot", AC, "app_call ringing", _set(["data", "app", "package"], "telegram")),
+    ("app_call label over 64 characters", AC, "app_call ringing", _set(["data", "app", "label"], "T" * 65)),
+    ("app_call app extra field", AC, "app_call ringing", _set(["data", "app", "icon"], "x")),
+    ("app_call state offhook", AC, "app_call ongoing", _set(["data", "state"], "offhook")),
+    ("app_call audio on the Mac", AC, "app_call ongoing", _set(["data", "audio"], "mac")),
+    ("app_call answer_mode other", AC, "app_call ringing", _set(["data", "answer_mode"], "auto")),
+    ("app_call controls reject", AC, "app_call ringing", _set(["data", "controls", "reject"], True)),
+    ("app_call answer while ongoing", AC, "app_call ongoing", _set(["data", "controls", "answer"], True)),
+    ("app_call decline while ended", AC, "app_call ended", _set(["data", "controls", "decline"], True)),
+    ("app_call end while ringing", AC, "app_call ringing", _set(["data", "controls", "end"], True)),
+    ("app_call ringing with answered_at", AC, "app_call ringing", _set(["data", "answered_at"], 1727150405321)),
+    ("app_call missed with answered_at", AC, "app_call ended missed", _set(["data", "answered_at"], 1727150405321)),
+    ("app_call ended without ended_at", AC, "app_call ended", _set(["data", "ended_at"], None)),
+    ("app_call ended without end_reason", AC, "app_call ended", _set(["data", "end_reason"], None)),
+    ("app_call ongoing with end_reason", AC, "app_call ongoing", _set(["data", "end_reason"], "ended")),
+    ("app_call end_reason rejected", AC, "app_call ended", _set(["data", "end_reason"], "rejected")),
     ("log_sync limit 0", L, "log_sync first", _set(["data", "limit"], 0)),
     ("log_sync limit 501", L, "log_sync first", _set(["data", "limit"], 501)),
     ("log_sync without limit", L, "log_sync incremental", _drop(["data", "limit"])),

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://handlive.app/schemas/v1/call_event-action.schema.json",
   "title": "HandLive — call_event/action (C→S, ack)",
-  "description": "CALL-02 API 1 (answer, reject) and CALL-03 API 1 (end). Over WebSocket Android carries out only answer, reject and end; hold, unhold, dtmf and mute always get CALL_HFP_REQUIRED (0.7.1). Android acks as soon as the Telecom method returns; the result arrives as call_event/state. Success ack: #/$defs/ack (empty data); error ack: #/$defs/ack-failure.",
+  "description": "CALL-02 API 1 (answer, reject), CALL-03 API 1 (end) and, for the call_id of an app call, CALL-05 API 2. Over WebSocket Android carries out only answer, reject and end; hold, unhold, dtmf and mute always get CALL_HFP_REQUIRED (0.7.1). Android acks as soon as the Telecom method returns, or the app's PendingIntent (or the tap-to-answer notification) has been sent; the result arrives as call_event/state or call_event/app_call. Success ack: #/$defs/ack (empty data); error ack: #/$defs/ack-failure.",
   "type": "object",
   "required": ["op", "data"],
   "additionalProperties": false,
@@ -14,12 +14,12 @@
       "additionalProperties": false,
       "properties": {
         "call_id": {
-          "description": "call_id of the context the client is showing.",
+          "description": "call_id of the context the client is showing: the telephony context (CALL-01) or a live app call (CALL-05).",
           "$ref": "call_event-common.schema.json#/$defs/call-id"
         },
         "action": { "$ref": "#/$defs/action" },
         "audio": {
-          "description": "Only with answer: where the user takes the call; absent → phone.",
+          "description": "Only with answer: where the user takes the call; absent → phone. An app call accepts only phone (mac → CALL_ROUTE_FAILED, CALL-05 API 2).",
           "enum": ["phone", "mac"]
         }
       },
@@ -44,7 +44,7 @@
       ]
     },
     "ack-failure": {
-      "description": "Error ack of call_event/action: the codes of CALL-02 API 1 in check order, INTERNAL last, with the details each code requires.",
+      "description": "Error ack of call_event/action: the codes of CALL-02 API 1 in check order, INTERNAL last, with the details each code requires. CALL_ROUTE_FAILED and CALL_APP_ACTION_UNAVAILABLE are returned only for the call_id of an app call (CALL-05 API 2), without required details.",
       "allOf": [
         { "$ref": "ack.schema.json#/$defs/failure" },
         { "properties": { "error": { "$ref": "#/$defs/error" } } }
@@ -55,7 +55,7 @@
       "required": ["code"],
       "properties": {
         "code": {
-          "enum": ["FEATURE_DISABLED", "BAD_REQUEST", "CALL_HFP_REQUIRED", "CALL_NOT_FOUND", "PERMISSION_MISSING", "CALL_ACTION_NOT_ALLOWED", "INTERNAL"]
+          "enum": ["FEATURE_DISABLED", "BAD_REQUEST", "CALL_HFP_REQUIRED", "CALL_NOT_FOUND", "PERMISSION_MISSING", "CALL_ACTION_NOT_ALLOWED", "CALL_ROUTE_FAILED", "CALL_APP_ACTION_UNAVAILABLE", "INTERNAL"]
         }
       },
       "allOf": [

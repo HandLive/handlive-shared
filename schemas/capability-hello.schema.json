@@ -112,6 +112,10 @@
         "notify": {
           "description": "Chỉ iOS/iPadOS; bằng khóa call.notify.",
           "type": "boolean"
+        },
+        "app_calls": {
+          "description": "Calls from other apps (0.7.2, CALL-05). Android: call.app_calls and Notification access granted and feature.call; Mac: feature.call and call.app_calls; iOS/iPadOS: always false. In effect for a session when both sides report true; absent (an app version without CALL-05) counts as false.",
+          "type": "boolean"
         }
       }
     },
