@@ -101,7 +101,7 @@ Privacy as above and as the call functions require: only the random `call_id` an
 | `call_changed` | Phone | A-CALL applied an OS event that changed the call context (CALL-01 API 1–3; CALL-04 API 3 for the `end_reason` correction) | `call` (`call_id`), `state` (`ringing`, `offhook`, `idle`), `waiting` (`true`, `false`), `trigger` (`listener`: the state listener, API 2; `broadcast`: the `PHONE_STATE` copy with the number, API 3; `calllog`: the correction), `os` (wall clock, ms, when the OS delivered that callback or broadcast — **start of the state, panel, answer and missed-call latencies**); optional `number` (`known`, `none`: whether the context has the caller's number after the change), `settled` (`true` when this event settled the caller's number: the broadcast that brought it, the second ringing copy without the number key while `READ_CALL_LOG` is granted — a withheld caller, CALL-01 API 3 logic 3 — or `RINGING` itself when `READ_CALL_LOG` is missing; **start of the incoming push time**, CALL-01 API 4 logic 2), `sub` (`sub_id`), `end` (`end_reason` when `idle`) |
 | `call_state_sent` | Phone | `call_event/state` handed to one client's session | `call`, `env` (envelope `id`), `peer`, `via` (`lan`, `relay`), `state`, `reason` (`change`: a change of the context; `session`: the current state sent to a new session, CALL-01 E8, not measured) |
 | `call_state_received` | Mac, iPhone, iPad | `call_event/state` decrypted — **end of the state latency** | `call`, `env`, `peer`, `state`; optional `waiting` |
-| `call_alert` | Mac | M-APP decided how to alert a ringing call (CALL-01 step 7) | `call`, `focus` (`off`, `on`, `unknown`: the Focus status cannot be read), `panel`, `ring` (`true`, `false`), `level` (`passive`, `time_sensitive`, `none`) |
+| `call_alert` | Mac | M-APP decided how to alert a ringing call (CALL-01 step 7) | `call`, `focus` (`off`, `on`, `unknown`: the Focus status cannot be read yet, `unavailable`: this build cannot ask for it, alerts as `off`), `panel`, `ring` (`true`, `false`), `level` (`passive`, `time_sensitive`, `none`) |
 | `call_panel_shown` | Mac | The ringing call panel is on screen (`orderFrontRegardless()` returned) — **end of the panel latency** | `call` |
 | `call_banner_shown` | iPhone, iPad | The in-app banner of a ringing call is on screen | `call` |
 | `call_notified` | Mac | The incoming-call communication notification was added | `call`, `level` (`passive`, `time_sensitive`) |
@@ -113,6 +113,22 @@ Privacy as above and as the call functions require: only the random `call_id` an
 | `call_action_ack_sent` | Phone | Its `ack` handed to the WebSocket (once the Telecom method returned, or with the error) | `call`, `env`, `peer`, `ok`; optional `code` |
 | `call_action_ack_received` | Mac, iPhone, iPad | That `ack` decrypted | `call`, `env`, `peer`, `ok`; optional `code` |
 | `call_missed_notified` | Mac, iPhone, iPad | A missed-call notification was added — **end of the missed-call latency** | `call` (`none` when no call context matched), `source` (`log_new`; `state` without the call log, flow A); optional `entry` (`entry_id`) |
+| `app_call_changed` | Phone | A-CALL applied a notification event that changed an app-call context (CALL-05 API 1) — **start of the app call panel latency** | `call` (app `call_id`), `state` (`ringing`, `ongoing`, `ended`), `os` (wall clock, ms, when the listener posted or removed the notification); optional `app` (package name, one identifier), `answer_mode` (`direct`, `tap`) |
+| `app_call_sent` | Phone | `call_event/app_call` handed to one session | `call`, `env`, `peer`, `via`, `state` |
+| `app_call_received` | Mac | `call_event/app_call` decrypted — **end of the app call panel latency** | `call`, `env`, `peer`, `state` |
+| `app_call_panel_shown` | Mac | The incoming or in-call panel of an app call is on screen | `call` |
+| `app_call_intent_sent` | Phone | A PendingIntent of the app was sent (`pendingIntent.send` returned) — **start of app call action time** | `call`, `action` (`answer`, `reject`, `end`), `mode` (`direct`: HFP-exempted, or `tap`: notification only) |
+| `app_call_changed` (again) | Phone | A-CALL applied the app's notification change after sending an intent — **end of app call action latency** | `call`, `state` (the new state: `ongoing` after answer, `ended` after reject or end) |
+
+### App call latency rows (Phase 3, CALL-05)
+
+Added to `call_latency.py` output:
+
+- `app call shown` (app_call_panel_shown after app_call_changed ringing): ≤ 400 ms
+- `app call decline` (app_call_changed ended after app_call_intent_sent reject): ≤ 500 ms
+- `app call end` (app_call_changed ended after app_call_intent_sent end): ≤ 500 ms
+- `app call answer direct` (app_call_changed ongoing after app_call_intent_sent answer, mode=direct): ≤ 1 s
+- `app call answer tap` (app_call_intent_sent tap mode; action completes when the user taps the phone notification, not measured in the bench)
 
 ```text
 HLBENCH/1 wall=1727151101000.000 mono=9001000000000 dev=8c7d6e5f role=android ev=clip_read clip=0192f3e0-5a21-7b3c-9d4e-1f2a3b4c5d6e kind=text bytes=27 source=auto
@@ -196,6 +212,12 @@ Scenarios (3 s pause between repetitions):
 | C8 | Phase 3: iPhone with HandLive in the background (no session), the phone reachable through the relay: the incoming-call push, then Decline from the notification (unlock) | 10 |
 | C9 | Phase 3: a missed call (let it ring out) with the Mac connected; then with the iPhone in the background, where the missed-call push replaces the incoming one | 5 + 3 |
 | C10 | Phase 3: iPhone with HandLive open: the in-app banner, Decline from the banner | 5 |
+| AC1 | Phase 3 (CALL-05): Telegram on the phone calls the Mac user; the Mac panel appears with the app name and caller within 400 ms | 10 |
+| AC2 | Phase 3: decline or end the Telegram call from the Mac panel; the phone's Telegram is notified within 500 ms | 5 + 5 |
+| AC3 | Phase 3: answer a Telegram call from the Mac panel with the Accessibility service on (direct mode); the phone's Telegram goes into-call within 1 s | 5 |
+| AC3.3 | Phase 3: answer a Telegram call with the Accessibility service off (tap mode); "Tap the notification on your phone to answer." appears on the Mac | 5 |
+| AC5 | Phase 3: verify in `logs | grep caller` that no caller names leave the phone | — |
+| AC6 | Phase 3: Notification access off: "Calls from Other Apps" card is "Needs permission"; cellular calls (C1–C10) unaffected | 1 |
 
 Then stop the recording, run both scripts and fill a row per pair (p95 in ms; add the `--json` output to the report):
 

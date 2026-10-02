@@ -231,6 +231,7 @@ def pushes(log: Log, clocks: ClockModel) -> list[Push]:
 def alert_problems(log: Log) -> list[str]:
     """Mac alerts that break the Focus rule of CALL-01 E4 and API 5."""
     rule = {"on": ("false", "false", "time_sensitive"), "unknown": ("true", "false", "passive")}
+    # `unavailable` (the build cannot ask for the Focus status) alerts as `off`; checked with `off` below.
     problems, focused = [], set()
     for e in log.of("call_alert"):
         focus, got = e.get("focus"), (e.get("panel"), e.get("ring"), e.get("level"))
@@ -240,7 +241,7 @@ def alert_problems(log: Log) -> list[str]:
         if want and got != want:
             problems.append(f"{e.get('call')} on {e.dev}: Focus {focus} gave panel={got[0]} ring={got[1]} "
                             f"level={got[2]}, expected panel={want[0]} ring={want[1]} level={want[2]}")
-        if focus == "off" and e.get("panel") == "true" and e.get("level") != "passive":
+        if focus in ("off", "unavailable") and e.get("panel") == "true" and e.get("level") != "passive":
             problems.append(f"{e.get('call')} on {e.dev}: a panel with a {e.get('level')} notification (two alert layers)")
     problems += [f"{e.get('call')} on {e.dev}: panel shown while a Focus is on" for e in log.of("call_panel_shown")
                  if (e.dev, e.get("call")) in focused]

@@ -101,7 +101,7 @@ Quyền riêng tư như trên và như nhóm chức năng cuộc gọi yêu cầ
 | `call_changed` | Điện thoại | A-CALL áp một sự kiện của hệ điều hành làm đổi ngữ cảnh cuộc gọi (CALL-01 API 1–3; CALL-04 API 3 cho lần hiệu chỉnh `end_reason`) | `call` (`call_id`), `state` (`ringing`, `offhook`, `idle`), `waiting` (`true`, `false`), `trigger` (`listener`: listener trạng thái, API 2; `broadcast`: bản `PHONE_STATE` có số, API 3; `calllog`: lần hiệu chỉnh), `os` (đồng hồ thực, ms, lúc hệ điều hành giao callback hoặc broadcast đó — **điểm bắt đầu độ trễ trạng thái, panel, trả lời và cuộc gọi nhỡ**); không bắt buộc `number` (`known`, `none`: sau thay đổi ngữ cảnh đã có số người gọi hay chưa), `settled` (`true` khi sự kiện này làm rõ số người gọi: broadcast mang số, bản đổ chuông thứ hai không có khóa số khi đã có `READ_CALL_LOG` — người gọi ẩn số, CALL-01 API 3 logic 3 — hoặc chính `RINGING` khi thiếu `READ_CALL_LOG`; **điểm bắt đầu thời gian push cuộc gọi đến**, CALL-01 API 4 logic 2), `sub` (`sub_id`), `end` (`end_reason` khi `idle`) |
 | `call_state_sent` | Điện thoại | Đã giao `call_event/state` cho phiên của một client | `call`, `env` (`id` của envelope), `peer`, `via` (`lan`, `relay`), `state`, `reason` (`change`: ngữ cảnh vừa đổi; `session`: trạng thái hiện tại gửi cho phiên mới, CALL-01 E8, không đo) |
 | `call_state_received` | Mac, iPhone, iPad | Đã giải mã `call_event/state` — **điểm kết thúc độ trễ trạng thái** | `call`, `env`, `peer`, `state`; không bắt buộc `waiting` |
-| `call_alert` | Mac | M-APP quyết định cách báo một cuộc gọi đang đổ chuông (CALL-01 bước 7) | `call`, `focus` (`off`, `on`, `unknown`: không đọc được trạng thái Tập trung), `panel`, `ring` (`true`, `false`), `level` (`passive`, `time_sensitive`, `none`) |
+| `call_alert` | Mac | M-APP quyết định cách báo một cuộc gọi đang đổ chuông (CALL-01 bước 7) | `call`, `focus` (`off`, `on`, `unknown`: chưa đọc được trạng thái Tập trung, `unavailable`: bản build này không xin được quyền, báo như `off`), `panel`, `ring` (`true`, `false`), `level` (`passive`, `time_sensitive`, `none`) |
 | `call_panel_shown` | Mac | Panel cuộc gọi đang đổ chuông đã hiện (`orderFrontRegardless()` đã trả về) — **điểm kết thúc độ trễ panel** | `call` |
 | `call_banner_shown` | iPhone, iPad | Banner trong ứng dụng của cuộc gọi đang đổ chuông đã hiện | `call` |
 | `call_notified` | Mac | Đã thêm thông báo liên lạc của cuộc gọi đến | `call`, `level` (`passive`, `time_sensitive`) |
@@ -113,6 +113,22 @@ Quyền riêng tư như trên và như nhóm chức năng cuộc gọi yêu cầ
 | `call_action_ack_sent` | Điện thoại | Đã giao `ack` của nó cho WebSocket (khi hàm Telecom đã trả về, hoặc kèm lỗi) | `call`, `env`, `peer`, `ok`; không bắt buộc `code` |
 | `call_action_ack_received` | Mac, iPhone, iPad | Đã giải mã `ack` đó | `call`, `env`, `peer`, `ok`; không bắt buộc `code` |
 | `call_missed_notified` | Mac, iPhone, iPad | Đã thêm thông báo cuộc gọi nhỡ — **điểm kết thúc độ trễ cuộc gọi nhỡ** | `call` (`none` khi không ghép được ngữ cảnh cuộc gọi nào), `source` (`log_new`; `state` khi không có nhật ký, luồng A); không bắt buộc `entry` (`entry_id`) |
+| `app_call_changed` | Điện thoại | A-CALL áp một sự kiện thông báo làm đổi ngữ cảnh cuộc gọi ứng dụng (CALL-05 API 1) — **điểm bắt đầu độ trễ panel cuộc gọi ứng dụng** | `call` (app `call_id`), `state` (`ringing`, `ongoing`, `ended`), `os` (đồng hồ thực, ms, lúc listener đã đăng hoặc gỡ thông báo); không bắt buộc `app` (tên gói, một định danh), `answer_mode` (`direct`, `tap`) |
+| `app_call_sent` | Điện thoại | Đã giao `call_event/app_call` cho một phiên | `call`, `env`, `peer`, `via`, `state` |
+| `app_call_received` | Mac | Đã giải mã `call_event/app_call` — **điểm kết thúc độ trễ panel cuộc gọi ứng dụng** | `call`, `env`, `peer`, `state` |
+| `app_call_panel_shown` | Mac | Panel đến hoặc đang gọi của cuộc gọi ứng dụng đã hiện | `call` |
+| `app_call_intent_sent` | Điện thoại | Đã gửi PendingIntent của ứng dụng (`pendingIntent.send` đã trả về) — **điểm bắt đầu thời gian thao tác cuộc gọi ứng dụng** | `call`, `action` (`answer`, `reject`, `end`), `mode` (`direct`: không giới hạn mở activity, hoặc `tap`: chỉ thông báo) |
+| `app_call_changed` (lại) | Điện thoại | A-CALL áp thay đổi thông báo của ứng dụng sau khi gửi intent — **điểm kết thúc độ trễ thao tác cuộc gọi ứng dụng** | `call`, `state` (trạng thái mới: `ongoing` sau trả lời, `ended` sau từ chối hoặc kết thúc) |
+
+### Các dòng độ trễ cuộc gọi ứng dụng (Phase 3, CALL-05)
+
+Được thêm vào đầu ra `call_latency.py`:
+
+- `app call shown` (app_call_panel_shown sau app_call_changed ringing): ≤ 400 ms
+- `app call decline` (app_call_changed ended sau app_call_intent_sent reject): ≤ 500 ms
+- `app call end` (app_call_changed ended sau app_call_intent_sent end): ≤ 500 ms
+- `app call answer direct` (app_call_changed ongoing sau app_call_intent_sent answer, mode=direct): ≤ 1 s
+- `app call answer tap` (app_call_intent_sent tap mode; thao tác hoàn thành khi người dùng chạm thông báo trên điện thoại, không đo trong đo lường)
 
 ```text
 HLBENCH/1 wall=1727151101000.000 mono=9001000000000 dev=8c7d6e5f role=android ev=clip_read clip=0192f3e0-5a21-7b3c-9d4e-1f2a3b4c5d6e kind=text bytes=27 source=auto
