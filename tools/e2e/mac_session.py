@@ -256,12 +256,14 @@ class MacSession:
         op = plaintext.get("op")
         if binary is None:
             self._record_violations(self.checker.check_payload(env["type"], op, plaintext), f"in {env['type']}/{op}")
+        msg = Inbound(len(self.events), env["type"], op, plaintext.get("data"), env, plaintext, binary, mono, wall)
+        # Answer first (clipboard ack, applied_clips, received_transfers), publish the event afterwards: a scenario
+        # that checks the ack right after wait() returned the push must never race this receive thread.
+        self._auto_answer(msg)
         with self._cond:
-            msg = Inbound(len(self.events), env["type"], op, plaintext.get("data"), env, plaintext, binary, mono, wall)
             self.events.append(msg)
             self._cond.notify_all()
         self._bench_inbound(msg)
-        self._auto_answer(msg)
 
     def _bench_inbound(self, m: Inbound) -> None:
         peer = peer8(self.record.peer_device_id)
