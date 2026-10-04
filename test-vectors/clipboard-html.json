@@ -261,6 +261,26 @@
       "name": "attribute order fixed: alt before src in input",
       "input": "<img alt=\"a\" height=\"2\" src=\"https://e.com/p.png\" width=\"1\">",
       "output": "<img src=\"https://e.com/p.png\" alt=\"a\" width=\"1\" height=\"2\">"
+    },
+    {
+      "name": "non-ASCII digit in width dropped, height kept",
+      "input": "<img src=\"https://e.com/p.png\" width=\"²\" height=\"10\">",
+      "output": "<img src=\"https://e.com/p.png\" height=\"10\">"
+    },
+    {
+      "name": "nbsp around an href is not whitespace, the href goes",
+      "input": "<a href=\" https://e.com\">t</a>",
+      "output": "<a>t</a>"
+    },
+    {
+      "name": "nbsp between tag name and attribute is skipped",
+      "input": "<a href=\"https://e.com\">t</a>",
+      "output": "<a href=\"https://e.com\">t</a>"
+    },
+    {
+      "name": "vertical tab and form feed around an href are trimmed",
+      "input": "<a href=\"\u000bhttps://e.com\f\">t</a>",
+      "output": "<a href=\"https://e.com\">t</a>"
     }
   ]
 }

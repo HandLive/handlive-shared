@@ -7,7 +7,8 @@ with everything up to their matching close tag (or the end when unclosed); KEEP 
 attributes only, re-serialized ` name="value"` in a fixed order with `"` `<` `>` escaped; every other tag is
 unwrapped (tag gone, content kept); `href` keeps http/https/mailto only, `img src` keeps http/https only and an
 `img` without a kept `src` is dropped whole; `width height colspan rowspan` keep digits only; void tags `br hr img`
-never close; text between tags is copied as is.
+never close; text between tags is copied as is. Whitespace (`\\s`, `strip`) and digits are ASCII only, as in HTML and
+URL parsing: NBSP and other Unicode spaces are part of a value, `²` is not a digit.
 """
 import re
 
@@ -24,10 +25,11 @@ ALLOWED_ATTRS = {"a": ["href"], "img": ["src", "alt", "width", "height"], "td": 
                  "th": ["colspan", "rowspan"]}
 URL_SCHEMES = {"href": ("http:", "https:", "mailto:"), "src": ("http:", "https:")}
 DIGITS = {"width", "height", "colspan", "rowspan"}
+SPACE = " \t\n\r\f\v"  # ASCII `\s`
 
 COMMENT_RE = re.compile(r"<!--.*?-->", re.S)
 TAG_RE = re.compile(r"<(/?)([A-Za-z][A-Za-z0-9]*)((?:[^>\"']|\"[^\"]*\"|'[^']*')*)>")
-ATTR_RE = re.compile(r"([A-Za-z_:][-A-Za-z0-9_:.]*)(?:\s*=\s*(\"[^\"]*\"|'[^']*'|[^\s\"'=<>`]+))?")
+ATTR_RE = re.compile(r"([A-Za-z_:][-A-Za-z0-9_:.]*)(?:\s*=\s*(\"[^\"]*\"|'[^']*'|[^\s\"'=<>`]+))?", re.A)
 
 
 def _attribute_value(raw: str | None) -> str:
@@ -50,10 +52,10 @@ def _render_open(name: str, attrs_text: str) -> str | None:
             continue
         value = _attribute_value(m.group(2))
         if key in URL_SCHEMES:
-            value = value.strip()
+            value = value.strip(SPACE)
             if not value.lower().startswith(URL_SCHEMES[key]):
                 continue
-        elif key in DIGITS and not (value and value.isdigit()):
+        elif key in DIGITS and not (value and all("0" <= c <= "9" for c in value)):
             continue
         found[key] = value
     if name == "img" and "src" not in found:
@@ -79,7 +81,7 @@ def sanitize(html: str) -> str:
         pos = m.end()
         if name in DROP_CONTENT:
             if not closing:
-                close = re.compile(rf"</{name}\s*>", re.I).search(text, pos)
+                close = re.compile(rf"</{name}\s*>", re.I | re.A).search(text, pos)
                 pos = close.end() if close else len(text)
             continue
         if name not in KEEP:
@@ -128,6 +130,10 @@ CASES = [
     ("a less-than that is not a tag stays text", "<p>a < b and c <3 d</p>"),
     ("nested keep inside drop content goes with it", "<noscript><p>never</p></noscript><p>shown</p>"),
     ("attribute order fixed: alt before src in input", '<img alt="a" height="2" src="https://e.com/p.png" width="1">'),
+    ("non-ASCII digit in width dropped, height kept", '<img src="https://e.com/p.png" width="\u00b2" height="10">'),
+    ("nbsp around an href is not whitespace, the href goes", '<a href="\u00a0https://e.com">t</a>'),
+    ("nbsp between tag name and attribute is skipped", '<a\u00a0href="https://e.com">t</a>'),
+    ("vertical tab and form feed around an href are trimmed", '<a href="\u000bhttps://e.com\u000c">t</a>'),
 ]
 
 
