@@ -112,6 +112,9 @@ Như envelope mã hóa, `type = ack`, thêm `re`, `ok`. Có ack ok có `data`, a
 ### `clipboard-chunk.json`
 Như envelope mã hóa nhưng plaintext nhị phân: `plaintext_hex` = `hdr_len` (uint16 BE) ‖ `header_json` (UTF-8) ‖ `chunk_data`. Thêm `transfer_id`, `index`, `header_json`, `hdr_len` (byte của JSON), `chunk_data`. Byte đầu plaintext là `0x00`. Khối trong vector ngắn hơn `CHUNK_SIZE` cho gọn.
 
+### `clipboard-html.json`
+Bộ làm sạch HTML của `html` trong một clip văn bản (CLIP-01 API 5; plan clipboard-html §6). `rules` (thẻ bỏ cùng nội dung, thẻ giữ, thẻ rỗng, thuộc tính được giữ theo thẻ, scheme URL, thuộc tính chỉ giữ chữ số) và `cases`: `{name, input, output}`. Bộ làm sạch của mọi nền tảng phải biến `input` thành `output` từng byte. Bản tham chiếu là `tools/vectors/build_clipboard_html_vectors.py`; `verify_vectors.py` chạy lại nó trên mọi case và kiểm rằng làm sạch một `output` không đổi gì.
+
 ### `hl-frame.json`
 `channel`, `direction`, `key`, `seq`, `ts` (uint32), `header` (11 byte = `484c01` ‖ seq BE ‖ ts BE = AAD), `plaintext`, `nonce`, `ciphertext`, `tag`, `encrypted_part` = nonce ‖ ciphertext ‖ tag, `frame` = header ‖ encrypted_part. Kênh camera thêm `track`, `flags`, `pts_us` (int64 BE), `data` (plaintext = track ‖ flags ‖ pts_us ‖ data). Một vector dùng `seq` = `ts` = 2³²−1 để kiểm biên. `invalid_vectors`: `{key, frame}` — `seq` bị sửa (AAD sai), tag sai.
 

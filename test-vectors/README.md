@@ -112,6 +112,9 @@ Like an encrypted envelope, `type = ack`, plus `re`, `ok`. Contains an ok ack wi
 ### `clipboard-chunk.json`
 Like an encrypted envelope but with a binary plaintext: `plaintext_hex` = `hdr_len` (uint16 BE) ‖ `header_json` (UTF-8) ‖ `chunk_data`. Adds `transfer_id`, `index`, `header_json`, `hdr_len` (bytes of the JSON), `chunk_data`. The first plaintext byte is `0x00`. Chunks in the vectors are shorter than `CHUNK_SIZE` to keep them small.
 
+### `clipboard-html.json`
+The HTML sanitizer of a text clip's `html` (CLIP-01 API 5; plan clipboard-html §6). `rules` (tags dropped with their content, kept tags, void tags, allowed attributes per tag, URL schemes, digits-only attributes) and `cases`: `{name, input, output}`. Every platform's sanitizer must turn `input` into `output` byte for byte. The reference implementation is `tools/vectors/build_clipboard_html_vectors.py`; `verify_vectors.py` runs it again on every case and checks that sanitizing an `output` changes nothing.
+
 ### `hl-frame.json`
 `channel`, `direction`, `key`, `seq`, `ts` (uint32), `header` (11 bytes = `484c01` ‖ seq BE ‖ ts BE = the AAD), `plaintext`, `nonce`, `ciphertext`, `tag`, `encrypted_part` = nonce ‖ ciphertext ‖ tag, `frame` = header ‖ encrypted_part. The camera channel adds `track`, `flags`, `pts_us` (int64 BE), `data` (plaintext = track ‖ flags ‖ pts_us ‖ data). One vector uses `seq` = `ts` = 2³²−1 to test the bounds. `invalid_vectors`: `{key, frame}` — `seq` tampered (wrong AAD), wrong tag.
 
