@@ -6,6 +6,7 @@ answers what a Mac answers on its own: a clipboard push from the phone is writte
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import threading
 import time
@@ -72,6 +73,8 @@ class MacSession:
         self.peer_capability: dict | None = None
         self.closed: tuple[int | None, str] | None = None
         self.applied_clips: dict[str, dict] = {}
+        self.received_transfers: dict[str, dict] = {}   # clip_id -> {size, sha256, width, height, chunks, status, blob}
+        self._incoming: dict[str, dict] = {}            # transfer_id -> a phone transfer still collecting chunks
         self._acks: dict[str, tuple[dict, float]] = {}
         self._pending: dict[str, tuple[str, str, float]] = {}
         self._seen_ids: set[str] = set()
@@ -253,12 +256,17 @@ class MacSession:
         op = plaintext.get("op")
         if binary is None:
             self._record_violations(self.checker.check_payload(env["type"], op, plaintext), f"in {env['type']}/{op}")
+        msg = Inbound(len(self.events), env["type"], op, plaintext.get("data"), env, plaintext, binary, mono, wall)
+        # Answer first (clipboard ack, applied_clips, received_transfers), publish the event afterwards: a scenario
+        # that checks the ack right after wait() returned the push must never race this receive thread.
+        try:
+            self._auto_answer(msg)
+        except Exception as exc:  # noqa: BLE001 — a push the fake Mac cannot answer is a finding, the event still lands
+            self.violations.append(f"fake Mac could not answer {msg.type}/{msg.op}: {exc!r}")
         with self._cond:
-            msg = Inbound(len(self.events), env["type"], op, plaintext.get("data"), env, plaintext, binary, mono, wall)
             self.events.append(msg)
             self._cond.notify_all()
         self._bench_inbound(msg)
-        self._auto_answer(msg)
 
     def _bench_inbound(self, m: Inbound) -> None:
         peer = peer8(self.record.peer_device_id)
@@ -274,6 +282,12 @@ class MacSession:
 
     def _auto_answer(self, m: Inbound) -> None:
         """What M-APP does without the user: write a phone clip and ack it `applied` (CLIP-01 API 5, API 7)."""
+        if m.type == "clipboard" and m.op == "push" and m.data and "transfer" in m.data:
+            self._begin_incoming(m)
+            return
+        if m.type == "clipboard" and m.op == "chunk" and m.binary is not None:
+            self._add_chunk(m)
+            return
         if m.type == "clipboard" and m.op == "push" and m.data and "text" in m.data:
             clip = m.data["clip_id"]
             peer = peer8(self.record.peer_device_id)
@@ -286,6 +300,55 @@ class MacSession:
                 {"clip_id": clip, "status": "applied"}
             self.send_ack(m.env["id"], True, status)
             self.bench.line("ack_sent", clip=clip, peer=peer, status=status["status"])
+
+    def _begin_incoming(self, m: Inbound) -> None:
+        """CLIP-03 API 3: a chunked push from the phone; the ack follows the last chunk (size and SHA-256 checked)."""
+        t = m.data["transfer"]
+        self.bench.line("clip_received", clip=m.data["clip_id"], peer=peer8(self.record.peer_device_id),
+                        kind=m.data["kind"], bytes=t["size"])
+        self._incoming[t["transfer_id"]] = {"env_id": m.env["id"], "push": m.data, "chunks": [], "got": 0,
+                                            "next": 0, "order_ok": True}
+
+    def _add_chunk(self, m: Inbound) -> None:
+        tid, index = (m.data or {}).get("transfer_id"), (m.data or {}).get("index")
+        st = self._incoming.get(tid)
+        if st is None:
+            return   # a chunk of a transfer this session does not track
+        if index != st["next"]:
+            st["order_ok"] = False
+        st["next"] = (index if isinstance(index, int) else st["next"]) + 1
+        st["chunks"].append(m.binary)
+        st["got"] += len(m.binary)
+        t = st["push"]["transfer"]
+        if st["got"] < t["size"] and len(st["chunks"]) < t["chunk_count"]:
+            return
+        del self._incoming[tid]
+        blob = b"".join(st["chunks"])
+        clip = st["push"]["clip_id"]
+        digest = C.b64u(hashlib.sha256(blob).digest())
+        record = {"transfer_id": tid, "size": len(blob), "sha256": digest, "chunks": len(st["chunks"]),
+                  "in_order": st["order_ok"], "kind": st["push"]["kind"], "mime": st["push"]["mime"],
+                  "width": st["push"].get("width"), "height": st["push"].get("height"),
+                  "source": st["push"].get("source"), "blob": blob}
+        peer = peer8(self.record.peer_device_id)
+        if len(blob) == t["size"] and digest == t["sha256"] and st["order_ok"]:
+            record["status"] = "applied"
+            self.received_transfers[clip] = record
+            self.applied_clips.setdefault(clip, st["push"])
+            self.bench.line("clip_applied", clip=clip)
+            self.send_ack(st["env_id"], True, {"clip_id": clip, "status": "applied"})
+            self.bench.line("ack_sent", clip=clip, peer=peer, status="applied")
+        else:
+            record["status"] = "rejected"
+            self.received_transfers[clip] = record
+            if st["order_ok"]:   # CLIP-03 API 3 response, E4: wrong size or SHA-256
+                error = {"code": "CLIP_CHECKSUM_MISMATCH", "message": "chunks do not match the announced size or SHA-256",
+                         "details": {"clip_id": clip, "status": "rejected", "transfer_id": tid}}
+            else:                # CLIP-03 step 8: a chunk out of order
+                error = {"code": "BAD_REQUEST", "message": "chunk out of order",
+                         "details": {"clip_id": clip, "status": "rejected"}}
+            self.send_ack(st["env_id"], False, error=error)
+            self.bench.line("ack_sent", clip=clip, peer=peer, status="rejected")
 
     # ----- checks ----------------------------------------------------------------------------------------------
     def _check_out(self, env: dict, typ: str, op: str, plaintext: dict) -> None:

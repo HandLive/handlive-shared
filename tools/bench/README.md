@@ -61,6 +61,7 @@ Values never contain spaces. Anything before the marker `HLBENCH/1 ` (logcat or 
 |------|-----|------|--------|
 | `copy_detected` | Sender | Copy signal seen, before reading: Android Accessibility copy event or `OnPrimaryClipChangedListener`; Mac `changeCount` change seen by the poll | — |
 | `clip_read` | Sender | Content in memory, ready to encrypt (text read, image normalized) — **start of the latency** | `clip`, `kind` (`text`, `image`), `bytes` (UTF-8 bytes of the text, bytes of the normalized image), `source` (`auto`, `manual`, `share`, `mac`) |
+| `clip_read_failed` | Sender (Android) | An image item could not be read, so nothing is sent (CLIP-03 E2, E3, E10) | `reason` (`image_too_large`, `image_unreadable`, `permission_lost`), `stage` (`copy`, `normalize`), `authority` of the item's URI (never its path), `source` |
 | `clip_sent` | Sender | `clipboard/push` handed to the WebSocket, one line per peer (also when the phone forwards a clip, QC6) | `clip`, `peer` |
 | `clip_received` | Receiver | `clipboard/push` decrypted | `clip`, `peer` (the device it came from), `kind`, `bytes` |
 | `clip_applied` | Receiver | System clipboard write returned; for chunked content after the last chunk was verified — **end of the latency** | `clip` |

@@ -61,6 +61,7 @@ Giá trị không chứa khoảng trắng. Mọi thứ trước dấu `HLBENCH/1
 |------|----|---------|--------|
 | `copy_detected` | Bên gửi | Thấy tín hiệu sao chép, trước khi đọc: sự kiện sao chép của Hỗ trợ tiếp cận hoặc `OnPrimaryClipChangedListener` trên Android; lượt hỏi vòng thấy `changeCount` đổi trên Mac | — |
 | `clip_read` | Bên gửi | Nội dung đã nằm trong bộ nhớ, sẵn sàng mã hóa (đã đọc văn bản, đã chuẩn hóa ảnh) — **điểm bắt đầu của độ trễ** | `clip`, `kind` (`text`, `image`), `bytes` (số byte UTF-8 của văn bản, số byte của ảnh đã chuẩn hóa), `source` (`auto`, `manual`, `share`, `mac`) |
+| `clip_read_failed` | Bên gửi (Android) | Không đọc được item ảnh nên không gửi gì (CLIP-03 E2, E3, E10) | `reason` (`image_too_large`, `image_unreadable`, `permission_lost`), `stage` (`copy`, `normalize`), `authority` của URI item (không bao giờ là đường dẫn), `source` |
 | `clip_sent` | Bên gửi | Đã đưa `clipboard/push` cho WebSocket, mỗi đối phương một dòng (cả khi điện thoại chuyển tiếp clip, QC6) | `clip`, `peer` |
 | `clip_received` | Bên nhận | Đã giải mã `clipboard/push` | `clip`, `peer` (thiết bị gửi tới), `kind`, `bytes` |
 | `clip_applied` | Bên nhận | Lệnh ghi bảng nhớ tạm hệ thống đã trả về; với nội dung theo chunk là sau khi kiểm xong khối cuối — **điểm kết thúc của độ trễ** | `clip` |
