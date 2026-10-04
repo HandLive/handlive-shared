@@ -2,12 +2,14 @@
 API 5 `html`, plan 20261005-clipboard-html §6). The reference implementation below defines the rules; Kotlin
 (core/protocol) and Swift (HLProtocol) must reproduce every case byte for byte.
 
-Rules: comments go; tag and attribute names are case-insensitive, output tags are lowercase; DROP_CONTENT tags go
+Rules: comments go (an unclosed `<!--` runs to the end); `<!…>` and `<?…>` are HTML "bogus comments" and go up to
+the next `>`; tag and attribute names are case-insensitive, output tags are lowercase; DROP_CONTENT tags go
 with everything up to their matching close tag (or the end when unclosed); KEEP tags stay with their allowed
 attributes only, re-serialized ` name="value"` in a fixed order with `"` `<` `>` escaped; every other tag is
 unwrapped (tag gone, content kept); `href` keeps http/https/mailto only, `img src` keeps http/https only and an
 `img` without a kept `src` is dropped whole; `width height colspan rowspan` keep digits only; void tags `br hr img`
-never close; text between tags is copied as is. Whitespace (`\\s`, `strip`) and digits are ASCII only, as in HTML and
+never close; text between tags is copied as is, except that a `<` followed by `/` or an ASCII letter that did not
+complete a tag becomes `&lt;` (the receiving parser would otherwise close it at the next `>`). Whitespace (`\\s`, `strip`) and digits are ASCII only, as in HTML and
 URL parsing: NBSP and other Unicode spaces are part of a value, `²` is not a digit.
 """
 import re
@@ -27,7 +29,9 @@ URL_SCHEMES = {"href": ("http:", "https:", "mailto:"), "src": ("http:", "https:"
 DIGITS = {"width", "height", "colspan", "rowspan"}
 SPACE = " \t\n\r\f\v"  # ASCII `\s`
 
-COMMENT_RE = re.compile(r"<!--.*?-->", re.S)
+COMMENT_RE = re.compile(r"<!--.*?(?:-->|\Z)", re.S)  # an unclosed comment runs to the end, as in HTML
+BOGUS_RE = re.compile(r"<[!?][^>]*(?:>|\Z)")  # `<!…>` (doctype, CDATA) and `<?…>`: dropped up to the next `>`
+TEXT_LT_RE = re.compile(r"<(?=[/A-Za-z])")  # a `<` that could have opened a tag but did not
 TAG_RE = re.compile(r"<(/?)([A-Za-z][A-Za-z0-9]*)((?:[^>\"']|\"[^\"]*\"|'[^']*')*)>")
 ATTR_RE = re.compile(r"([A-Za-z_:][-A-Za-z0-9_:.]*)(?:\s*=\s*(\"[^\"]*\"|'[^']*'|[^\s\"'=<>`]+))?", re.A)
 
@@ -67,16 +71,21 @@ def _render_open(name: str, attrs_text: str) -> str | None:
     return out + ">"
 
 
+def _text(segment: str) -> str:
+    """Text between tags: copied as is, but a `<` that failed to open a tag is escaped so no later `>` can close it."""
+    return TEXT_LT_RE.sub("&lt;", segment)
+
+
 def sanitize(html: str) -> str:
-    text = COMMENT_RE.sub("", html)
+    text = BOGUS_RE.sub("", COMMENT_RE.sub("", html))
     out = []
     pos = 0
     while True:
         m = TAG_RE.search(text, pos)
         if m is None:
-            out.append(text[pos:])
+            out.append(_text(text[pos:]))
             break
-        out.append(text[pos:m.start()])
+        out.append(_text(text[pos:m.start()]))
         closing, name, attrs_text = m.group(1) == "/", m.group(2).lower(), m.group(3)
         pos = m.end()
         if name in DROP_CONTENT:
@@ -134,6 +143,13 @@ CASES = [
     ("nbsp around an href is not whitespace, the href goes", '<a href="\u00a0https://e.com">t</a>'),
     ("nbsp between tag name and attribute is skipped", '<a\u00a0href="https://e.com">t</a>'),
     ("vertical tab and form feed around an href are trimmed", '<a href="\u000bhttps://e.com\u000c">t</a>'),
+    ("unclosed quote: the failed tag start is escaped, the rest is text", '<img src=x onerror=alert(1) "<p>a</p>'),
+    ("mXSS through style and an unclosed quote", '<p><style><img src="</style><img src=x onerror=alert(1)//"></p>'),
+    ("script start without a closing bracket is escaped", '<script src=//e/x.js "<p>a</p>'),
+    ("doctype and processing instruction dropped as bogus comments", '<!DOCTYPE html><?xml version="1.0"?><p>a</p>'),
+    ("unclosed comment drops to the end", '<p>a</p><!-- <img src=x onerror=alert(1)>'),
+    ("close tag matched ASCII case-insensitively only", '<script>x</\u017fcript><p>k</p>'),
+    ("a less-than before a letter runs to the next bracket as a tag, as in HTML", '<p>a <b and c<3 d</p>'),
 ]
 
 

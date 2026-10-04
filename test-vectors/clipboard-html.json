@@ -281,6 +281,41 @@
       "name": "vertical tab and form feed around an href are trimmed",
       "input": "<a href=\"\u000bhttps://e.com\f\">t</a>",
       "output": "<a href=\"https://e.com\">t</a>"
+    },
+    {
+      "name": "unclosed quote: the failed tag start is escaped, the rest is text",
+      "input": "<img src=x onerror=alert(1) \"<p>a</p>",
+      "output": "&lt;img src=x onerror=alert(1) \"<p>a</p>"
+    },
+    {
+      "name": "mXSS through style and an unclosed quote",
+      "input": "<p><style><img src=\"</style><img src=x onerror=alert(1)//\"></p>",
+      "output": "<p>&lt;img src=x onerror=alert(1)//\"></p>"
+    },
+    {
+      "name": "script start without a closing bracket is escaped",
+      "input": "<script src=//e/x.js \"<p>a</p>",
+      "output": "&lt;script src=//e/x.js \"<p>a</p>"
+    },
+    {
+      "name": "doctype and processing instruction dropped as bogus comments",
+      "input": "<!DOCTYPE html><?xml version=\"1.0\"?><p>a</p>",
+      "output": "<p>a</p>"
+    },
+    {
+      "name": "unclosed comment drops to the end",
+      "input": "<p>a</p><!-- <img src=x onerror=alert(1)>",
+      "output": "<p>a</p>"
+    },
+    {
+      "name": "close tag matched ASCII case-insensitively only",
+      "input": "<script>x</ſcript><p>k</p>",
+      "output": ""
+    },
+    {
+      "name": "a less-than before a letter runs to the next bracket as a tag, as in HTML",
+      "input": "<p>a <b and c<3 d</p>",
+      "output": "<p>a <b>"
     }
   ]
 }
