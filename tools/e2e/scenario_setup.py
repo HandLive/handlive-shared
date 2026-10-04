@@ -9,12 +9,14 @@ import threading
 import time
 import uuid
 
+from adb_device import PACKAGE  # noqa: E402
 import mac_crypto as C
 from mac_session import SessionRefused
 from transport import TransportClosed
 from ui_automator import en
 
 PERMISSION_ALLOW = "com.android.permissioncontroller:id/permission_allow_button"
+BATTERY_DIALOG = "com.android.settings/.fuelgauge.RequestIgnoreBatteryOptimizations"
 
 
 def run(ctx) -> None:
@@ -101,6 +103,13 @@ def first_run(ctx) -> None:
         allow = ui.wait(20, rid="android:id/button1")
         if allow:
             ui.tap(allow)
+        elif BATTERY_DIALOG in adb.shell("dumpsys activity activities", timeout=30, check=False):
+            # The app opened the system dialog, but uiautomator does not expose its window on some images (seen on the
+            # API 29 google_apis emulator run headless): grant what the user would grant, then dismiss the dialog.
+            adb.shell(f"dumpsys deviceidle whitelist +{PACKAGE}", check=False)
+            adb.shell("input keyevent KEYCODE_BACK", check=False)
+            rec.info("battery dialog opened but is invisible to uiautomator on this image: exemption granted with "
+                     "dumpsys deviceidle", "SET-01 API 4")
         screen = ui.wait_any(30, auto=dict(text=en("setup.autostart_title")),
                              pair=dict(text=en("pairing.pair_a_device")))
     rec.check("battery optimization exemption granted", "SET-01 step 5b", adb.battery_exempt())
