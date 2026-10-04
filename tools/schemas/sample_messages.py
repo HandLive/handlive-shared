@@ -23,7 +23,7 @@ CAPABILITY_DATA = {
     "model": "Mac15,3",
     "features": {
         "clipboard": {"enabled": True, "auto_send": True, "max_text_bytes": 1048576,
-                      "max_image_bytes": 10485760, "mimes": ["text/plain", "image/png"]},
+                      "max_image_bytes": 10485760, "mimes": ["text/plain", "text/html", "image/png"]},
         "call_audio": {"enabled": True, "consented": True, "bt_address": "A1:B2:C3:D4:E5:F6"},
         "camera": {"enabled": False},
         "relay": {"enabled": True},

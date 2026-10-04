@@ -124,6 +124,11 @@ def loopback(checker: SchemaCheck) -> None:
                                                   "text": "self test", "sensitive": False, "origin_ts": C.now_ms(),
                                                   "source": "mac", "origin_device_id": client.record.device_id})
             check("clipboard/push acked applied", ack is not None and ack.ok and ack.data["status"] == "applied")
+            ack = s.request("clipboard", "push", {"clip_id": C.uuid7(), "kind": "text", "mime": "text/plain",
+                                                  "text": "self test html", "html": "<p>self test <b>html</b></p>",
+                                                  "sensitive": False, "origin_ts": C.now_ms(), "source": "mac",
+                                                  "origin_device_id": client.record.device_id})
+            check("clipboard/push with html acked applied", ack is not None and ack.ok and ack.data["status"] == "applied")
             # Phone → Mac (CLIP-01 API 5 receiver side, CLIP-03 API 3–4): the fake Mac writes, records and acks.
             mark = s.mark()
             clip = C.uuid7()
@@ -132,6 +137,16 @@ def loopback(checker: SchemaCheck) -> None:
                                                       "origin_ts": C.now_ms(), "source": "manual",
                                                       "origin_device_id": phone.identity.device_id})
             got = s.wait(lambda m: m.type == "clipboard" and m.op == "push" and m.data["clip_id"] == clip, 5, after=mark)
+            mark = s.mark()
+            clip_h = C.uuid7()
+            phone.emit("clipboard", "push", {"clip_id": clip_h, "kind": "text", "mime": "text/plain",
+                                             "text": "from the phone", "html": "<p>from the <i>phone</i></p>",
+                                             "sensitive": False, "origin_ts": C.now_ms(), "source": "manual",
+                                             "origin_device_id": phone.identity.device_id})
+            got_h = s.wait(lambda m: m.type == "clipboard" and m.op == "push" and m.data["clip_id"] == clip_h, 5,
+                           after=mark)
+            check("phone → Mac text push with html: html recorded in the applied clip",
+                  got_h is not None and s.applied_clips.get(clip_h, {}).get("html") == "<p>from the <i>phone</i></p>")
             check("phone → Mac text push: recorded applied before the waiter wakes",
                   got is not None and clip in s.applied_clips)
             ack = phone.ack_for(env_id, 5)

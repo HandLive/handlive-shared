@@ -23,7 +23,7 @@ JSON Schema draft 2020-12 cho khung tin thiết bị ↔ thiết bị, khung Web
 | `pair-hello`, `pair-offer`, `pair-confirm`, `pair-done`, `pair-error` `.schema.json` | Bắt tay ghép nối (payload không mã hóa) | 0.6.2; PAIR-01 API 2–6 |
 | `pair-revoke.schema.json` | `pair/revoke`; `$defs/ack` = ack thành công có `data` rỗng | PAIR-03 API 1 |
 | `ping-ping.schema.json` | `ping/ping` qua relay; `$defs/ack` = `{seq, server_ts}` | CONN-02 API 2 |
-| `clipboard-push.schema.json` | `clipboard/push` (văn bản gửi thẳng hoặc `transfer`); `$defs/ack` = `{clip_id, status, reason?}` | CLIP-01 API 5, CLIP-03 API 3, CLIP-04 API 4 |
+| `clipboard-push.schema.json` | `clipboard/push` (văn bản gửi thẳng kèm `html` tùy chọn, hoặc `transfer`); `$defs/ack` = `{clip_id, status, reason?}` | CLIP-01 API 5, CLIP-03 API 3, CLIP-04 API 4 |
 | `clipboard-conflict.schema.json`, `clipboard-cancel.schema.json` | `clipboard/conflict`, `clipboard/cancel` | CLIP-01 API 6, CLIP-03 API 5 |
 | `sms-common.schema.json` | Chỉ `$defs`: đối tượng `thread` và `message`, `synced-message` (không `local_id`), `unread-entry`, `message-key`, `thread-id`, `address`, `sub-id` | SMS-01 API 1 |
 | `sms-sync.schema.json`, `sms-history.schema.json` | `sms/sync`, `sms/history`; `$defs/ack` = trang dữ liệu trả về | SMS-01 API 1, SMS-03 API 1 |

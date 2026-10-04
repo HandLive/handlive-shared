@@ -1,0 +1,321 @@
+{
+  "spec": "docs/detailed-design/04-clipboard.md CLIP-01 API 5 (html), plans/20261005-clipboard-html/plan.md §6",
+  "description": "HtmlClipSanitizer: input → output; a platform's sanitizer must produce `output` byte for byte",
+  "rules": {
+    "drop_with_content": [
+      "applet",
+      "audio",
+      "base",
+      "button",
+      "canvas",
+      "embed",
+      "form",
+      "frame",
+      "frameset",
+      "head",
+      "iframe",
+      "input",
+      "link",
+      "math",
+      "meta",
+      "noscript",
+      "object",
+      "script",
+      "select",
+      "style",
+      "svg",
+      "template",
+      "textarea",
+      "title",
+      "video"
+    ],
+    "keep": [
+      "a",
+      "abbr",
+      "b",
+      "blockquote",
+      "br",
+      "caption",
+      "code",
+      "div",
+      "em",
+      "figcaption",
+      "figure",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "hr",
+      "i",
+      "img",
+      "li",
+      "ol",
+      "p",
+      "pre",
+      "s",
+      "span",
+      "strong",
+      "sub",
+      "sup",
+      "table",
+      "tbody",
+      "td",
+      "tfoot",
+      "th",
+      "thead",
+      "tr",
+      "u",
+      "ul"
+    ],
+    "void": [
+      "br",
+      "hr",
+      "img"
+    ],
+    "allowed_attributes": {
+      "a": [
+        "href"
+      ],
+      "img": [
+        "src",
+        "alt",
+        "width",
+        "height"
+      ],
+      "td": [
+        "colspan",
+        "rowspan"
+      ],
+      "th": [
+        "colspan",
+        "rowspan"
+      ]
+    },
+    "url_schemes": {
+      "href": [
+        "http:",
+        "https:",
+        "mailto:"
+      ],
+      "src": [
+        "http:",
+        "https:"
+      ]
+    },
+    "digits_only": [
+      "colspan",
+      "height",
+      "rowspan",
+      "width"
+    ]
+  },
+  "cases": [
+    {
+      "name": "plain paragraph kept",
+      "input": "<p>Hello <b>world</b></p>",
+      "output": "<p>Hello <b>world</b></p>"
+    },
+    {
+      "name": "style, class and data attributes dropped",
+      "input": "<p style=\"color:red\" class=\"x\" data-y=\"1\">Hi</p>",
+      "output": "<p>Hi</p>"
+    },
+    {
+      "name": "script dropped with its content",
+      "input": "<script>alert(1)</script><p>ok</p>",
+      "output": "<p>ok</p>"
+    },
+    {
+      "name": "javascript href dropped, the link stays",
+      "input": "<a href=\"javascript:alert(1)\">x</a>",
+      "output": "<a>x</a>"
+    },
+    {
+      "name": "https href kept, target and onclick dropped",
+      "input": "<a href=\"https://e.com/a?b=1&amp;c=2\" target=\"_blank\" onclick=\"x()\">link</a>",
+      "output": "<a href=\"https://e.com/a?b=1&amp;c=2\">link</a>"
+    },
+    {
+      "name": "img keeps src alt width height, drops loading",
+      "input": "<img src=\"https://e.com/i.png\" alt=\"pic\" width=\"640\" height=\"480\" loading=\"lazy\">",
+      "output": "<img src=\"https://e.com/i.png\" alt=\"pic\" width=\"640\" height=\"480\">"
+    },
+    {
+      "name": "img with a data URL is dropped whole",
+      "input": "<p><img src=\"data:image/png;base64,AAAA\">x</p>",
+      "output": "<p>x</p>"
+    },
+    {
+      "name": "tag name lowercased, attribute value kept as written",
+      "input": "<IMG SRC=\"HTTP://E.COM/X.JPG\">",
+      "output": "<img src=\"HTTP://E.COM/X.JPG\">"
+    },
+    {
+      "name": "iframe dropped inside a div",
+      "input": "<div><iframe src=\"https://x\"></iframe>text</div>",
+      "output": "<div>text</div>"
+    },
+    {
+      "name": "style element dropped, br kept",
+      "input": "<style>p{}</style><p>a<br>b</p>",
+      "output": "<p>a<br>b</p>"
+    },
+    {
+      "name": "comment removed",
+      "input": "<!-- c --><p>a</p>",
+      "output": "<p>a</p>"
+    },
+    {
+      "name": "section and font unwrapped",
+      "input": "<section><h2>T</h2><font color=\"red\">x</font></section>",
+      "output": "<h2>T</h2>x"
+    },
+    {
+      "name": "table cell keeps colspan, drops style",
+      "input": "<table><tr><td colspan=\"2\" style=\"x\">a</td></tr></table>",
+      "output": "<table><tr><td colspan=\"2\">a</td></tr></table>"
+    },
+    {
+      "name": "entities in text untouched",
+      "input": "<p>5 &lt; 6 &amp; 7</p>",
+      "output": "<p>5 &lt; 6 &amp; 7</p>"
+    },
+    {
+      "name": "svg dropped with its content",
+      "input": "<svg onload=\"x\"><circle/></svg><p>k</p>",
+      "output": "<p>k</p>"
+    },
+    {
+      "name": "event attribute dropped",
+      "input": "<p onmouseover=\"x\">t</p>",
+      "output": "<p>t</p>"
+    },
+    {
+      "name": "href trimmed",
+      "input": "<a href=\" https://e.com \">t</a>",
+      "output": "<a href=\"https://e.com\">t</a>"
+    },
+    {
+      "name": "self-closing void tags normalized",
+      "input": "<br/><hr />",
+      "output": "<br><hr>"
+    },
+    {
+      "name": "unclosed script drops to the end",
+      "input": "<p>a</p><script>x",
+      "output": "<p>a</p>"
+    },
+    {
+      "name": "non-digit rowspan dropped",
+      "input": "<td rowspan=\"abc\">x</td>",
+      "output": "<td>x</td>"
+    },
+    {
+      "name": "meta dropped",
+      "input": "<meta charset=\"utf-8\"><p>m</p>",
+      "output": ""
+    },
+    {
+      "name": "nbsp entity untouched",
+      "input": "<p>&nbsp;</p>",
+      "output": "<p>&nbsp;</p>"
+    },
+    {
+      "name": "single-quoted value re-escaped",
+      "input": "<a href='https://e.com/?q=\"x\"'>t</a>",
+      "output": "<a href=\"https://e.com/?q=&quot;x&quot;\">t</a>"
+    },
+    {
+      "name": "uppercase tags lowercased",
+      "input": "<P>Upper</P>",
+      "output": "<p>Upper</p>"
+    },
+    {
+      "name": "relative img src dropped whole",
+      "input": "<p>x<img src=\"/a.png\">y</p>",
+      "output": "<p>xy</p>"
+    },
+    {
+      "name": "mailto href kept",
+      "input": "<a href=\"MAILTO:me@example.com\">mail</a>",
+      "output": "<a href=\"MAILTO:me@example.com\">mail</a>"
+    },
+    {
+      "name": "stray closing br dropped, unknown closing tag dropped",
+      "input": "<p>a</br>b</font></p>",
+      "output": "<p>ab</p>"
+    },
+    {
+      "name": "a less-than that is not a tag stays text",
+      "input": "<p>a < b and c <3 d</p>",
+      "output": "<p>a < b and c <3 d</p>"
+    },
+    {
+      "name": "nested keep inside drop content goes with it",
+      "input": "<noscript><p>never</p></noscript><p>shown</p>",
+      "output": "<p>shown</p>"
+    },
+    {
+      "name": "attribute order fixed: alt before src in input",
+      "input": "<img alt=\"a\" height=\"2\" src=\"https://e.com/p.png\" width=\"1\">",
+      "output": "<img src=\"https://e.com/p.png\" alt=\"a\" width=\"1\" height=\"2\">"
+    },
+    {
+      "name": "non-ASCII digit in width dropped, height kept",
+      "input": "<img src=\"https://e.com/p.png\" width=\"²\" height=\"10\">",
+      "output": "<img src=\"https://e.com/p.png\" height=\"10\">"
+    },
+    {
+      "name": "nbsp around an href is not whitespace, the href goes",
+      "input": "<a href=\" https://e.com\">t</a>",
+      "output": "<a>t</a>"
+    },
+    {
+      "name": "nbsp between tag name and attribute is skipped",
+      "input": "<a href=\"https://e.com\">t</a>",
+      "output": "<a href=\"https://e.com\">t</a>"
+    },
+    {
+      "name": "vertical tab and form feed around an href are trimmed",
+      "input": "<a href=\"\u000bhttps://e.com\f\">t</a>",
+      "output": "<a href=\"https://e.com\">t</a>"
+    },
+    {
+      "name": "unclosed quote: the failed tag start is escaped, the rest is text",
+      "input": "<img src=x onerror=alert(1) \"<p>a</p>",
+      "output": "&lt;img src=x onerror=alert(1) \"<p>a</p>"
+    },
+    {
+      "name": "mXSS through style and an unclosed quote",
+      "input": "<p><style><img src=\"</style><img src=x onerror=alert(1)//\"></p>",
+      "output": "<p>&lt;img src=x onerror=alert(1)//\"></p>"
+    },
+    {
+      "name": "script start without a closing bracket is escaped",
+      "input": "<script src=//e/x.js \"<p>a</p>",
+      "output": "&lt;script src=//e/x.js \"<p>a</p>"
+    },
+    {
+      "name": "doctype and processing instruction dropped as bogus comments",
+      "input": "<!DOCTYPE html><?xml version=\"1.0\"?><p>a</p>",
+      "output": "<p>a</p>"
+    },
+    {
+      "name": "unclosed comment drops to the end",
+      "input": "<p>a</p><!-- <img src=x onerror=alert(1)>",
+      "output": "<p>a</p>"
+    },
+    {
+      "name": "close tag matched ASCII case-insensitively only",
+      "input": "<script>x</ſcript><p>k</p>",
+      "output": ""
+    },
+    {
+      "name": "a less-than before a letter runs to the next bracket as a tag, as in HTML",
+      "input": "<p>a <b and c<3 d</p>",
+      "output": "<p>a <b>"
+    }
+  ]
+}

@@ -23,7 +23,7 @@ JSON Schema draft 2020-12 for the device ↔ device messages, the relay's WebSoc
 | `pair-hello`, `pair-offer`, `pair-confirm`, `pair-done`, `pair-error` `.schema.json` | The pairing handshake (unencrypted payloads) | 0.6.2; PAIR-01 API 2–6 |
 | `pair-revoke.schema.json` | `pair/revoke`; `$defs/ack` = the success ack with empty `data` | PAIR-03 API 1 |
 | `ping-ping.schema.json` | `ping/ping` through the relay; `$defs/ack` = `{seq, server_ts}` | CONN-02 API 2 |
-| `clipboard-push.schema.json` | `clipboard/push` (inline text or `transfer`); `$defs/ack` = `{clip_id, status, reason?}` | CLIP-01 API 5, CLIP-03 API 3, CLIP-04 API 4 |
+| `clipboard-push.schema.json` | `clipboard/push` (inline text with an optional `html`, or `transfer`); `$defs/ack` = `{clip_id, status, reason?}` | CLIP-01 API 5, CLIP-03 API 3, CLIP-04 API 4 |
 | `clipboard-conflict.schema.json`, `clipboard-cancel.schema.json` | `clipboard/conflict`, `clipboard/cancel` | CLIP-01 API 6, CLIP-03 API 5 |
 | `sms-common.schema.json` | `$defs` only: the `thread` and `message` objects, `synced-message` (no `local_id`), `unread-entry`, `message-key`, `thread-id`, `address`, `sub-id` | SMS-01 API 1 |
 | `sms-sync.schema.json`, `sms-history.schema.json` | `sms/sync`, `sms/history`; `$defs/ack` = the page they return | SMS-01 API 1, SMS-03 API 1 |

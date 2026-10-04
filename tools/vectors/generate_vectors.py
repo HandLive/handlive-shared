@@ -10,6 +10,7 @@ from pathlib import Path
 sys.dont_write_bytecode = True  # không để lại __pycache__ trong kho
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import build_clipboard_html_vectors  # noqa: E402
 import build_discovery_hint_vectors  # noqa: E402
 import build_identity_session_vectors  # noqa: E402
 import build_message_vectors  # noqa: E402
@@ -32,6 +33,7 @@ def render_all() -> dict[str, str]:
     files.update(build_revoke_vectors.build())
     files.update(build_pair_handshake_vectors.build(ctx))
     files.update(build_discovery_hint_vectors.build(ctx))
+    files.update(build_clipboard_html_vectors.build())
     return {name: json.dumps(doc, indent=2, ensure_ascii=False) + "\n" for name, doc in sorted(files.items())}
 
 

@@ -27,7 +27,7 @@ def capability(platform: str = "macos", *, clipboard: bool = True, sms: bool = T
     mobile = platform in ("ios", "ipados")
     features = {
         "clipboard": {"enabled": clipboard, "auto_send": True, "max_text_bytes": 1_048_576,
-                      "max_image_bytes": 10_485_760, "mimes": ["text/plain", "image/png", "image/jpeg"]},
+                      "max_image_bytes": 10_485_760, "mimes": ["text/plain", "text/html", "image/png", "image/jpeg"]},
         "sms": {"enabled": sms, **({"notify": notify} if mobile else {})},
         "call": {"enabled": call, **({"notify": notify} if mobile else {})},
         "relay": {"enabled": relay},
