@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://handlive.app/schemas/v1/clipboard-push.schema.json",
   "title": "HandLive — clipboard/push (both ways, ack)",
-  "description": "CLIP-01 API 5, shared by CLIP-01…04; transfer per CLIP-03 API 3. Exactly one of text and transfer. The success ack carries {clip_id, status, reason?}: #/$defs/ack.",
+  "description": "CLIP-01 API 5, shared by CLIP-01…04; transfer per CLIP-03 API 3. Exactly one of text and transfer; html only next to an inline text. The success ack carries {clip_id, status, reason?}: #/$defs/ack.",
   "type": "object",
   "required": ["op", "data"],
   "additionalProperties": false,
@@ -23,6 +23,10 @@
           "description": "The whole text, inline; the plaintext stays within CLIP_INLINE_MAX.",
           "type": "string"
         },
+        "html": {
+          "description": "Sanitized HTML of the same text clip (plan clipboard-html §6); only with kind text and an inline text, never with transfer.",
+          "type": "string"
+        },
         "transfer": { "$ref": "#/$defs/transfer" },
         "width": { "$ref": "common.schema.json#/$defs/int32", "minimum": 1 },
         "height": { "$ref": "common.schema.json#/$defs/int32", "minimum": 1 },
@@ -37,6 +41,16 @@
       "oneOf": [
         { "required": ["text"], "not": { "required": ["transfer"] } },
         { "required": ["transfer"], "not": { "required": ["text"] } }
+      ],
+      "allOf": [
+        {
+          "if": { "required": ["html"] },
+          "then": {
+            "required": ["text"],
+            "not": { "required": ["transfer"] },
+            "properties": { "kind": { "const": "text" } }
+          }
+        }
       ],
       "if": {
         "properties": { "kind": { "const": "image" } }
