@@ -21,6 +21,8 @@ from bench_lines import peer8
 from ui_automator import en
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bench"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "vectors"))
+from build_clipboard_html_vectors import sanitize as sanitize_html  # noqa: E402
 from make_test_png import chunk as png_chunk  # noqa: E402
 
 CHUNK = 65_536
@@ -37,10 +39,13 @@ def test_png(target_bytes: int) -> tuple[bytes, int]:
     return png, side
 
 
-def push_text(ctx, s, text: str, clip_id: str | None = None, env_id: str | None = None, ts: int | None = None):
+def push_text(ctx, s, text: str, clip_id: str | None = None, env_id: str | None = None, ts: int | None = None,
+              html: str | None = None):
     clip_id = clip_id or C.uuid7()
     data = {"clip_id": clip_id, "kind": "text", "mime": "text/plain", "text": text, "sensitive": False,
             "origin_ts": C.now_ms(), "source": "mac", "origin_device_id": ctx.client.record.device_id}
+    if html is not None:
+        data["html"] = html
     s.bench.line("clip_read", clip=clip_id, kind="text", bytes=len(text.encode()), source="mac")
     ack = s.request("clipboard", "push", data, env_id=env_id, ts=ts)
     s.bench.line("clip_sent", clip=clip_id, peer=peer8(ctx.client.record.peer_device_id))
@@ -99,9 +104,75 @@ def run(ctx) -> None:
               again is not None and ack is not None and again.raw.get("data") == ack.raw.get("data"),
               _ack_text(again))
     _loop_guard_and_manual_send(ctx, s, text, t_applied)
+    _html_clip(ctx, s)
+    _html_rejections(ctx, s)
     _share_target(ctx, s)
     _phone_to_mac_image(ctx, s)
     _chunked(ctx, s)
+
+
+HTML_IN = '<p>Hello <b>e2e</b> <img src="https://example.com/x.png" alt="x"></p>'
+NO_HTML = "the phone does not list text/html"
+
+
+def _phone_lists_html(s) -> bool:
+    cap = (s.peer_capability or {}).get("features", {}).get("clipboard", {})
+    return "text/html" in (cap.get("mimes") or [])
+
+
+def _html_clip(ctx, s) -> None:
+    """CLIP-01 API 5 html: the phone applies text + html, and the Send Clipboard button returns the re-sanitized html."""
+    rec = ctx.rec
+    spec = "CLIP-01 API 5 html, plan clipboard-html §2 and §6"
+    if not _phone_lists_html(s):
+        rec.skip("Mac → phone text with html: applied, then returned sanitized", spec, NO_HTML)
+        return
+    text = f"HandLive e2e html {C.uuid7()[-12:]}"
+    _, ack = push_text(ctx, s, text, html=HTML_IN)
+    rec.check("Mac → phone text with html: ack applied", spec,
+              ack is not None and ack.ok and (ack.data or {}).get("status") == "applied", _ack_text(ack),
+              latency_ms=ack.latency_ms if ack else None)
+    if ack is None or not ack.ok:
+        return
+    time.sleep(5.5)                                   # CLIP_LOOP_WINDOW = 5 s (QC4)
+    mark = s.mark()
+    if not _tap_send_clipboard(ctx):
+        rec.check("the service notification offers Send Clipboard", "CLIP-01 field 4", False)
+        return
+    got = s.wait(lambda m: m.type == "clipboard" and m.op == "push", 20, after=mark)
+    d = got.data if got else {}
+    want = sanitize_html(HTML_IN)
+    rec.check("phone → Mac: the returned html is the sanitized form and the text is unchanged", spec,
+              got is not None and d.get("html") == want and d.get("text") == text,
+              f"html={d.get('html')!r} want={want!r} same_text={d.get('text') == text}" if got
+              else "no clipboard/push in 20 s")
+    ctx.ui.close_notifications()
+
+
+def _html_rejections(ctx, s) -> None:
+    """html is only valid next to an inline text: with a transfer or on an image the phone answers BAD_REQUEST."""
+    rec = ctx.rec
+    spec = "CLIP-01 API 5 html, plan clipboard-html §2"
+    if not _phone_lists_html(s):
+        rec.skip("push with html and transfer: BAD_REQUEST", spec, NO_HTML)
+        rec.skip("push with html on an image: BAD_REQUEST", spec, NO_HTML)
+        return
+    blob = b"x" * 1000
+    transfer = {"transfer_id": C.uuid7(), "size": len(blob), "sha256": C.b64u(hashlib.sha256(blob).digest()),
+                "chunk_size": CHUNK, "chunk_count": 1}
+    base = {"sensitive": False, "origin_ts": C.now_ms(), "source": "mac",
+            "origin_device_id": ctx.client.record.device_id}
+    cases = (
+        ("push with html and transfer: BAD_REQUEST",
+         {"clip_id": C.uuid7(), "kind": "text", "mime": "text/plain", "transfer": transfer, "html": "<p>x</p>",
+          **base}),
+        ("push with html on an image: BAD_REQUEST",
+         {"clip_id": C.uuid7(), "kind": "image", "mime": "image/png", "transfer": transfer, "width": 10,
+          "height": 10, "html": "<p>x</p>", **base}),
+    )
+    for name, data in cases:
+        ack = s.request("clipboard", "push", data, validate=False)   # the schema forbids it on purpose
+        rec.check(name, spec, ack is not None and not ack.ok and ack.code == "BAD_REQUEST", _ack_text(ack))
 
 
 def _ack_text(ack) -> str:
