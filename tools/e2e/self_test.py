@@ -7,6 +7,8 @@ from __future__ import annotations
 import json
 import sys
 import tempfile
+import hashlib
+import os
 import threading
 from pathlib import Path
 
@@ -122,6 +124,45 @@ def loopback(checker: SchemaCheck) -> None:
                                                   "text": "self test", "sensitive": False, "origin_ts": C.now_ms(),
                                                   "source": "mac", "origin_device_id": client.record.device_id})
             check("clipboard/push acked applied", ack is not None and ack.ok and ack.data["status"] == "applied")
+            # Phone → Mac (CLIP-01 API 5 receiver side, CLIP-03 API 3–4): the fake Mac writes, records and acks.
+            mark = s.mark()
+            clip = C.uuid7()
+            env_id = phone.emit("clipboard", "push", {"clip_id": clip, "kind": "text", "mime": "text/plain",
+                                                      "text": "from the phone", "sensitive": False,
+                                                      "origin_ts": C.now_ms(), "source": "manual",
+                                                      "origin_device_id": phone.identity.device_id})
+            got = s.wait(lambda m: m.type == "clipboard" and m.op == "push" and m.data["clip_id"] == clip, 5, after=mark)
+            check("phone → Mac text push: recorded applied before the waiter wakes",
+                  got is not None and clip in s.applied_clips)
+            ack = phone.ack_for(env_id, 5)
+            check("phone → Mac text push: ack applied reached the phone",
+                  ack is not None and ack.get("ok") and ack["data"]["status"] == "applied")
+            blob = os.urandom(70_000)
+            def image_push(clip_id: str, transfer_id: str) -> dict:
+                return {"clip_id": clip_id, "kind": "image", "mime": "image/png",
+                        "transfer": {"transfer_id": transfer_id, "size": len(blob),
+                                     "sha256": C.b64u(hashlib.sha256(blob).digest()), "chunk_size": 65_536,
+                                     "chunk_count": 2},
+                        "width": 10, "height": 10, "sensitive": False, "origin_ts": C.now_ms(), "source": "manual",
+                        "origin_device_id": phone.identity.device_id}
+            clip2, tid2 = C.uuid7(), C.uuid7()
+            env_id = phone.emit("clipboard", "push", image_push(clip2, tid2))
+            phone.emit_chunk(tid2, 0, blob[:65_536])
+            phone.emit_chunk(tid2, 1, blob[65_536:])
+            ack = phone.ack_for(env_id, 5)
+            rec = s.received_transfers.get(clip2) or {}
+            check("phone → Mac 2-chunk image: SHA-256 verified, in order, ack applied",
+                  ack is not None and ack.get("ok") and rec.get("status") == "applied" and rec.get("chunks") == 2
+                  and rec.get("in_order") is True and rec.get("sha256") == C.b64u(hashlib.sha256(blob).digest()))
+            clip3, tid3 = C.uuid7(), C.uuid7()
+            env_id = phone.emit("clipboard", "push", image_push(clip3, tid3))
+            phone.emit_chunk(tid3, 0, blob[:65_536])
+            phone.emit_chunk(tid3, 1, bytes(len(blob) - 65_536))
+            ack = phone.ack_for(env_id, 5)
+            err = (ack or {}).get("error") or {}
+            check("phone → Mac corrupted chunks: CLIP_CHECKSUM_MISMATCH with details.transfer_id",
+                  ack is not None and not ack.get("ok") and err.get("code") == "CLIP_CHECKSUM_MISMATCH"
+                  and (err.get("details") or {}).get("transfer_id") == tid3)
             ack = s.request("sms", "sync", {"thread_limit": 200, "per_thread_limit": 50})
             check("sms/sync acked with data", ack is not None and ack.ok and ack.data["has_more"] is False)
             mark = s.mark()

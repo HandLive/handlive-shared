@@ -190,7 +190,7 @@ def _serve_png(png: bytes) -> tuple[http.server.ThreadingHTTPServer, int]:
         def log_message(self, *args):
             pass
 
-    server = http.server.ThreadingHTTPServer(("0.0.0.0", 0), Handler)
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)   # 10.0.2.2 is this loopback for the emulator
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return server, server.server_address[1]
 
@@ -246,6 +246,7 @@ def _phone_to_mac_image(ctx, s) -> None:
             name = f"PNG image {len(png) / 1e6:.1f} MB phone → Mac through the notification button"
             if server is not None:
                 server.shutdown()
+                server.server_close()
             server, port = _serve_png(png)
             try:
                 why = _chrome_copy_image(ctx, port)
@@ -303,6 +304,7 @@ def _phone_to_mac_image(ctx, s) -> None:
     finally:
         if server is not None:
             server.shutdown()
+            server.server_close()
         ctx.adb.shell(f"am force-stop {CHROME}", check=False)
         ctx.ui.home()
 

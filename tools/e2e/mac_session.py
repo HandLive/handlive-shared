@@ -259,7 +259,10 @@ class MacSession:
         msg = Inbound(len(self.events), env["type"], op, plaintext.get("data"), env, plaintext, binary, mono, wall)
         # Answer first (clipboard ack, applied_clips, received_transfers), publish the event afterwards: a scenario
         # that checks the ack right after wait() returned the push must never race this receive thread.
-        self._auto_answer(msg)
+        try:
+            self._auto_answer(msg)
+        except Exception as exc:  # noqa: BLE001 — a push the fake Mac cannot answer is a finding, the event still lands
+            self.violations.append(f"fake Mac could not answer {msg.type}/{msg.op}: {exc!r}")
         with self._cond:
             self.events.append(msg)
             self._cond.notify_all()
@@ -338,9 +341,13 @@ class MacSession:
         else:
             record["status"] = "rejected"
             self.received_transfers[clip] = record
-            self.send_ack(st["env_id"], False, error={
-                "code": "CLIP_CHECKSUM_MISMATCH", "message": "chunks do not match the announced size or SHA-256",
-                "details": {"status": "rejected", "transfer_id": tid}})
+            if st["order_ok"]:   # CLIP-03 API 3 response, E4: wrong size or SHA-256
+                error = {"code": "CLIP_CHECKSUM_MISMATCH", "message": "chunks do not match the announced size or SHA-256",
+                         "details": {"clip_id": clip, "status": "rejected", "transfer_id": tid}}
+            else:                # CLIP-03 step 8: a chunk out of order
+                error = {"code": "BAD_REQUEST", "message": "chunk out of order",
+                         "details": {"clip_id": clip, "status": "rejected"}}
+            self.send_ack(st["env_id"], False, error=error)
             self.bench.line("ack_sent", clip=clip, peer=peer, status="rejected")
 
     # ----- checks ----------------------------------------------------------------------------------------------

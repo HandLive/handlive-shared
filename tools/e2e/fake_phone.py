@@ -14,6 +14,7 @@ import os
 import ssl
 import tempfile
 import threading
+import time
 from pathlib import Path
 
 import mac_crypto as C
@@ -133,8 +134,17 @@ class FakePhone:
         ws.send(json.dumps(C.plain_envelope("session", "welcome", welcome)))
         secret = hkdf(x25519_dh(eph_s, eph_c) + prk, C.SESSION_INFO, 64, hashlib.sha256(t2).digest())
         k_c2s, k_s2c = secret[:32], secret[32:]
-        send = lambda typ, body: ws.send(json.dumps(C.seal(k_s2c, typ, C.compact_json(body).encode())))  # noqa: E731
-        self._session = send
+        def send(typ: str, body: dict) -> str:
+            env = C.seal(k_s2c, typ, C.compact_json(body).encode())
+            ws.send(json.dumps(env))
+            return env["id"]
+
+        def send_raw(typ: str, plaintext: bytes) -> str:
+            env = C.seal(k_s2c, typ, plaintext)
+            ws.send(json.dumps(env))
+            return env["id"]
+
+        self._session, self._session_raw = send, send_raw
         send("capability", {"op": "hello", "data": PHONE_CAPABILITY})
         for frame in ws:
             env = json.loads(frame)
@@ -150,8 +160,23 @@ class FakePhone:
         th.start()
         return th
 
-    def emit(self, typ: str, op: str, data: dict) -> None:
-        self._session(typ, {"op": op, "data": data})
+    def emit(self, typ: str, op: str, data: dict) -> str:
+        """An event or request from the phone; returns the envelope id (the `re` of a later ack)."""
+        return self._session(typ, {"op": op, "data": data})
+
+    def emit_chunk(self, transfer_id: str, index: int, data: bytes) -> str:
+        """A `clipboard/chunk` of the phone (CLIP-03 API 4): binary plaintext in a sealed envelope."""
+        return self._session_raw("clipboard", C.chunk_plaintext(transfer_id, index, data))
+
+    def ack_for(self, env_id: str, timeout: float) -> dict | None:
+        """The Mac's ack of the phone's envelope [env_id], or None within [timeout] seconds."""
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            for m in list(self.received):
+                if m["type"] == "ack" and (m["body"] or {}).get("re") == env_id:
+                    return m["body"]
+            time.sleep(0.05)
+        return None
 
     @staticmethod
     def _answer(typ: str, body: dict) -> dict | None:
