@@ -11,6 +11,7 @@ from pathlib import Path
 sys.dont_write_bytecode = True  # không để lại __pycache__ trong kho
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import verify_clipboard_html_checks  # noqa: E402
 import verify_discovery_hint_checks  # noqa: E402
 import verify_message_checks  # noqa: E402
 import verify_pair_handshake_checks  # noqa: E402
@@ -50,6 +51,15 @@ def main() -> int:
         n_inv = len(doc.get("invalid_vectors", []))
         status = "OK " if len(c.failures) == before_fail else "SAI"
         print(f"{status} {name:26s} {len(doc['vectors']):2d} vector, {n_inv:2d} vector âm, {c.count - before_count:3d} phép kiểm")
+    html_doc, before = docs.get(verify_clipboard_html_checks.NAME), (c.count, len(c.failures))
+    c.true(f"{verify_clipboard_html_checks.NAME} tồn tại", html_doc is not None)
+    if html_doc is not None:
+        try:
+            verify_clipboard_html_checks.check_clipboard_html(c, html_doc)
+        except Exception as exc:  # lỗi cấu trúc file cũng là lỗi kiểm
+            c.failures.append(f"clipboard-html.json: ngoại lệ {type(exc).__name__}: {exc}")
+        print(f"{'OK ' if len(c.failures) == before[1] else 'SAI'} {verify_clipboard_html_checks.NAME:26s} "
+              f"{len(html_doc['cases']):2d} case, {c.count - before[0]:3d} phép kiểm")
     for f in c.failures:
         print(f"  LỖI: {f}")
     print(f"Tổng: {c.count} phép kiểm, {len(c.failures)} lỗi")
