@@ -8,8 +8,10 @@ from __future__ import annotations
 
 import hashlib
 import math
+import http.server
 import os
 import sys
+import threading
 import time
 import zlib
 from pathlib import Path
@@ -98,6 +100,7 @@ def run(ctx) -> None:
               _ack_text(again))
     _loop_guard_and_manual_send(ctx, s, text, t_applied)
     _share_target(ctx, s)
+    _phone_to_mac_image(ctx, s)
     _chunked(ctx, s)
 
 
@@ -167,6 +170,156 @@ def _share_target(ctx, s) -> None:
     rec.check("the Mac acked it applied (the fake Mac writes and acks like M-APP)", "CLIP-01 API 7",
               got is not None and d.get("clip_id") in s.applied_clips)
     ctx.ui.pause()
+
+
+CHROME = "com.android.chrome"
+CHROME_FIRST_RUN = ("No thanks", "Use without an account", "No Thanks", "Got it", "Skip", "Not now", "Accept & continue",
+                    "Yes, I'm in", "No, thanks")
+
+
+def _serve_png(png: bytes) -> tuple[http.server.ThreadingHTTPServer, int]:
+    """The PNG at http://10.0.2.2:<port>/x.png (10.0.2.2 is the host as the emulator sees it)."""
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):  # noqa: N802
+            self.send_response(200)
+            self.send_header("Content-Type", "image/png")
+            self.send_header("Content-Length", str(len(png)))
+            self.end_headers()
+            self.wfile.write(png)
+
+        def log_message(self, *args):
+            pass
+
+    server = http.server.ThreadingHTTPServer(("0.0.0.0", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server, server.server_address[1]
+
+
+def _chrome_copy_image(ctx, port: int) -> str | None:
+    """Opens the PNG in Chrome, long-presses it and taps Copy image; None on success, else why it did not work."""
+    adb, ui = ctx.adb, ctx.ui
+    adb.shell(f"am force-stop {CHROME}", check=False)
+    adb.shell(f"am start -a android.intent.action.VIEW -d http://10.0.2.2:{port}/x.png {CHROME}", check=False)
+    size = adb.shell("wm size", check=False)
+    try:
+        w, h = (int(v) for v in size.split(":")[-1].strip().split("x"))
+    except ValueError:
+        w, h = 1080, 2400
+    deadline = time.monotonic() + 40
+    while time.monotonic() < deadline:                      # first-run sheets, then the page with the URL bar
+        try:
+            nodes = ui.dump()
+        except Exception as exc:  # noqa: BLE001
+            return f"uiautomator dump failed: {exc}"
+        if not any(n.package == CHROME for n in nodes):
+            time.sleep(1)
+            continue
+        sheet = [n for n in nodes if n.package == CHROME and n.text in CHROME_FIRST_RUN]
+        if sheet:
+            ui.tap(sheet[0])
+            continue
+        if any("x.png" in n.text for n in nodes if n.package == CHROME):
+            break
+        time.sleep(1)
+    else:
+        return "Chrome did not show the image page within 40 s"
+    time.sleep(1.5)
+    for _ in range(3):
+        adb.shell(f"input swipe {w // 2} {int(h * 0.545)} {w // 2} {int(h * 0.545)} 900")
+        copy = ui.wait(6, text="Copy image")
+        if copy is not None:
+            ui.tap(copy)
+            return None
+        adb.shell("input keyevent KEYCODE_BACK", check=False)
+    return "Chrome offered no Copy image entry after 3 long presses"
+
+
+def _phone_to_mac_image(ctx, s) -> None:
+    """CLIP-03 phone → Mac: Copy image in Chrome, then the Send Clipboard button; the fake Mac checks the chunks."""
+    rec = ctx.rec
+    sizes = (300_000, 3_000_000)
+    server = None
+    try:
+        for target in sizes:
+            png, side = test_png(target)
+            digest = C.b64u(hashlib.sha256(png).digest())
+            name = f"PNG image {len(png) / 1e6:.1f} MB phone → Mac through the notification button"
+            if server is not None:
+                server.shutdown()
+            server, port = _serve_png(png)
+            try:
+                why = _chrome_copy_image(ctx, port)
+            except Exception as exc:  # noqa: BLE001 — a driving problem is a SKIP, never a crash
+                why = f"{type(exc).__name__}: {exc}"
+            if why:
+                rec.skip(name, "CLIP-03 phone → Mac, CLIP-01 API 1", f"Chrome could not be driven: {why}")
+                ctx.ui.home()
+                continue
+            ctx.ui.home()
+            time.sleep(1)
+            mark = s.mark()
+            t0 = time.monotonic()
+            if not _tap_send_clipboard(ctx):
+                rec.check(name, "CLIP-03 phone → Mac", False, "the Send Clipboard action was not found in the shade")
+                continue
+            got = s.wait(lambda m: m.type == "clipboard" and m.op == "push", 30, after=mark)
+            if got is None:
+                rec.check(name, "CLIP-03 phone → Mac", False,
+                          "no clipboard/push in 30 s after the tap (see the HLBENCH lines in the state dir)")
+                ctx.ui.close_notifications()
+                continue
+            d = got.data or {}
+            done = _wait_transfer(s, d.get("clip_id"), 30)
+            ms = (time.monotonic() - t0) * 1000
+            tr = d.get("transfer") or {}
+            problems = []
+            if d.get("kind") != "image" or d.get("mime") != "image/png":
+                problems.append(f"kind={d.get('kind')} mime={d.get('mime')}")
+            if not tr:
+                problems.append("no transfer (the text path was used)")
+            if d.get("source") != "manual":
+                problems.append(f"source={d.get('source')}")
+            if (d.get("width"), d.get("height")) != (side, side):
+                problems.append(f"size {d.get('width')}x{d.get('height')} != {side}x{side}")
+            if tr.get("sha256") != digest:
+                problems.append("announced sha256 differs from the served PNG (the phone re-encoded it?)")
+            if done is None:
+                problems.append("the chunks did not complete in 30 s")
+            else:
+                if not done["in_order"]:
+                    problems.append("chunks out of order")
+                if done["sha256"] != digest or done["size"] != len(png):
+                    problems.append(f"received {done['size']} B, sha256 matches={done['sha256'] == digest}")
+                if done["status"] != "applied":
+                    problems.append("the fake Mac rejected the transfer")
+            logged = _bench_has_image_read(ctx, d.get("clip_id"))
+            if not logged:
+                problems.append("no HLBENCH ev=clip_read kind=image for this clip on the phone")
+            detail = (f"size={tr.get('size')} B chunks={done['chunks'] if done else '?'} "
+                      f"sha256_match={bool(done) and done['sha256'] == digest} {d.get('width')}x{d.get('height')} "
+                      f"source={d.get('source')}") + ("; " + "; ".join(problems) if problems else "")
+            rec.check(name, "CLIP-03 phone → Mac, CLIP-01 API 1/3", not problems, detail, latency_ms=ms)
+            ctx.ui.close_notifications()
+    finally:
+        if server is not None:
+            server.shutdown()
+        ctx.adb.shell(f"am force-stop {CHROME}", check=False)
+        ctx.ui.home()
+
+
+def _wait_transfer(s, clip_id: str | None, timeout: float) -> dict | None:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if clip_id in s.received_transfers:
+            return s.received_transfers[clip_id]
+        time.sleep(0.2)
+    return None
+
+
+def _bench_has_image_read(ctx, clip_id: str | None) -> bool:
+    """The phone logged clip_read kind=image for this clip (HLBENCH, ids and sizes only)."""
+    out = ctx.adb.run("logcat", "-d", "-s", "HLBENCH:I", timeout=30, check=False)
+    return any(f"ev=clip_read" in ln and f"clip={clip_id}" in ln and "kind=image" in ln for ln in out.splitlines())
 
 
 def _chunked(ctx, s) -> None:
