@@ -126,14 +126,14 @@ Lần bấm, lần gửi và ack của Mac cho một cuộc gọi ứng dụng l
 
 Được thêm vào đầu ra `call_latency.py`; đạt mục tiêu khi phân vị 95 nhỏ hơn mục tiêu:
 
-- `app call delivery lan`, `app call delivery relay`: trường `os` của `app_call_changed` → `app_call_received` trên Mac của envelope trong `app_call_sent reason=change` (ghép theo `env`), theo đồng hồ điện thoại: 200 ms qua LAN, 1 s qua relay
+- `app call delivery lan`, `app call delivery relay`: trường `os` của `app_call_changed` → `app_call_received` trên Mac của envelope trong `app_call_sent reason=change` (ghép theo `env`), theo đồng hồ điện thoại: 200 ms qua LAN, 1 s qua relay; mỗi thay đổi chỉ làm mốc cho tối đa một lần gửi tới mỗi Mac (điện thoại gửi lại cuộc gọi với `reason=change` khi chỉ chế độ trả lời hoặc một cài đặt thay đổi, lần gửi đó không được đo)
 - `app call shown`: `app_call_changed state=ringing` đầu tiên → `app_call_panel_shown` đầu tiên của cuộc gọi, khác đồng hồ: ≤ 400 ms (cuộc gọi không đổ chuông, gọi đi từ ứng dụng, bị bỏ qua)
-- `app call decline`, `app call end`: `app_call_intent_sent action=reject` hoặc `end` (`mode=plain`) → `app_call_changed state=ended` kế tiếp với `end=declined` hoặc `ended`, chỉ trên điện thoại: ≤ 500 ms
+- `app call decline`, `app call end`: `app_call_intent_sent action=reject` hoặc `end` (`mode=plain`) → `app_call_changed state=ended` kế tiếp với `end=declined` hoặc `ended`, chỉ trên điện thoại: ≤ 500 ms. Đây chỉ là phần trên điện thoại (intent → thông báo của ứng dụng thay đổi), không phải mốc 500 ms của CALL-05 tính từ lúc bấm trên Mac: `app call decline back` và `app call end back` gần mốc đó hơn
 - `app call answer direct`: `app_call_intent_sent action=answer mode=direct` → `app_call_changed state=ongoing` kế tiếp, chỉ trên điện thoại: ≤ 1 s
 - `app call answer tap`: `mode=tap` chỉ đếm, không đo (thao tác xong khi người dùng chạm thông báo trên điện thoại)
 - `app call answer back`, `app call decline back`, `app call end back`: `call_action_tap` của Mac → `app_call_received` với trạng thái kết quả trên chính Mac, một thiết bị, không có mục tiêu; chỉ tính lần bấm mà intent trên điện thoại dẫn tới trạng thái đó
 
-Cuộc gọi kết thúc mà không có intent trước đó (`end=unknown`: mất listener, thông báo đang gọi bị gỡ), hoặc kết thúc theo cách khác sau intent, không vào dòng thao tác nào; báo cáo liệt kê mọi intent cùng điều xảy ra sau nó.
+Cuộc gọi kết thúc mà không có intent trước đó (`end=unknown`: mất listener, thông báo đang gọi bị gỡ), hoặc kết thúc theo cách khác sau intent, không vào dòng thao tác nào; báo cáo liệt kê mọi intent cùng điều xảy ra sau nó. Chỉ intent đầu tiên của một thao tác trước thay đổi mà nó dẫn tới mới được đo: `call_event/action` gửi lại sau khi kết nối lại khiến điện thoại gửi intent lần nữa, lần đó được liệt kê là lặp lại.
 
 ```text
 HLBENCH/1 wall=1727151101000.000 mono=9001000000000 dev=8c7d6e5f role=android ev=clip_read clip=0192f3e0-5a21-7b3c-9d4e-1f2a3b4c5d6e kind=text bytes=27 source=auto

@@ -126,14 +126,14 @@ The Mac's taps, sends and acks of an app call are the `call_action_*` events abo
 
 Added to `call_latency.py` output; a target is met when the 95th percentile is under it:
 
-- `app call delivery lan`, `app call delivery relay`: `app_call_changed` field `os` → the Mac's `app_call_received` of the envelope of `app_call_sent reason=change` (joined on `env`), on the phone's clock: 200 ms on the LAN, 1 s over the relay
+- `app call delivery lan`, `app call delivery relay`: `app_call_changed` field `os` → the Mac's `app_call_received` of the envelope of `app_call_sent reason=change` (joined on `env`), on the phone's clock: 200 ms on the LAN, 1 s over the relay; one change times at most one send per Mac (the phone sends the call again with `reason=change` when only the answer mode or a setting changed, and that send is not timed)
 - `app call shown`: the first `app_call_changed state=ringing` → the first `app_call_panel_shown` of the call, across clocks: ≤ 400 ms (a call that never rang, dialed in the app, is left out)
-- `app call decline`, `app call end`: `app_call_intent_sent action=reject` or `end` (`mode=plain`) → the next `app_call_changed state=ended` with `end=declined` or `ended`, phone only: ≤ 500 ms
+- `app call decline`, `app call end`: `app_call_intent_sent action=reject` or `end` (`mode=plain`) → the next `app_call_changed state=ended` with `end=declined` or `ended`, phone only: ≤ 500 ms. This is the phone's part alone (intent → the app's notification change), not CALL-05's 500 ms from the click on the Mac: `app call decline back` and `app call end back` come closer to that
 - `app call answer direct`: `app_call_intent_sent action=answer mode=direct` → the next `app_call_changed state=ongoing`, phone only: ≤ 1 s
 - `app call answer tap`: `mode=tap` counted, not timed (the user's tap on the phone notification completes it)
 - `app call answer back`, `app call decline back`, `app call end back`: the Mac's `call_action_tap` → its `app_call_received` with the resulting state, one device, no target; only taps whose intent on the phone led to that state
 
-A call that ends without an intent before it (`end=unknown`: the listener lost, the in-call notification dismissed), or that ends otherwise after one, is in no action row; the report lists every intent with what followed it.
+A call that ends without an intent before it (`end=unknown`: the listener lost, the in-call notification dismissed), or that ends otherwise after one, is in no action row; the report lists every intent with what followed it. Only the first intent of an action before the change it led to is timed: a `call_event/action` resent after a reconnect makes the phone send the intent again, listed as a repeat.
 
 ```text
 HLBENCH/1 wall=1727151101000.000 mono=9001000000000 dev=8c7d6e5f role=android ev=clip_read clip=0192f3e0-5a21-7b3c-9d4e-1f2a3b4c5d6e kind=text bytes=27 source=auto
