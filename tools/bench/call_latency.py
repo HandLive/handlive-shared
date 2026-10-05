@@ -170,9 +170,12 @@ def shown(log: Log, clocks: ClockModel) -> list[Shown]:
 
 
 def actions(log: Log, clocks: ClockModel) -> list[Action]:
-    out = []
+    """Actions on cellular calls; the taps of app calls are app_call_latency.actions."""
+    out, app_calls = [], app.app_call_ids(log)
     for tap in log.of("call_action_tap"):
         call, action, client = tap.get("call"), tap.get("action"), tap.dev
+        if call in app_calls:
+            continue
         sent = [e for e in _after(log.of("call_action_sent"), tap) if e.get("call") == call
                 and e.get("action") == action]
         env = sent[0].get("env") if sent else None
