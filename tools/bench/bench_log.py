@@ -59,6 +59,13 @@ EVENTS: dict[str, set[str]] = {
     "call_action_ack_sent": {"call", "env", "peer", "ok"},
     "call_action_ack_received": {"call", "env", "peer", "ok"},
     "call_missed_notified": {"call", "source"},
+    # Calls of other apps (CALL-05): delivery, the panel, the app's intents; the taps and acks are the call_action
+    # events above. Never the app's package name or the caller.
+    "app_call_changed": {"call", "state", "os"},
+    "app_call_sent": {"call", "env", "peer", "via", "state", "reason"},
+    "app_call_received": {"call", "env", "peer", "state"},
+    "app_call_panel_shown": {"call"},
+    "app_call_intent_sent": {"call", "action", "mode"},
 }
 KEY_VALUE = re.compile(r"^([a-z_]+)=(\S+)$")
 
