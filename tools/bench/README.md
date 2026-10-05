@@ -114,22 +114,26 @@ Privacy as above and as the call functions require: only the random `call_id` an
 | `call_action_ack_sent` | Phone | Its `ack` handed to the WebSocket (once the Telecom method returned, or with the error) | `call`, `env`, `peer`, `ok`; optional `code` |
 | `call_action_ack_received` | Mac, iPhone, iPad | That `ack` decrypted | `call`, `env`, `peer`, `ok`; optional `code` |
 | `call_missed_notified` | Mac, iPhone, iPad | A missed-call notification was added — **end of the missed-call latency** | `call` (`none` when no call context matched), `source` (`log_new`; `state` without the call log, flow A); optional `entry` (`entry_id`) |
-| `app_call_changed` | Phone | A-CALL applied a notification event that changed an app-call context (CALL-05 API 1) — **start of the app call panel latency** | `call` (app `call_id`), `state` (`ringing`, `ongoing`, `ended`), `os` (wall clock, ms, when the listener posted or removed the notification); optional `app` (package name, one identifier), `answer_mode` (`direct`, `tap`) |
-| `app_call_sent` | Phone | `call_event/app_call` handed to one session | `call`, `env`, `peer`, `via`, `state` |
-| `app_call_received` | Mac | `call_event/app_call` decrypted — **end of the app call panel latency** | `call`, `env`, `peer`, `state` |
-| `app_call_panel_shown` | Mac | The incoming or in-call panel of an app call is on screen | `call` |
-| `app_call_intent_sent` | Phone | A PendingIntent of the app was sent (`pendingIntent.send` returned) — **start of app call action time** | `call`, `action` (`answer`, `reject`, `end`), `mode` (`direct`: HFP-exempted, or `tap`: notification only) |
-| `app_call_changed` (again) | Phone | A-CALL applied the app's notification change after sending an intent — **end of app call action latency** | `call`, `state` (the new state: `ongoing` after answer, `ended` after reject or end) |
+| `app_call_changed` | Phone | A-CALL applied a notification event that changed an app-call context (CALL-05 API 1), the app's own change after an intent included — **start of the app call delivery and panel latencies, end of the app call action times** | `call` (app `call_id`), `state` (`ringing`, `ongoing`, `ended`), `os` (wall clock, ms: the notification's `postTime` for a post, the listener callback for a removal, the moment A-CALL decided otherwise for the end of the link window or a lost listener); optional `end` (`end_reason` with `ended`: `declined`, `ended`, `missed`, `unknown` — the call could no longer be followed: the listener lost, an answer nothing followed, the in-call notification dismissed) |
+| `app_call_sent` | Phone | `call_event/app_call` handed to one session | `call`, `env`, `peer`, `via` (`lan`, `relay`), `state`, `reason` (`change`: a change of the context; `session`: the current version sent to a new session, not measured) |
+| `app_call_received` | Mac | `call_event/app_call` decrypted — **end of the app call delivery latency** | `call`, `env`, `peer`, `state` |
+| `app_call_panel_shown` | Mac | The incoming or in-call panel of an app call came on screen (once per showing) — **end of the app call panel latency** | `call` |
+| `app_call_intent_sent` | Phone | HandLive sent the app's PendingIntent (`send` returned) or posted the tap-to-answer notification — **start of the app call action times** | `call`, `action` (`answer`, `reject`, `end`), `mode` (`direct`: the answer intent with the background-start option; `tap`: the tap-to-answer notification posted, the user's tap on the phone sends the intent; `plain`: an intent without the option, for decline and end) |
+
+The Mac's taps, sends and acks of an app call are the `call_action_*` events above, keyed by the app `call_id`; `call_latency.py` tells them apart from cellular calls by that id. Never the app's package name, its label or the caller.
 
 ### App call latency rows (Phase 3, CALL-05)
 
-Added to `call_latency.py` output:
+Added to `call_latency.py` output; a target is met when the 95th percentile is under it:
 
-- `app call shown` (app_call_panel_shown after app_call_changed ringing): ≤ 400 ms
-- `app call decline` (app_call_changed ended after app_call_intent_sent reject): ≤ 500 ms
-- `app call end` (app_call_changed ended after app_call_intent_sent end): ≤ 500 ms
-- `app call answer direct` (app_call_changed ongoing after app_call_intent_sent answer, mode=direct): ≤ 1 s
-- `app call answer tap` (app_call_intent_sent tap mode; action completes when the user taps the phone notification, not measured in the bench)
+- `app call delivery lan`, `app call delivery relay`: `app_call_changed` field `os` → the Mac's `app_call_received` of the envelope of `app_call_sent reason=change` (joined on `env`), on the phone's clock: 200 ms on the LAN, 1 s over the relay
+- `app call shown`: the first `app_call_changed state=ringing` → the first `app_call_panel_shown` of the call, across clocks: ≤ 400 ms (a call that never rang, dialed in the app, is left out)
+- `app call decline`, `app call end`: `app_call_intent_sent action=reject` or `end` (`mode=plain`) → the next `app_call_changed state=ended` with `end=declined` or `ended`, phone only: ≤ 500 ms
+- `app call answer direct`: `app_call_intent_sent action=answer mode=direct` → the next `app_call_changed state=ongoing`, phone only: ≤ 1 s
+- `app call answer tap`: `mode=tap` counted, not timed (the user's tap on the phone notification completes it)
+- `app call answer back`, `app call decline back`, `app call end back`: the Mac's `call_action_tap` → its `app_call_received` with the resulting state, one device, no target; only taps whose intent on the phone led to that state
+
+A call that ends without an intent before it (`end=unknown`: the listener lost, the in-call notification dismissed), or that ends otherwise after one, is in no action row; the report lists every intent with what followed it.
 
 ```text
 HLBENCH/1 wall=1727151101000.000 mono=9001000000000 dev=8c7d6e5f role=android ev=clip_read clip=0192f3e0-5a21-7b3c-9d4e-1f2a3b4c5d6e kind=text bytes=27 source=auto
@@ -158,7 +162,7 @@ python3 tools/bench/self_test.py                                   # must print 
 
 `sms_latency.py` prints one row per notified message (latency on the phone's clock and its split: detection, phone, network, client), the incoming messages sent to a client that never notified (setting off, conversation open, lost), one row per reply (attempts, final status, time to Sent, bubble, ack, radio time on the phone, error code), the push display times, and a summary with median, p95 and maximum: `notification lan` (target 500 ms), `notification relay` (1 s), `reply sent` (2 s), `placeholder bubble` (100 ms), `ack lan` (300 ms, sends without a retry), `push shown` (no target). The reply time needs no clock offset (one device); the notification latency does — send one reply at the start of the session, or pass `--offset`.
 
-`call_latency.py` prints one row per state envelope (latency on the phone's clock, its trigger, and the split into phone and network time), the envelopes never received, the panel and banner times, one row per action (source, transport, attempts, ack, tap → the phone's callback, tap → the resulting state on the client, ack time, error code), the missed-call notifications, the pushes (HTTP status, time after the number, display by the extension), the Mac alerts that break the Focus rule (Focus on: no panel, no ringtone, a time-sensitive notification; Focus status not readable: the panel without ringtone; a panel always with a passive notification), and a summary: `state lan` (200 ms), `state relay` (1 s), `shown panel` and `shown banner` (300 ms), `answer to phone offhook`, `answer back on client`, `decline back on client`, `end back on client` (500 ms), `decline from notification` (2 s), `missed notification` (1.5 s), `incoming push` (300 ms), `push shown` (no target). `--check` also fails on a Focus rule problem. Tap → the state back on the client needs no clock offset; the other times do.
+`call_latency.py` prints one row per state envelope (latency on the phone's clock, its trigger, and the split into phone and network time), the envelopes never received, the panel and banner times, one row per action (source, transport, attempts, ack, tap → the phone's callback, tap → the resulting state on the client, ack time, error code), the missed-call notifications, the pushes (HTTP status, time after the number, display by the extension), the Mac alerts that break the Focus rule (Focus on: no panel, no ringtone, a time-sensitive notification; Focus status not readable: the panel without ringtone; a panel always with a passive notification), and a summary: `state lan` (200 ms), `state relay` (1 s), `shown panel` and `shown banner` (300 ms), `answer to phone offhook`, `answer back on client`, `decline back on client`, `end back on client` (500 ms), `decline from notification` (2 s), `missed notification` (1.5 s), `incoming push` (300 ms), `push shown` (no target). With app calls it also prints the app call envelopes never received, one row per app call envelope, the app call panel times, every intent the phone sent with what followed it, one row per tap on an app call (the mode of the phone's intent, tap → the result back on the Mac, ack), and the rows above. `--check` also fails on a Focus rule problem. Tap → the state back on the client needs no clock offset; the other times do.
 
 ## Relay load test
 
