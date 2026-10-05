@@ -2171,6 +2171,30 @@
       "specs": ["SET-01"]
     },
     {
+      "key": "settings.auto_send_not_on_message",
+      "en": "HandLive isn't on in Accessibility yet, so what you copy isn't sent automatically.",
+      "vi": "HandLive chưa được bật trong Hỗ trợ tiếp cận nên nội dung bạn sao chép chưa được tự gửi.",
+      "comment": "Message of the action sheet shown when the user taps Auto-Send on Copy while it is on but the Accessibility service is not (SET-02 field 39)",
+      "platforms": ["android"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.auto_send_not_on_title",
+      "en": "Turn On Auto-Send on Copy?",
+      "vi": "Bật tự gửi khi sao chép?",
+      "comment": "Title of the action sheet shown when the user taps Auto-Send on Copy while it is on but the Accessibility service is not (SET-02 field 39)",
+      "platforms": ["android"],
+      "specs": ["SET-02"]
+    },
+    {
+      "key": "settings.auto_send_turn_on",
+      "en": "Turn On",
+      "vi": "Bật",
+      "comment": "Action of the Auto-Send on Copy action sheet that continues to the disclosure, the restricted-setting guidance or Accessibility (SET-02 field 39); the other actions are Send Manually and Cancel",
+      "platforms": ["android"],
+      "specs": ["SET-02"]
+    },
+    {
       "key": "settings.block_sensitive",
       "en": "Block Sensitive Content",
       "vi": "Chặn nội dung nhạy cảm",
