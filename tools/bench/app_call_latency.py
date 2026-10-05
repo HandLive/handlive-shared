@@ -6,9 +6,11 @@ id), on the phone's clock; one change times at most one send per Mac (a send aga
 the answer mode or a setting changed, is not timed). Target: under 200 ms on the LAN, 1 s over the relay.
 Shown: from the first `app_call_changed state=ringing` of a call to the Mac's `app_call_panel_shown`. Target: 400 ms.
 Decline and End: from `app_call_intent_sent action=reject|end` to the next `app_call_changed state=ended` of that
-call (`end=declined` or `ended`), phone only. Target: 500 ms. Answer direct: from `app_call_intent_sent action=answer
+call (`end=declined` or `ended`), phone only. Target: 500 ms for the phone's part alone; CALL-05's 500 ms counts from
+the click on the Mac, which the `back` rows below come closer to. Answer direct: from `app_call_intent_sent action=answer
 mode=direct` to the next `app_call_changed state=ongoing`, phone only. Target: 1 s. Answer tap (`mode=tap`) waits for
-the user's tap on the phone, so it is counted, not timed. A call that ends without an intent before it (the listener
+the user's tap on the phone, so it is counted, not timed. Only the first intent of an action before the change it
+led to is timed (a resent action sends it again). A call that ends without an intent before it (the listener
 lost, the in-call notification dismissed: `end=unknown`) is in no action row.
 Tap back on the client: from the Mac's `call_action_tap` of an app call to its `app_call_received` with the resulting
 state, one device, no target.
@@ -63,6 +65,7 @@ class AppIntent:
     result: str | None  # the state that followed (ongoing, ended) or None
     end: str | None  # its end_reason
     latency_ms: float | None  # intent sent → the app's notification change, phone only; None when not timed
+    repeat: bool  # the same action was already sent for this change (a resent call_event/action): not timed
 
 
 @dataclass
@@ -141,7 +144,7 @@ def shown(log: Log, clocks: ClockModel) -> list[AppShown]:
 
 
 def intents(log: Log) -> list[AppIntent]:
-    out = []
+    out, seen = [], set()
     for sent in log.of("app_call_intent_sent"):
         call, action, mode = sent.get("call"), sent.get("action"), sent.get("mode")
         wanted, reason = INTENT_RESULT.get(action, (None, None))
@@ -149,11 +152,16 @@ def intents(log: Log) -> list[AppIntent]:
         after = (c for c in _changes(log, sent.dev, call) if local_interval_ms(sent, c) >= 0
                  and c.get("state") in (wanted, "ended"))
         change = next(after, None)
+        # Only the first intent of an action before the change it led to: the Mac resends the same envelope after
+        # a reconnect and the phone sends the intent again while the notification still offers it.
+        key = (sent.dev, call, action, change.where if change else None)
+        repeat = key in seen
+        seen.add(key)
         hit = change is not None and change.get("state") == wanted and change.get("end") in (None, reason)
-        timed = hit and (action, mode) in INTENT_TARGET_MS
+        timed = hit and not repeat and (action, mode) in INTENT_TARGET_MS
         out.append(AppIntent(call, sent.dev, action, mode, change.get("state") if change else None,
                              change.get("end") if change else None,
-                             float(change.get("os")) - sent.wall_ms if timed else None))
+                             float(change.get("os")) - sent.wall_ms if timed else None, repeat))
     return out
 
 
@@ -201,7 +209,7 @@ def summary_rows(states: list[AppDelivery], views: list[AppShown], sent: list[Ap
 
 
 def tap_answer_count(sent: list[AppIntent]) -> int:
-    return sum(i.action == "answer" and i.mode == "tap" for i in sent)
+    return sum(i.action == "answer" and i.mode == "tap" and not i.repeat for i in sent)
 
 
 def print_report(states: list[AppDelivery], views: list[AppShown], sent: list[AppIntent], acts: list[AppAction],
@@ -216,7 +224,7 @@ def print_report(states: list[AppDelivery], views: list[AppShown], sent: list[Ap
     for s in views:
         print(f"app call panel {s.call} on {s.client}: {fmt(s.latency_ms)} ms after ringing ({s.offset_method})")
     for i in sent:
-        result = f"{i.result or 'nothing'}" + (f" end={i.end}" if i.end else "")
+        result = (i.result or "nothing") + (f" end={i.end}" if i.end else "") + (" (repeat)" if i.repeat else "")
         print(f"app call intent {i.action} mode={i.mode} {i.call} on {i.phone}: {result}, {fmt(i.latency_ms)} ms")
     if acts:
         print(f"{'action':7} {'app call':36} {'client':8} {'from':12} {'via':5} {'tries':>5} {'ok':5} {'mode':6} "
