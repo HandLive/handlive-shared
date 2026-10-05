@@ -156,7 +156,7 @@ def run_checks(t, line, run, close, mac, phone, ipad) -> None:
         log = load(paths)
         t.check("call logs parse", not log.problems, str(log.problems))
         found = exchanges(log)
-        t.check("call_event/action acks give the clock exchanges", len(found) == 4 + truth["app"]["actions"],
+        t.check("call_event/action acks give the clock exchanges", len(found) == 4 + truth["app"]["exchanges"],
                 str([x.ref for x in found]))
         clocks = ClockModel(found)
         off = clocks.offset(mac, phone, 1_727_151_100_000.0 + 3_000)
@@ -244,6 +244,15 @@ def run_checks(t, line, run, close, mac, phone, ipad) -> None:
         rows = {r[0]: r for r in call_latency.app.summary_rows([], [], intents, [])}
         t.check("a 700 ms app call decline fails the 500 ms target",
                 call_latency._row(*rows["app call decline"])["result"] == "FAIL", str(rows["app call decline"]))
+
+        bad = _write(tmp, late, phone)
+        with bad.open("a", encoding="utf-8") as fh:
+            # Before the real change: read as a number, it would be the change the decline led to.
+            fh.write(line(phone, 301_100, "app_call_changed", call=CALL["H"], state="ended", end="declined", os="abc")
+                     + "\n")
+        code, text = run([str(bad), str(_write(tmp, late, mac))], call_latency.main)
+        t.check("a clock field that is not a number skips its line, the run goes on",
+                code == 0 and "os is not a number" in text and "app call decline" in text, text[-400:])
 
 
 def _write(tmp: str, s: Session, dev: str) -> Path:

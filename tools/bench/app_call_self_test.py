@@ -1,8 +1,9 @@
 """App calls (CALL-05) for call_self_test.py: added to the same synthetic session, so their taps sit beside the
 cellular ones and must stay out of the cellular action rows.
 
-P rings on the Mac over the LAN, is answered directly from the panel (the panel is shown twice, timed once) and
-ended; R reaches the Mac over the relay and is declined; T is answered through the tap-to-answer notification
+P rings on the Mac over the LAN, is sent again with reason=change without a new change (not timed), is answered
+directly from the panel while the app re-posts its ringing notification (the panel is shown twice, timed once) and
+ended; R reaches the Mac over the relay and is declined, the decline resent after a reconnect (timed once); T is answered through the tap-to-answer notification
 (counted, not timed); U is answered on the phone and its in-call notification is dismissed (`end=unknown`, no
 intent); V is ended from the Mac but the listener is lost before the app's change (`end=unknown`, not timed).
 """
@@ -28,8 +29,11 @@ def deliver(s, t_os, call, state, via="lan", after=6.0, net=4.0, reason="change"
     return after + net
 
 
-def act(s, t, call, action, mode, app_ms, state, end=None, net=3.0) -> tuple[float, float]:
+def act(s, t, call, action, mode, app_ms, state, end=None, net=3.0, repost_ms=None,
+        resend_ms=None) -> tuple[float, float]:
     """A tap on the Mac, the phone's intent, the app's change after app_ms and its copy back on the Mac.
+    repost_ms: the app re-posts its ringing notification that long after the intent. resend_ms: the Mac sends the
+    same envelope again and the phone sends the intent again that long after the first one.
     Returns (intent → change on the phone, tap → change received on the Mac)."""
     s.envs += 1
     e = f"0192f3f4-{s.envs:04x}-7d3e-8f4a-5b6c7d8e9f01"
@@ -41,20 +45,29 @@ def act(s, t, call, action, mode, app_ms, state, end=None, net=3.0) -> tuple[flo
     s.add(s.phone, intent, "app_call_intent_sent", call=call, action=action, mode=mode)
     s.add(s.phone, intent + 1, "call_action_ack_sent", call=call, env=e, peer=s.mac, ok="true")
     s.add(s.mac, intent + 1 + net, "call_action_ack_received", call=call, env=e, peer=s.phone, ok="true")
+    if repost_ms is not None:
+        change(s, intent + repost_ms, call, "ringing")
+    if resend_ms is not None:
+        again = intent + resend_ms
+        s.add(s.mac, again - 8 - net, "call_action_sent", call=call, env=e, peer=s.phone, action=action, via="lan",
+              attempt=2)
+        s.add(s.phone, again - 5, "call_action_received", call=call, env=e, peer=s.mac, action=action)
+        s.add(s.phone, again, "app_call_intent_sent", call=call, action=action, mode=mode)
     change(s, intent + app_ms, call, state, **({"end": end} if end else {}))
     back = deliver(s, intent + app_ms, call, state)
     return app_ms, intent + app_ms + back - t
 
 
 def build(s) -> dict:
-    truth = {"delivery": {}, "shown": {}, "intents": {}, "back": {}, "actions": 0}
+    truth = {"delivery": {}, "shown": {}, "intents": {}, "back": {}, "actions": 0, "exchanges": 0}
     p = APP_CALL["P"]
     change(s, 200_000, p, "ringing")
     truth["delivery"][(p, "ringing")] = deliver(s, 200_000, p, "ringing")
     s.add(s.mac, 200_150, "app_call_panel_shown", call=p)
     truth["shown"][p] = 150.0
+    deliver(s, 200_294, p, "ringing")  # sent again with reason=change, only the answer mode changed: not timed
     deliver(s, 200_500, p, "ringing", reason="session")  # a new session gets the current version: not measured
-    intent, back = act(s, 202_000, p, "answer", "direct", 600.0, "ongoing")
+    intent, back = act(s, 202_000, p, "answer", "direct", 600.0, "ongoing", repost_ms=200.0)
     truth["intents"][(p, "answer")], truth["back"][(p, "answer")] = intent, back
     s.add(s.mac, 202_700, "app_call_panel_shown", call=p)  # the in-call panel: shown again, not timed again
     intent, back = act(s, 210_000, p, "end", "plain", 120.0, "ended", end="ended")
@@ -65,7 +78,7 @@ def build(s) -> dict:
     truth["delivery"][(r, "ringing")] = deliver(s, 220_000, r, "ringing", via="relay", after=10.0, net=300.0)
     s.add(s.mac, 220_380, "app_call_panel_shown", call=r)
     truth["shown"][r] = 380.0
-    intent, back = act(s, 221_000, r, "reject", "plain", 200.0, "ended", end="declined")
+    intent, back = act(s, 221_000, r, "reject", "plain", 200.0, "ended", end="declined", resend_ms=100.0)
     truth["intents"][(r, "reject")], truth["back"][(r, "reject")] = intent, back
 
     t = APP_CALL["T"]
@@ -86,6 +99,7 @@ def build(s) -> dict:
     deliver(s, 250_000, v, "ongoing")
     act(s, 251_000, v, "end", "plain", 90.0, "ended", end="unknown")  # the listener was lost first
     truth["actions"] = 5  # taps on the Mac: P answer and end, R reject, T answer, V end
+    truth["exchanges"] = 4  # R's decline was sent twice: no clock exchange
     return truth
 
 
@@ -97,7 +111,7 @@ def check(t, s, log, clocks, close, truth, cellular_actions) -> None:
     t.check("app call delivery on the phone's clock, LAN and relay",
             all(close(states[k].latency_ms, want) for k, want in truth["delivery"].items())
             and states[(APP_CALL["R"], "ringing")].via == "relay", str(states))
-    t.check("app_call_sent reason=session not measured",
+    t.check("one change times one send: reason=session and a send again without a change not measured",
             sum(d.call == APP_CALL["P"] and d.state == "ringing" for d in app_call_latency.deliveries(log, clocks))
             == 1)
     t.check("the lost app call copy is listed", [x for x in app_call_latency.undelivered(log)
@@ -109,9 +123,13 @@ def check(t, s, log, clocks, close, truth, cellular_actions) -> None:
             and all(close(views[c].latency_ms, want) for c, want in truth["shown"].items()), str(views))
     intents = app_call_latency.intents(log)
     timed = {(i.call, i.action): i.latency_ms for i in intents if i.latency_ms is not None}
-    t.check("decline, end and direct answer timed on the phone",
+    t.check("decline, end and direct answer timed on the phone, the answer across a ringing re-post",
             set(timed) == set(truth["intents"]) and all(close(timed[k], v) for k, v in truth["intents"].items()),
             str(timed))
+    t.check("a resent decline timed once, its repeat listed",
+            sum(i.latency_ms is not None for i in intents) == len(truth["intents"])
+            and [i.repeat for i in intents if i.call == APP_CALL["R"]] == [False, True],
+            str([(i.call[:13], i.action, i.latency_ms, i.repeat) for i in intents]))
     t.check("a detached end (end=unknown, no intent) is in no action row",
             all(i.call != APP_CALL["U"] for i in intents)
             and next(i for i in intents if i.call == APP_CALL["V"]).latency_ms is None, str(intents))
