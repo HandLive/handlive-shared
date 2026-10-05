@@ -2,7 +2,8 @@
 
 Delivery: from the notification event behind a change of the app-call context (`app_call_changed` field `os`) to
 the Mac's `app_call_received` of the envelope that carried it (`app_call_sent reason=change`, joined on the envelope
-id), on the phone's clock. Target: under 200 ms on the LAN, 1 s over the relay.
+id), on the phone's clock; one change times at most one send per Mac (a send again without a new change, when only
+the answer mode or a setting changed, is not timed). Target: under 200 ms on the LAN, 1 s over the relay.
 Shown: from the first `app_call_changed state=ringing` of a call to the Mac's `app_call_panel_shown`. Target: 400 ms.
 Decline and End: from `app_call_intent_sent action=reject|end` to the next `app_call_changed state=ended` of that
 call (`end=declined` or `ended`), phone only. Target: 500 ms. Answer direct: from `app_call_intent_sent action=answer
@@ -95,13 +96,21 @@ def _phone_of(log: Log, call: str) -> str | None:
 
 def deliveries(log: Log, clocks: ClockModel) -> list[AppDelivery]:
     received = {(e.dev, e.get("env")): e for e in log.of("app_call_received")}
-    out = []
+    out, used = [], set()
     for sent in log.of("app_call_sent"):
         if sent.get("reason") != "change":
             continue  # the current version sent to a new session has no notification event behind it
         causes = [c for c in _changes(log, sent.dev, sent.get("call")) if local_interval_ms(c, sent) >= 0]
+        if not causes:
+            continue
+        # One change times one send per peer: the phone sends the call again with reason=change when only the
+        # answer mode or a setting changed (no new notification event), and that send has no start of its own.
+        key = (causes[-1].where, sent.get("peer"))
         got = received.get((sent.get("peer"), sent.get("env")))
-        if not causes or got is None:
+        if key in used:
+            continue
+        used.add(key)
+        if got is None:
             continue
         os_ms = float(causes[-1].get("os"))
         got_on_phone, offset = clocks.to_ref(got.wall_ms, got.dev, sent.dev)
