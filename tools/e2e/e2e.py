@@ -3,7 +3,7 @@
     tools/.venv/bin/python tools/e2e/e2e.py setup clipboard sms calls --serial emulator-5556 --apk <app-foss-debug.apk>
     tools/.venv/bin/python tools/e2e/e2e.py all --serial emulator-5556 --apk <apk> --step-delay 0
 
-Scenarios run in the order given; `all` = setup clipboard sms calls. Exit code 1 when any step failed.
+Scenarios run in the order given; `all` = setup clipboard sms calls app_calls. Exit code 1 when any step failed.
 """
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ from transport import PinMismatch, TransportClosed  # noqa: E402
 from ui_automator import Ui  # noqa: E402
 
 LOCKS = Path(__file__).resolve().parents[3] / ".locks"   # the workspace's lock directory (hub root)
-SCENARIOS = ("setup", "clipboard", "sms", "calls")
+SCENARIOS = ("setup", "clipboard", "sms", "calls", "app_calls")
 STAGE2 = ("relay", "push")                 # the local relay stack (relay_stack/), not part of `all`
 ENTRY = {"relay": ("scenario_relay", "run"), "push": ("scenario_relay", "run_push")}
 CLIENT_NAME = "E2E Test Mac"
@@ -134,6 +134,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
                    help="other clients use this emulator: no reinstall, no permission revoke (it restarts the app)")
     p.add_argument("--lock-dir", type=Path, default=LOCKS if LOCKS.is_dir() else None,
                    help="take <lock-dir>/<serial> around each scenario (default: the workspace's .locks when present)")
+    p.add_argument("--fake-call-apk", type=Path, help="the fake calling app (android/tools/fake-call-app, debug) "
+                                                      "to install for `app_calls`; without it the installed one is used")
     p.add_argument("--relay-state", type=Path, help="state directory of relay_stack.py (default "
                                                     "$HANDLIVE_RELAY_STACK_DIR or <tmp>/handlive-relay-stack)")
     return p.parse_args(argv)

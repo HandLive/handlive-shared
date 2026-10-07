@@ -21,15 +21,17 @@ CLIENT_MODELS = {"macos": "Mac15,3", "ios": "iPhone16,1"}
 
 
 def capability(platform: str = "macos", *, clipboard: bool = True, sms: bool = True, call: bool = True,
-               relay: bool = False, notify: bool = True) -> dict:
+               relay: bool = False, notify: bool = True, app_calls: bool = False) -> dict:
     """0.7.2 as the Apple app builds it (apple/…/LocalDevice.swift): clipboard, SMS, calls and the relay switch;
-    iPhone and iPad add sms.notify and call.notify."""
+    iPhone and iPad add sms.notify and call.notify. A Mac reports call.app_calls (CALL-05) only when a scenario asks
+    for it, so the other scenarios never get calls of other apps."""
     mobile = platform in ("ios", "ipados")
     features = {
         "clipboard": {"enabled": clipboard, "auto_send": True, "max_text_bytes": 1_048_576,
                       "max_image_bytes": 10_485_760, "mimes": ["text/plain", "text/html", "image/png", "image/jpeg"]},
         "sms": {"enabled": sms, **({"notify": notify} if mobile else {})},
-        "call": {"enabled": call, **({"notify": notify} if mobile else {})},
+        "call": {"enabled": call, **({"notify": notify} if mobile else {}),
+                 **({"app_calls": app_calls and call} if not mobile else {})},
         "relay": {"enabled": relay},
     }
     return {"protocol": 1, "app_version": "0.0.0 (e2e)", "platform": platform,
