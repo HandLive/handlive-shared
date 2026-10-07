@@ -19,6 +19,7 @@ sys.path.insert(0, str(HERE.parent / "bench"))
 sys.path.insert(0, str(HERE / "relay_stack"))
 
 import bench_log  # noqa: E402
+from adb_device import lines_since  # noqa: E402
 import mac_crypto as C  # noqa: E402
 from fake_mac import FakeClient, capability  # noqa: E402
 from fake_phone import PHONE_CAPABILITY, FakePhone  # noqa: E402
@@ -258,6 +259,18 @@ def relay_loopback(checker: SchemaCheck) -> None:
         loop.call_soon_threadsafe(loop.stop)
 
 
+def logcat_window() -> None:
+    """A fake app's line of an earlier run must never count as the answer to this run's action."""
+    text = ("--------- beginning of main\n"
+            "1791300000.120  4716  4716 I HLFAKECALL: event=decline_received\n"
+            "1791350400.500  4716  4716 I HLFAKECALL: event=ringing\n"
+            "1791350401.250  4716  4716 I HLFAKECALL: event=decline_received mode=0\n")
+    old = lines_since(text, 1791350401)
+    check("logcat window: only lines stamped at or after the start", len(old) == 1 and "mode=0" in old[0], str(old))
+    check("logcat window: an earlier run's decline_received is outside it",
+          lines_since(text.replace("1791350401.250", "1791300001.250"), 1791350401) == [])
+
+
 def ui_parser() -> None:
     xml = ('<?xml version="1.0"?><hierarchy rotation="0"><node index="0" text="" resource-id="" class="android.view.View" '
            'package="app.handlive.android" content-desc="" clickable="false" bounds="[0,0][1080,2400]">'
@@ -282,6 +295,7 @@ def main() -> int:
     loopback(checker)
     relay_loopback(checker)
     ui_parser()
+    logcat_window()
     print(f"{len(FAILS)} failed")
     return 1 if FAILS else 0
 
