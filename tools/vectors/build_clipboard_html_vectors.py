@@ -33,6 +33,7 @@ COMMENT_RE = re.compile(r"<!--.*?(?:-->|\Z)", re.S)  # an unclosed comment runs 
 BOGUS_RE = re.compile(r"<[!?][^>]*(?:>|\Z)")  # `<!…>` (doctype, CDATA) and `<?…>`: dropped up to the next `>`
 TEXT_LT_RE = re.compile(r"<(?=[/A-Za-z])")  # a `<` that could have opened a tag but did not
 TAG_RE = re.compile(r"<(/?)([A-Za-z][A-Za-z0-9]*)((?:[^>\"']|\"[^\"]*\"|'[^']*')*)>")
+TAG_START_RE = re.compile(r"<(/?)([A-Za-z][A-Za-z0-9]*)")  # what TAG_RE needs before its attributes
 ATTR_RE = re.compile(r"([A-Za-z_:][-A-Za-z0-9_:.]*)(?:\s*=\s*(\"[^\"]*\"|'[^']*'|[^\s\"'=<>`]+))?", re.A)
 
 
@@ -76,18 +77,46 @@ def _text(segment: str) -> str:
     return TEXT_LT_RE.sub("&lt;", segment)
 
 
+def _tag_ends(text: str) -> list[int]:
+    """ends[p]: the index of the `>` that closes a tag whose attributes start at p outside quotes (TAG_RE's group 3
+    from p), or -1 when no `>` can close it: there is none ahead, or a quote ahead is never closed. One pass from the
+    end, so finding every tag stays linear: TAG_RE.search alone rescans to the end from each `<` + letter that does
+    not complete a tag, quadratic on `<a<a<a…` with no `>` after them or with an unclosed quote before the last `>`."""
+    ends = [-1] * (len(text) + 1)
+    next_quote = {"\"": -1, "'": -1}  # the nearest quote of each kind after the current position
+    for p in range(len(text) - 1, -1, -1):
+        c = text[p]
+        if c == ">":
+            ends[p] = p
+        elif c in next_quote:
+            close = next_quote[c]  # a quoted value runs to the next quote of its kind
+            ends[p] = ends[close + 1] if close >= 0 else -1
+            next_quote[c] = p
+        else:
+            ends[p] = ends[p + 1]
+    return ends
+
+
 def sanitize(html: str) -> str:
     text = BOGUS_RE.sub("", COMMENT_RE.sub("", html))
+    ends = _tag_ends(text)
     out = []
     pos = 0
     while True:
-        m = TAG_RE.search(text, pos)
+        # The leftmost `<` + letter from pos whose attributes reach a `>`: TAG_RE.search(text, pos), in linear time.
+        start, m = pos, None
+        while (s := TAG_START_RE.search(text, start)) is not None:
+            if ends[s.end()] >= 0:
+                m = s
+                break
+            start = s.start() + 1
         if m is None:
             out.append(_text(text[pos:]))
             break
         out.append(_text(text[pos:m.start()]))
-        closing, name, attrs_text = m.group(1) == "/", m.group(2).lower(), m.group(3)
-        pos = m.end()
+        close = ends[m.end()]
+        closing, name, attrs_text = m.group(1) == "/", m.group(2).lower(), text[m.end():close]
+        pos = close + 1
         if name in DROP_CONTENT:
             if not closing:
                 close = re.compile(rf"</{name}\s*>", re.I | re.A).search(text, pos)
@@ -150,6 +179,9 @@ CASES = [
     ("unclosed comment drops to the end", '<p>a</p><!-- <img src=x onerror=alert(1)>'),
     ("close tag matched ASCII case-insensitively only", '<script>x</\u017fcript><p>k</p>'),
     ("a less-than before a letter runs to the next bracket as a tag, as in HTML", '<p>a <b and c<3 d</p>'),
+    ("repeated tag starts without a closing bracket all stay text", "<a<a<a x"),
+    ("repeated tag starts before an unclosed quote stay text, the last bracket too", "<a<a<a x'>"),
+    ("repeated tag starts with closed quotes before an unclosed quote stay text", '<a"x"<a"x"<a"x"\'>'),
 ]
 
 
