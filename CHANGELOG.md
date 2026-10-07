@@ -15,6 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Call bench: the app call events are no longer skipped as unknown, and a tap on an app call no longer shows up as
   a cellular action with `phone=?`.
+- Clipboard HTML: the reference sanitizer finds tags in linear time (repeated `<a` with no `>` after it, or before
+  an unclosed quote, took seconds per 10 KB); output unchanged; three vectors for these inputs in
+  `clipboard-html.json`, and a check that about 1 MiB of each is sanitized within 5 s.
 
 ## [2026-09-30]
 
