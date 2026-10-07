@@ -273,9 +273,9 @@ def logcat_window() -> None:
 
 def ui_parser() -> None:
     xml = ('<?xml version="1.0"?><hierarchy rotation="0"><node index="0" text="" resource-id="" class="android.view.View" '
-           'package="app.handlive.android" content-desc="" clickable="false" bounds="[0,0][1080,2400]">'
+           'package="com.handlive.android" content-desc="" clickable="false" bounds="[0,0][1080,2400]">'
            f'<node index="1" text="{en("pairing.enter_pin")}" resource-id="" class="android.widget.TextView" '
-           'package="app.handlive.android" content-desc="" clickable="false" bounds="[100,200][500,300]"/></node>'
+           'package="com.handlive.android" content-desc="" clickable="false" bounds="[100,200][500,300]"/></node>'
            '</hierarchy>UI hierchary dumped to: /dev/tty')
     nodes = parse_dump(xml)
     hit = [n for n in nodes if n.text == "Enter PIN"]

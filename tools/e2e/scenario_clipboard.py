@@ -26,7 +26,7 @@ from build_clipboard_html_vectors import sanitize as sanitize_html  # noqa: E402
 from make_test_png import chunk as png_chunk  # noqa: E402
 
 CHUNK = 65_536
-SHARE_TARGET = "app.handlive.android/app.handlive.android.feature.clipboard.component.ClipboardShareTarget"
+SHARE_TARGET = "com.handlive.android/app.handlive.android.feature.clipboard.component.ClipboardShareTarget"
 
 
 def test_png(target_bytes: int) -> tuple[bytes, int]:
