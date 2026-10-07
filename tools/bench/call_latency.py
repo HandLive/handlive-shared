@@ -19,6 +19,7 @@ Incoming push (CALL-01 API 4 logic 2): from the moment the caller's number is se
 caller, or RINGING itself without READ_CALL_LOG) — or the end of the 300 ms wait when nothing settled it within the
 wait — to `call_push_sent status=202`, phone only, target 300 ms; and from RINGING to the extension's
 `call_push_shown`, no target (APNs).
+App calls (CALL-05): delivery, panel, the phone's intent times and the tap back on the Mac — app_call_latency.py.
 Focus (CALL-01 E4, API 5): every `call_alert` of the Mac follows the rule — Focus on: no panel, no ringtone, a
 time-sensitive notification; Focus status not readable: the panel without ringtone; otherwise the panel with a
 passive notification — and no panel is shown while a Focus is on.
@@ -37,6 +38,7 @@ from pathlib import Path
 
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import app_call_latency as app  # noqa: E402
 from bench_log import Event, Log, load, local_interval_ms, percentile  # noqa: E402
 from clip_latency import parse_offsets  # noqa: E402
 from clock_sync import ClockModel, exchanges  # noqa: E402
@@ -168,9 +170,12 @@ def shown(log: Log, clocks: ClockModel) -> list[Shown]:
 
 
 def actions(log: Log, clocks: ClockModel) -> list[Action]:
-    out = []
+    """Actions on cellular calls; the taps of app calls are app_call_latency.actions."""
+    out, app_calls = [], app.app_call_ids(log)
     for tap in log.of("call_action_tap"):
         call, action, client = tap.get("call"), tap.get("action"), tap.dev
+        if call in app_calls:
+            continue
         sent = [e for e in _after(log.of("call_action_sent"), tap) if e.get("call") == call
                 and e.get("action") == action]
         env = sent[0].get("env") if sent else None
@@ -257,8 +262,31 @@ def _row(label: str, values: list[float], target: float | None) -> dict | None:
             "result": None if target is None else ("PASS" if p95 < target else "FAIL")}
 
 
+def _count_row(label: str, count: int) -> dict | None:
+    """A row that only counts (no time is measured)."""
+    return {"metric": label, "count": count, "median_ms": None, "p95_ms": None, "max_ms": None,
+            "target_ms": None, "result": None} if count else None
+
+
+@dataclass
+class AppCalls:
+    """The app call measurements (app_call_latency.py)."""
+    states: list[app.AppDelivery]
+    views: list[app.AppShown]
+    intents: list[app.AppIntent]
+    actions: list[app.AppAction]
+
+    @classmethod
+    def of(cls, log: Log, clocks: ClockModel) -> AppCalls:
+        return cls(app.deliveries(log, clocks), app.shown(log, clocks), app.intents(log), app.actions(log))
+
+    def rows(self) -> list[dict | None]:
+        rows = [_row(*r) for r in app.summary_rows(self.states, self.views, self.intents, self.actions)]
+        return rows + [_count_row("app call answer tap", app.tap_answer_count(self.intents))]
+
+
 def summarize(states: list[Delivery], views: list[Shown], acts: list[Action], lost: list[Missed],
-              sent: list[Push]) -> list[dict]:
+              sent: list[Push], apps: AppCalls | None = None) -> list[dict]:
     rows = [_row(f"state {via}", [d.latency_ms for d in states if d.via == via], target)
             for via, target in STATE_TARGET_MS.items()]
     rows += [_row(f"shown {kind}", [s.latency_ms for s in views if s.kind == kind], SHOWN_TARGET_MS)
@@ -277,6 +305,7 @@ def summarize(states: list[Delivery], views: list[Shown], acts: list[Action], lo
     rows.append(_row("incoming push", [p.after_number_ms for p in sent if p.after_number_ms is not None],
                      PUSH_TARGET_MS))
     rows.append(_row("push shown", [p.shown_ms for p in sent if p.shown_ms is not None], None))
+    rows += apps.rows() if apps else []
     return [r for r in rows if r]
 
 
@@ -284,7 +313,7 @@ def _fmt(value: float | None) -> str:
     return "—" if value is None or (isinstance(value, float) and math.isnan(value)) else f"{value:.1f}"
 
 
-def print_report(states, views, acts, lost, sent, rows, problems, log: Log) -> None:
+def print_report(states, views, acts, lost, sent, apps: AppCalls, rows, problems, log: Log) -> None:
     for problem in log.problems:
         print(f"skipped {problem}")
     for text in undelivered(log):
@@ -308,8 +337,12 @@ def print_report(states, views, acts, lost, sent, rows, problems, log: Log) -> N
     for p in sent:
         print(f"push {p.reason} {p.call} {p.phone}→{p.device}: status {p.status}, after number "
               f"{_fmt(p.after_number_ms)} ms, shown {_fmt(p.shown_ms)} ms after RINGING")
+    app.print_report(apps.states, apps.views, apps.intents, apps.actions, log, _fmt)
     print("summary (ms)")
     for r in rows:
+        if r["median_ms"] is None:
+            print(f"  {r['metric']:25} n={r['count']:<4} counted, not timed")
+            continue
         target = f"target < {r['target_ms']:.0f} → {r['result']}" if r["target_ms"] else "no target"
         print(f"  {r['metric']:25} n={r['count']:<4} median={r['median_ms']:.1f} p95={r['p95_ms']:.1f} "
               f"max={r['max_ms']:.1f}  {target}")
@@ -329,14 +362,16 @@ def main(argv: list[str] | None = None) -> int:
     clocks = ClockModel(exchanges(log), parse_offsets(args.offset), args.window_s * 1000)
     states, views, acts = deliveries(log, clocks), shown(log, clocks), actions(log, clocks)
     lost, sent, problems = missed(log, clocks), pushes(log, clocks), alert_problems(log)
-    rows = summarize(states, views, acts, lost, sent)
+    apps = AppCalls.of(log, clocks)
+    rows = summarize(states, views, acts, lost, sent, apps)
     if args.json:
         print(json.dumps({"states": [asdict(d) for d in states], "shown": [asdict(s) for s in views],
                           "actions": [asdict(a) for a in acts], "missed": [asdict(m) for m in lost],
-                          "pushes": [asdict(p) for p in sent], "summary": rows, "focus_problems": problems,
+                          "pushes": [asdict(p) for p in sent], "app_calls": asdict(apps),
+                          "app_undelivered": app.undelivered(log), "summary": rows, "focus_problems": problems,
                           "undelivered": undelivered(log), "skipped": log.problems}, indent=2, ensure_ascii=False))
     else:
-        print_report(states, views, acts, lost, sent, rows, problems, log)
+        print_report(states, views, acts, lost, sent, apps, rows, problems, log)
     targeted = [r for r in rows if r["target_ms"] is not None]
     if args.check and (not targeted or problems or any(r["result"] == "FAIL" for r in targeted)):
         return 1

@@ -6,7 +6,8 @@ Calls: A rings on the Mac (number after the first RINGING), is answered and ende
 the panel; C rings during a Focus on the Mac, reaches the iPad over the relay with a banner, and is missed; D rings
 while the iPad has no session (push), and is declined from the notification over the relay; F is dialed on the
 phone and gets a waiting call; W, N and Q are pushed to the iPad, each push timed from the settled number: a withheld
-caller, a phone without READ_CALL_LOG, and a number that came only after the 300 ms wait.
+caller, a phone without READ_CALL_LOG, and a number that came only after the 300 ms wait. App calls (CALL-05):
+app_call_self_test.py, in the same logs.
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ import json
 import tempfile
 from pathlib import Path
 
+import app_call_self_test
 import call_latency
 from bench_log import load
 from clock_sync import ClockModel, exchanges
@@ -139,6 +141,7 @@ def build(line, mac, phone, ipad):
     s.change(120_500, CALL["Q"], "ringing", trigger="broadcast", number="known", settled="true")
     truth["settled"] = {"W": ("a withheld caller", 180.0), "N": ("no READ_CALL_LOG", 150.0),
                         "Q": ("nothing settled within the wait", 120.0)}
+    truth["app"] = app_call_self_test.build(s)
     return s, truth
 
 
@@ -153,7 +156,8 @@ def run_checks(t, line, run, close, mac, phone, ipad) -> None:
         log = load(paths)
         t.check("call logs parse", not log.problems, str(log.problems))
         found = exchanges(log)
-        t.check("call_event/action acks give the clock exchanges", len(found) == 4, str([x.ref for x in found]))
+        t.check("call_event/action acks give the clock exchanges", len(found) == 4 + truth["app"]["exchanges"],
+                str([x.ref for x in found]))
         clocks = ClockModel(found)
         off = clocks.offset(mac, phone, 1_727_151_100_000.0 + 3_000)
         t.check("phone offset from the call actions", close(off.value, 1234.5) and off.method == "exchange", str(off))
@@ -174,7 +178,8 @@ def run_checks(t, line, run, close, mac, phone, ipad) -> None:
         t.check("panel and banner times", set(views) == set(truth["shown"]) and all(
             close(views[k].latency_ms, want) for k, want in truth["shown"].items()), str(views))
 
-        acts = {(a.action, a.call): a for a in call_latency.actions(log, clocks)}
+        cellular = call_latency.actions(log, clocks)
+        acts = {(a.action, a.call): a for a in cellular}
         for key, (to_phone, to_client) in truth["actions"].items():
             a = acts.get(key)
             t.check(f"{key[0]} of {key[1][9:13]}: tap to the phone and back",
@@ -195,6 +200,7 @@ def run_checks(t, line, run, close, mac, phone, ipad) -> None:
             t.check(f"push timed from the settled number: {label}",
                     got is not None and close(got.after_number_ms, want), str(got))
         t.check("Focus rule kept", call_latency.alert_problems(log) == [], str(call_latency.alert_problems(log)))
+        app_call_self_test.check(t, s, log, clocks, close, truth["app"], cellular)
 
         code, text = run([str(p) for p in paths] + ["--check", "--json"], call_latency.main)
         report = json.loads(text)
@@ -208,6 +214,10 @@ def run_checks(t, line, run, close, mac, phone, ipad) -> None:
                                                  "missed notification", "incoming push", "push shown"} <= set(rows),
                 str(sorted(rows)))
         t.check("p95 of the panel", close(rows["shown panel"]["p95_ms"], 120.0), str(rows["shown panel"]))
+        app_call_self_test.check_summary(t, rows)
+        code, text = run([str(p) for p in paths], call_latency.main)
+        t.check("app call rows in the text report", "app call decline" in text and "counted, not timed" in text
+                and "app call never received" in text, text[-600:])
 
         with paths[0].open("a", encoding="utf-8") as fh:
             fh.write(line(mac, 90_000, "call_alert", call=CALL["G"], focus="on", panel="true", ring="false",
@@ -225,3 +235,27 @@ def run_checks(t, line, run, close, mac, phone, ipad) -> None:
         views = call_latency.shown(log, ClockModel(exchanges(log)))
         rows = {r["metric"]: r for r in call_latency.summarize([], views, [], [], [])}
         t.check("a 450 ms panel fails the 300 ms target", rows["shown panel"]["result"] == "FAIL", str(rows))
+
+        late = Session(line, mac, phone, ipad)
+        late.envs = 900
+        app_call_self_test.change(late, 300_000, CALL["H"], "ringing")
+        app_call_self_test.act(late, 301_000, CALL["H"], "reject", "plain", 700.0, "ended", end="declined")
+        intents = call_latency.app.intents(load([_write(tmp, late, phone), _write(tmp, late, mac)]))
+        rows = {r[0]: r for r in call_latency.app.summary_rows([], [], intents, [])}
+        t.check("a 700 ms app call decline fails the 500 ms target",
+                call_latency._row(*rows["app call decline"])["result"] == "FAIL", str(rows["app call decline"]))
+
+        bad = _write(tmp, late, phone)
+        with bad.open("a", encoding="utf-8") as fh:
+            # Before the real change: read as a number, it would be the change the decline led to.
+            fh.write(line(phone, 301_100, "app_call_changed", call=CALL["H"], state="ended", end="declined", os="abc")
+                     + "\n")
+        code, text = run([str(bad), str(_write(tmp, late, mac))], call_latency.main)
+        t.check("a clock field that is not a number skips its line, the run goes on",
+                code == 0 and "os is not a number" in text and "app call decline" in text, text[-400:])
+
+
+def _write(tmp: str, s: Session, dev: str) -> Path:
+    path = Path(tmp) / f"late-{dev}.log"
+    path.write_text("\n".join(s.logs[dev]) + "\n", encoding="utf-8")
+    return path

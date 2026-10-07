@@ -8,6 +8,7 @@ A line can sit inside any log output (adb logcat, macOS `log stream`, a file): e
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -59,8 +60,17 @@ EVENTS: dict[str, set[str]] = {
     "call_action_ack_sent": {"call", "env", "peer", "ok"},
     "call_action_ack_received": {"call", "env", "peer", "ok"},
     "call_missed_notified": {"call", "source"},
+    # Calls of other apps (CALL-05): delivery, the panel, the app's intents; the taps and acks are the call_action
+    # events above. Never the app's package name or the caller.
+    "app_call_changed": {"call", "state", "os"},
+    "app_call_sent": {"call", "env", "peer", "via", "state", "reason"},
+    "app_call_received": {"call", "env", "peer", "state"},
+    "app_call_panel_shown": {"call"},
+    "app_call_intent_sent": {"call", "action", "mode"},
 }
 KEY_VALUE = re.compile(r"^([a-z_]+)=(\S+)$")
+# Fields that carry a wall clock (ms) the scripts compute with: a line where one is not a number is skipped.
+CLOCK_FIELDS = ("os", "onchange")
 
 
 @dataclass(frozen=True)
@@ -118,7 +128,17 @@ def parse_line(text: str, where: str = "") -> Event:
     lacking = sorted(EVENTS[ev] - set(pairs))
     if lacking:
         raise ValueError(f"{ev} needs {', '.join(lacking)}")
+    for name in CLOCK_FIELDS:
+        if name in pairs and not _is_number(pairs[name]):
+            raise ValueError(f"{name} is not a number: {pairs[name]!r}")
     return Event(wall, mono, dev, role, ev, pairs, where)
+
+
+def _is_number(text: str) -> bool:
+    try:
+        return math.isfinite(float(text))
+    except ValueError:
+        return False
 
 
 def load(paths: list[Path]) -> Log:
