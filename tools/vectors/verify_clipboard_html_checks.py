@@ -1,7 +1,7 @@
 """Check clipboard-html.json: every case is run through the reference sanitizer again, so a hand edit of the JSON
 (an input, an output or a rule) is caught. The Kotlin and Swift sanitizers are checked against the same file by their
-own unit tests. The sanitizer must also run in linear time: 1 MiB of `<a` that never completes a tag (no `>` after it,
-or an unclosed quote before the last `>`) within PERF_BUDGET_S.
+own unit tests. The sanitizer must also run in linear time: 1 MiB of `<a` or `<a"x"` that never completes a tag (no
+`>` after it, or an unclosed quote before the last `>`) within PERF_BUDGET_S.
 """
 import signal
 import time
@@ -11,10 +11,15 @@ import build_clipboard_html_vectors as ref
 NAME = "clipboard-html.json"
 PERF_BUDGET_S = 1.0
 PERF_REPEAT = 512 * 1024  # `<a` × this = 1 MiB
+QUOTED_REPEAT = 1024 * 1024 // 5  # `<a"x"` × this ≈ 1 MiB
 # (label, input, expected output): every `<a` failed to open a tag, so each one is escaped and stays text.
 PERF_CASES = [
     ("1 MiB of `<a` without `>`", "<a" * PERF_REPEAT, "&lt;a" * PERF_REPEAT),
     ("1 MiB of `<a` then an unclosed quote before `>`", "<a" * PERF_REPEAT + "'>", "&lt;a" * PERF_REPEAT + "'>"),
+    # Closed quotes between the tag starts, an unclosed one before the last `>`: a guard on the last `>` alone
+    # stays quadratic here.
+    ('1 MiB of `<a"x"` then an unclosed quote before `>`', '<a"x"' * QUOTED_REPEAT + "'>",
+     '&lt;a"x"' * QUOTED_REPEAT + "'>"),
 ]
 
 

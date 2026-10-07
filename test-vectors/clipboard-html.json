@@ -326,6 +326,11 @@
       "name": "repeated tag starts before an unclosed quote stay text, the last bracket too",
       "input": "<a<a<a x'>",
       "output": "&lt;a&lt;a&lt;a x'>"
+    },
+    {
+      "name": "repeated tag starts with closed quotes before an unclosed quote stay text",
+      "input": "<a\"x\"<a\"x\"<a\"x\"'>",
+      "output": "&lt;a\"x\"&lt;a\"x\"&lt;a\"x\"'>"
     }
   ]
 }

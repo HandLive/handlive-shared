@@ -181,6 +181,7 @@ CASES = [
     ("a less-than before a letter runs to the next bracket as a tag, as in HTML", '<p>a <b and c<3 d</p>'),
     ("repeated tag starts without a closing bracket all stay text", "<a<a<a x"),
     ("repeated tag starts before an unclosed quote stay text, the last bracket too", "<a<a<a x'>"),
+    ("repeated tag starts with closed quotes before an unclosed quote stay text", '<a"x"<a"x"<a"x"\'>'),
 ]
 
 
