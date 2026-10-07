@@ -18,6 +18,19 @@ SDK_DEFAULT = "/opt/homebrew/share/android-commandlinetools"
 PACKAGE = "app.handlive.android"
 
 
+def lines_since(text: str, since: float) -> list[str]:
+    """The lines of `logcat -v epoch` output stamped at `since` or later; banners and unstamped lines are dropped."""
+    out = []
+    for line in text.splitlines():
+        stamp = line.split(maxsplit=1)[0] if line.strip() else ""
+        try:
+            if float(stamp) >= since:
+                out.append(line)
+        except ValueError:
+            continue
+    return out
+
+
 class AdbError(RuntimeError):
     pass
 
@@ -152,7 +165,24 @@ class Adb:
 
     # ----- logcat ----------------------------------------------------------------------------------------------
     def logcat_clear(self) -> None:
-        self.run("logcat", "-b", "all", "-c", timeout=20, check=False)
+        """Clears the log buffers: every buffer, else the default ones (some API levels refuse `-b all`). Raises
+        AdbError when the device refuses both, so a caller never reads an old line as a new one unknowingly."""
+        errors = []
+        for args in (("-b", "all", "-c"), ("-c",)):
+            try:
+                self.run("logcat", *args, timeout=20)
+                return
+            except AdbError as exc:
+                errors.append(str(exc))
+        raise AdbError("logcat could not be cleared: " + " | ".join(errors))
+
+    def device_epoch(self) -> int:
+        """The device clock in whole seconds since the epoch, the start of a window for logcat_since()."""
+        return int(self.shell("date +%s", timeout=20).strip())
+
+    def logcat_since(self, since: float, *filters: str) -> list[str]:
+        """The log lines (`-v epoch`) written at `since` or later: a window that needs no cleared buffer."""
+        return lines_since(self.run("logcat", "-d", "-v", "epoch", *filters, timeout=30), since)
 
     def logcat_follow(self, path: Path, *filters: str) -> subprocess.Popen:
         f = path.open("ab")

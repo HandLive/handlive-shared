@@ -86,15 +86,17 @@ def _hang_up(ctx) -> None:
     time.sleep(1)
 
 
-def _fake_events(ctx) -> list[str]:
-    out = ctx.adb.run("logcat", "-d", "-s", "HLFAKECALL:I", check=False)
-    return [line.split("event=", 1)[1].split()[0] for line in out.splitlines() if "event=" in line]
+def _fake_events(ctx, since: float) -> list[str]:
+    """What the fake app logged at `since` (device seconds) or later: a line of an earlier step or run never counts."""
+    lines = ctx.adb.logcat_since(since, "-s", "HLFAKECALL:I")
+    return [line.split("event=", 1)[1].split()[0] for line in lines if "event=" in line]
 
 
-def _fake_event(ctx, name: str, timeout: float = 5) -> bool:
-    """The fake app logged [name]: logcat may hand the line over a little after the change reached the Mac."""
+def _fake_event(ctx, name: str, since: float, timeout: float = 5) -> bool:
+    """The fake app logged [name] since `since`: logcat may hand the line over a little after the change reached
+    the Mac."""
     deadline = time.monotonic() + timeout
-    while name not in _fake_events(ctx):
+    while name not in _fake_events(ctx, since):
         if time.monotonic() >= deadline:
             return False
         time.sleep(0.5)
@@ -165,15 +167,15 @@ def _declined_call(ctx, s) -> None:
     if ringing is None:
         return
     call_id = ringing["call_id"]
-    ctx.adb.logcat_clear()
+    since = ctx.adb.device_epoch()
     mark = s.mark()
     ack = _action(s, call_id, "reject")
     rec.check("decline from the Mac: ack {}", "CALL-05 step 13, API 2", ack is not None and ack.ok, _err(ack),
               latency_ms=ack.latency_ms if ack else None)
     ended = _wait_app_call(s, lambda d: d["call_id"] == call_id and d["state"] == "ended", 10, mark)
     rec.check("the app got its decline intent and the call ended as declined", "CALL-05 API 1 logic 4, API 4",
-              ended is not None and ended.data["end_reason"] == "declined" and _fake_event(ctx, "decline_received"),
-              f"end_reason = {ended.data['end_reason'] if ended else None}, app events = {_fake_events(ctx)}")
+              ended is not None and ended.data["end_reason"] == "declined" and _fake_event(ctx, "decline_received", since),
+              f"end_reason = {ended.data['end_reason'] if ended else None}, app events = {_fake_events(ctx, since)}")
 
 
 def _ended_from_the_mac(ctx, s) -> None:
@@ -183,15 +185,15 @@ def _ended_from_the_mac(ctx, s) -> None:
         _hang_up(ctx)
         return
     call_id = ongoing["call_id"]
-    ctx.adb.logcat_clear()
+    since = ctx.adb.device_epoch()
     mark = s.mark()
     ack = _action(s, call_id, "end")
     rec.check("end from the Mac: ack {}", "CALL-05 step 13, API 2", ack is not None and ack.ok, _err(ack))
     ended = _wait_app_call(s, lambda d: d["call_id"] == call_id and d["state"] == "ended", 10, mark)
     rec.check("the app got its Hang Up intent, removed its notification, and the call ended as ended",
               "CALL-05 step 7, API 1 logic 4",
-              ended is not None and ended.data["end_reason"] == "ended" and _fake_event(ctx, "hang_up_received"),
-              f"end_reason = {ended.data['end_reason'] if ended else None}, app events = {_fake_events(ctx)}")
+              ended is not None and ended.data["end_reason"] == "ended" and _fake_event(ctx, "hang_up_received", since),
+              f"end_reason = {ended.data['end_reason'] if ended else None}, app events = {_fake_events(ctx, since)}")
 
 
 def _swipe_in_call(ctx, attempts: int = 3) -> bool:
@@ -230,7 +232,7 @@ def _swiped_in_call_notification(ctx, s) -> None:
     rec.check("the call stays ongoing on the Mac, End hidden", "CALL-05 E11",
               detached is not None and detached.data["state"] == "ongoing" and detached.data["controls"]["end"] is False,
               f"{detached.data['state']} {detached.data['controls']}" if detached else "no new app_call in 10 s")
-    ctx.adb.logcat_clear()
+    since = ctx.adb.device_epoch()
     mark = s.mark()
     _command(ctx, "upload")
     time.sleep(3)
@@ -238,7 +240,7 @@ def _swiped_in_call_notification(ctx, s) -> None:
     rec.check("an upload of the app never holds the detached call: nothing new for the Mac", "CALL-05 E11",
               not changed, f"{len(changed)} app_call version(s): {[m.data['controls'] for m in changed]}")
     ack = _action(s, call_id, "end")
-    events = _fake_events(ctx)
+    events = _fake_events(ctx, since)
     rec.check("End from the Mac while detached → CALL_APP_ACTION_UNAVAILABLE, the upload's Cancel never sent",
               "CALL-05 E8, E11", ack is not None and ack.code == "CALL_APP_ACTION_UNAVAILABLE"
               and "upload_cancel_received" not in events, f"{_err(ack)}; app events = {events}")
