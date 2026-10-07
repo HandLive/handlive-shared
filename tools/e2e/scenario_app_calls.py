@@ -16,7 +16,7 @@ FAKE_APP = "app.handlive.e2e.fakecall"
 FAKE_LABEL = "E2E Caller"
 FAKE_CALLER = "E2E Test Caller"
 IN_CALL_TITLE = "E2E in call"
-LISTENER = "app.handlive.android/app.handlive.android.feature.call.appcall.AppCallListenerService"
+LISTENER = "com.handlive.android/app.handlive.android.feature.call.appcall.AppCallListenerService"
 SWIPE_API = 34                      # Android 14: an ongoing notification without CallStyle can be dismissed
 
 

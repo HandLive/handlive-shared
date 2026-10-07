@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 SDK_DEFAULT = "/opt/homebrew/share/android-commandlinetools"
-PACKAGE = "app.handlive.android"
+PACKAGE = "com.handlive.android"
 
 
 def lines_since(text: str, since: float) -> list[str]:
