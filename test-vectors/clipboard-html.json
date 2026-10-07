@@ -316,6 +316,16 @@
       "name": "a less-than before a letter runs to the next bracket as a tag, as in HTML",
       "input": "<p>a <b and c<3 d</p>",
       "output": "<p>a <b>"
+    },
+    {
+      "name": "repeated tag starts without a closing bracket all stay text",
+      "input": "<a<a<a x",
+      "output": "&lt;a&lt;a&lt;a x"
+    },
+    {
+      "name": "repeated tag starts before an unclosed quote stay text, the last bracket too",
+      "input": "<a<a<a x'>",
+      "output": "&lt;a&lt;a&lt;a x'>"
     }
   ]
 }

@@ -179,6 +179,8 @@ CASES = [
     ("unclosed comment drops to the end", '<p>a</p><!-- <img src=x onerror=alert(1)>'),
     ("close tag matched ASCII case-insensitively only", '<script>x</\u017fcript><p>k</p>'),
     ("a less-than before a letter runs to the next bracket as a tag, as in HTML", '<p>a <b and c<3 d</p>'),
+    ("repeated tag starts without a closing bracket all stay text", "<a<a<a x"),
+    ("repeated tag starts before an unclosed quote stay text, the last bracket too", "<a<a<a x'>"),
 ]
 
 
