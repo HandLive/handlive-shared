@@ -21,10 +21,13 @@ CLIENT_MODELS = {"macos": "Mac15,3", "ios": "iPhone16,1"}
 
 
 def capability(platform: str = "macos", *, clipboard: bool = True, sms: bool = True, call: bool = True,
-               relay: bool = False, notify: bool = True, app_calls: bool = False) -> dict:
+               relay: bool = False, notify: bool = True, app_calls: bool = False,
+               app_version: str = "0.0.0 (e2e)") -> dict:
     """0.7.2 as the Apple app builds it (apple/…/LocalDevice.swift): clipboard, SMS, calls and the relay switch;
     iPhone and iPad add sms.notify and call.notify. A Mac reports call.app_calls (CALL-05) only when a scenario asks
-    for it, so the other scenarios never get calls of other apps."""
+    for it, so the other scenarios never get calls of other apps. `app_version` defaults to a value that marks the
+    traffic as the fake client's own in logs and benchmarks; callers staging real-looking screenshots may override
+    it."""
     mobile = platform in ("ios", "ipados")
     features = {
         "clipboard": {"enabled": clipboard, "auto_send": True, "max_text_bytes": 1_048_576,
@@ -34,7 +37,7 @@ def capability(platform: str = "macos", *, clipboard: bool = True, sms: bool = T
                  **({"app_calls": app_calls and call} if not mobile else {})},
         "relay": {"enabled": relay},
     }
-    return {"protocol": 1, "app_version": "0.0.0 (e2e)", "platform": platform,
+    return {"protocol": 1, "app_version": app_version, "platform": platform,
             "os_version": "18.0" if mobile else "15.0", "model": CLIENT_MODELS.get(platform, "Mac15,3"),
             "features": features}
 

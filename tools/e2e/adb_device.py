@@ -16,6 +16,8 @@ from pathlib import Path
 
 SDK_DEFAULT = "/opt/homebrew/share/android-commandlinetools"
 PACKAGE = "com.handlive.android"
+# applicationId differs from the Kotlin/manifest namespace, so component names (unlike pm/am package args) need this
+NAMESPACE = "app.handlive.android"
 
 
 def lines_since(text: str, since: float) -> list[str]:
@@ -113,7 +115,7 @@ class Adb:
         return re.search(rf"android\.permission\.{permission}: granted=true", dump) is not None
 
     def start_app(self, package: str = PACKAGE) -> None:
-        self.shell(f"am start -W -n {package}/.MainActivity", timeout=60)
+        self.shell(f"am start -W -n {package}/{NAMESPACE}.MainActivity", timeout=60)
 
     def force_stop(self, package: str = PACKAGE) -> None:
         self.shell(f"am force-stop {package}", check=False)
