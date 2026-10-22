@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-10-22
+
+### Changed
+
+- `tools/e2e`: the adb device helper, the fake Mac and the scenario namespaces follow the new Android application id
+  `com.handlive.android`; no change to the test vectors, schemas or design tokens, so the contract of
+  `v0.1.0-beta.3` stands. This tag only pairs the workspace with the `v0.1.1` platform releases.
+
 ## [0.1.0-beta.3] — 2026-10-07
 
 ### Added
