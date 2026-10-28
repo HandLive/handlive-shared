@@ -75,7 +75,9 @@ def build_logs() -> tuple[dict, dict]:
     logs[IPAD].append(line(IPAD, 30_016.5, "ack_sent", clip=fwd, peer=PHONE, status="applied"))
     logs[PHONE].append(line(PHONE, 30_020.5, "ack_received", clip=fwd, peer=IPAD, status="applied"))
     truth["forward-ipad"] = 30_016 - 30_000
-    # Reconnects on the Mac: its own Wi-Fi switch, then the phone's, then a pong timeout without trigger.
+    # Reconnects on the Mac: its own Wi-Fi switch, then the phone's, then a pong timeout without trigger, then a
+    # Bluetooth scan match (P7, 0.4.5), then the Mac joining a Wi-Fi Direct group (0.4.6); a bt_lost in between
+    # is informational only and must not be picked up as a trigger.
     for true_ms, ev, fields in [(0, "state", {"to": "Discovering"}), (400, "state", {"to": "Connected", "channel": "lan"}),
                                 (40_000, "net", {"change": "down"}), (40_100, "state", {"from": "Connected", "to": "Backoff"}),
                                 (41_900, "net", {"change": "up"}), (42_000, "state", {"to": "Discovering"}),
@@ -83,10 +85,17 @@ def build_logs() -> tuple[dict, dict]:
                                 (60_000, "state", {"from": "Connected", "to": "Backoff"}),
                                 (64_700, "state", {"to": "Connected", "channel": "lan"}),
                                 (80_000, "state", {"from": "Connected", "to": "Backoff"}),
-                                (80_900, "state", {"to": "Connected", "channel": "lan"})]:
+                                (80_900, "state", {"to": "Connected", "channel": "lan"}),
+                                (90_000, "state", {"from": "Connected", "to": "Backoff"}),
+                                (91_500, "bt_seen", {}),
+                                (92_200, "state", {"to": "Connected", "channel": "bluetooth"}),
+                                (100_000, "state", {"from": "Connected", "to": "Backoff"}),
+                                (101_000, "wifi_assoc", {"change": "up"}),
+                                (101_800, "state", {"to": "Connected", "channel": "lan"}),
+                                (101_900, "bt_lost", {"reason": "idle_timeout"})]:
         logs[MAC].append(line(MAC, true_ms, ev, **fields))
     logs[PHONE].append(line(PHONE, 62_500, "net", change="up"))
-    truth["reconnect"] = [(43_150 - 41_900), (64_700 - 62_500), None]
+    truth["reconnect"] = [(43_150 - 41_900), (64_700 - 62_500), None, (92_200 - 91_500), (101_800 - 101_000)]
     # A clip the Mac refused (conflict, QC8): read and sent, never applied.
     lost = "0192f3e0-0000-7000-8000-00000000000f"
     logs[PHONE].append(line(PHONE, 50_000, "clip_read", clip=lost, kind="text", bytes=10, source="manual"))
@@ -172,12 +181,18 @@ def main() -> int:
 
         eps = reconnect_time.episodes(log, clocks)
         got = [e.reconnect_ms for e in eps]
-        t.check("three reconnect episodes", len(eps) == 3, str(eps))
+        t.check("five reconnect episodes", len(eps) == 5, str(eps))
         t.check("Mac Wi-Fi switch", close(got[0], truth["reconnect"][0]) and eps[0].trigger == f"net up on {MAC}",
                 str(eps[0]))
         t.check("phone Wi-Fi switch on the Mac's clock", close(got[1], truth["reconnect"][1]), str(eps[1]))
         t.check("episode without trigger keeps only the time since the loss",
                 got[2] is None and close(eps[2].since_loss_ms, 900.0), str(eps[2]))
+        t.check("Bluetooth scan match (bt_seen) as trigger",
+                close(got[3], truth["reconnect"][3]) and eps[3].trigger == f"bt_seen on {MAC}", str(eps[3]))
+        t.check("Wi-Fi Direct group join (wifi_assoc) as trigger",
+                close(got[4], truth["reconnect"][4]) and eps[4].trigger == f"wifi_assoc up on {MAC}", str(eps[4]))
+        t.check("bt_lost event present and not counted as an extra episode",
+                len(log.of("bt_lost")) == 1 and log.of("bt_lost")[0].get("reason") == "idle_timeout", str(log.of("bt_lost")))
         code, text = run([str(p) for p in paths] + ["--check"], reconnect_time.main)
         t.check("reconnect target met", code == 0 and "PASS" in text, text)
 

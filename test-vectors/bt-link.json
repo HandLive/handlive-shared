@@ -1,0 +1,139 @@
+{
+  "description": "K_bt_disc = HKDF-SHA256(ikm = PRK, salt rỗng, info \"handlive/v1/bt-discovery\", L 32); K_bt_link (tương tự, info \"handlive/v1/bt-link\") — sống suốt đời cặp, khác K_bt_pdisc/K_bt_plink của bt-pairing.json (sống theo một QR). kind \"hint\": hint quảng bá bình thường (không phải lúc ghép đôi) = 4 byte đầu của HMAC-SHA256(K_bt_disc, \"HLBTDISC1\" ‖ epoch int64 BE), epoch = floor(now_ms / BT_HINT_PERIOD) — khác pr_bt (đổi theo mỗi QR) vì hint này đổi theo thời gian (0.4.5 \"Advertisement\"). kind \"handshake\": bắt tay bảo mật liên kết đầy đủ (0.4.5 \"Link-security handshake\" bước 1-4), psk = K_bt_link: challenge (kind 0x01, n_s 32 byte) rồi message 1 (\"psk, e\", kind 0x02 noise1) và message 2 (\"e, ee\", kind 0x03 noise2) của Noise_NNpsk0_25519_ChaChaPoly_SHA256 (Noise Protocol Framework rev. 34), prologue = \"HLBT1\" ‖ n_s, rồi Split() ra c1 (C mã hoá/S giải mã)/c2 (ngược lại) — hai CipherState của bước 4-5. KHÔNG phải vector công bố của tài liệu Noise (xem ghi chú ở bt-pairing.json); noise_nnpsk0.py đã được Trang rà soát ở #3328 cho message 1, cần rà soát thêm phần message 2/Split mới. invalid_vectors: wrong_key, tag_mismatch_noise1, tag_mismatch_noise2 (0.4.5 bước 4: 'C verifies its payload tag — failure → C closes the channel, CONN-05 E3'), replayed_channel (0.4.5 bước 3: 'The prologue binds n_s, so a recorded noise1 never verifies on a new channel').",
+  "source": "docs/detailed-design/00-common-specs.md 0.4.5 \"Keys\", \"Advertisement\", \"Link-security handshake\"; PRK của pair-prk.json; Noise Protocol Framework rev. 34 (Noise_NNpsk0_25519_ChaChaPoly_SHA256)",
+  "vectors": [
+    {
+      "name": "cặp 1",
+      "kind": "key",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "prk_source": "pair-prk.json",
+      "prk": "d9e9827d49f7db11a88ac107ed6fb22b761c723c35449fc798694867fe55c209",
+      "k_bt_disc_info": "handlive/v1/bt-discovery",
+      "k_bt_disc": "c02c87d9df21fd5cf735a27ccb04de7f3ce79a76d9e958c300a0416bb0edeb35",
+      "k_bt_link_info": "handlive/v1/bt-link",
+      "k_bt_link": "16948c82ea6b9f3f4df8fdc711be84fb2ed360bf82cb8a60cf2808bc63548988"
+    },
+    {
+      "name": "cặp 2",
+      "kind": "key",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "prk_source": "pair-prk.json",
+      "prk": "8d3109350469af80c3db25ff2c1867ab56112623020d829301236ed7251411cc",
+      "k_bt_disc_info": "handlive/v1/bt-discovery",
+      "k_bt_disc": "25add16aef33f9c7ec8a251e0bdae7bb91e80cb6c2ae66a8c763f83c628cb384",
+      "k_bt_link_info": "handlive/v1/bt-link",
+      "k_bt_link": "fcdddc4e4638ed616aba885ef26218e63e14f091f1e0c9ec840366877fea3d7d"
+    },
+    {
+      "name": "cặp 1 / hint quảng bá",
+      "kind": "hint",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "k_bt_disc_source": "cặp 1",
+      "hint_label": "HLBTDISC1",
+      "bt_hint_period_ms": 900000,
+      "epochs": [
+        {
+          "epoch": 0,
+          "hint": "72a1a227"
+        },
+        {
+          "epoch": 1,
+          "hint": "b67a752b"
+        },
+        {
+          "epoch": 2,
+          "hint": "4f40cd25"
+        },
+        {
+          "epoch": 479762,
+          "hint": "1aeee44e"
+        }
+      ]
+    },
+    {
+      "name": "cặp 1 / bắt tay liên kết thường",
+      "kind": "handshake",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "psk_source": "k_bt_link của cặp 1",
+      "psk": "16948c82ea6b9f3f4df8fdc711be84fb2ed360bf82cb8a60cf2808bc63548988",
+      "protocol_name": "Noise_NNpsk0_25519_ChaChaPoly_SHA256",
+      "n_s": "2cb3744ccb10882cef6e96d024d80bff5601132eced64c9ab09f7605d7bb2651",
+      "prologue_label": "HLBT1",
+      "prologue": "484c4254312cb3744ccb10882cef6e96d024d80bff5601132eced64c9ab09f7605d7bb2651",
+      "challenge_kind": "0x01",
+      "challenge_record": "0021012cb3744ccb10882cef6e96d024d80bff5601132eced64c9ab09f7605d7bb2651",
+      "h0": "f0b890826fb8e6584af6948d227169c381c9ed6a4c1c90df4b9ff454fa947f7b",
+      "h_after_prologue": "e0220c0816e61954f8bf94de389c0786cdc9754de50446d37e2f0c9d3253da49",
+      "mix_key_and_hash_psk": {
+        "temp_key": "a726faeaaeb3c0d2e3d7cd0bc345318eae898b30c418654a64a9626623425f32",
+        "ck": "c6993109572a2d2e1142dc1bc4ce5e7d93c00ba623cca36b2a5f62308c1254c2",
+        "temp_h": "8b5a5ab1c9e9cded429858ed27b7c2213c80376f86cbdc98328acd0eac88b181",
+        "temp_k": "3493639e64b3e9889eab61e664b7b2db73e4c029e67411df3ef2b6f12769d663",
+        "h": "9b0e5a8a31cd403e0b2ef56bdee37911278e8000650ba8f6ec2dfb4efc122a92"
+      },
+      "h_after_psk": "9b0e5a8a31cd403e0b2ef56bdee37911278e8000650ba8f6ec2dfb4efc122a92",
+      "ck_after_psk": "c6993109572a2d2e1142dc1bc4ce5e7d93c00ba623cca36b2a5f62308c1254c2",
+      "k_message1": "3493639e64b3e9889eab61e664b7b2db73e4c029e67411df3ef2b6f12769d663",
+      "e_priv_c": "6957d0f71dd22be6ea81d25694fd1abd2eed41d4fe5daa62af2bde2b3c8e957a",
+      "e_pub_c": "3ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960f",
+      "h_after_e_c": "bd7216420d0896066bb98d44504e3c4945af95b92188f1531744db2ada017941",
+      "ciphertext_tag_1": "0ad750d42ff823ed2fa9111237c6af1f",
+      "h_after_message1": "1fdebd6ec8abf0b58b949c296a3a1d8aba2023087e81f96a37a2c319b5bb47ec",
+      "message1": "3ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960f0ad750d42ff823ed2fa9111237c6af1f",
+      "noise1_kind": "0x02",
+      "noise1_record": "0031023ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960f0ad750d42ff823ed2fa9111237c6af1f",
+      "e_priv_s": "e9948f4fd3e704551937595a00d3fe9b3fc018838941dc752e9cb6b9d63aba1b",
+      "e_pub_s": "27c5f172bf3ac8d482b86c452d5a6b1d02ba7aa31786a4e5ad04e805c272db3a",
+      "h_after_e_s": "4894fca1d7c42c42d73e730b00c8c51c77b3be058c8bb63467df4a1f69b8af26",
+      "dh_ee": "3f592867b0e2821dc88dc14923ddf403ad7447ab4868207a60b812de220d5b14",
+      "mix_key_ee": {
+        "temp_key": "805df8f644c22395a76b05d27bbb14755351c617b6f78938e003c546fad418d2",
+        "ck": "c304ad50ba19611d155399f774a1ee642cba48d491a9c34ea98d53e561203206",
+        "temp_k": "9ba3fecf8e71d6fb34777e828a18fe3aad59284a3b3122e0b7c1850dd5041185"
+      },
+      "ck_after_ee": "c304ad50ba19611d155399f774a1ee642cba48d491a9c34ea98d53e561203206",
+      "k_message2": "9ba3fecf8e71d6fb34777e828a18fe3aad59284a3b3122e0b7c1850dd5041185",
+      "ciphertext_tag_2": "491f6def3a79e9abe9ccc8cc6651e16a",
+      "h_final": "1cb5548c90a38400772f804bbc734d5b72a4259b58aae26c19c2dae533113066",
+      "message2": "27c5f172bf3ac8d482b86c452d5a6b1d02ba7aa31786a4e5ad04e805c272db3a491f6def3a79e9abe9ccc8cc6651e16a",
+      "noise2_kind": "0x03",
+      "noise2_record": "00310327c5f172bf3ac8d482b86c452d5a6b1d02ba7aa31786a4e5ad04e805c272db3a491f6def3a79e9abe9ccc8cc6651e16a",
+      "c1": "6f28e2cbf21a0db47559d8a1b9632c1039d05c8de44738d92aac02c4db101637",
+      "c2": "8e9590365dcb92771ad591311f68e4246341cfc38daa405c41b624002c63ba3b",
+      "c1_note": "c1 mã hoá bởi C (khởi tạo), giải mã bởi S",
+      "c2_note": "c2 mã hoá bởi S, giải mã bởi C"
+    }
+  ],
+  "invalid_vectors": [
+    {
+      "name": "cặp 1 / S thử psk của cặp 2",
+      "reason": "wrong_key",
+      "n_s": "2cb3744ccb10882cef6e96d024d80bff5601132eced64c9ab09f7605d7bb2651",
+      "e_pub_c": "3ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960f",
+      "ciphertext_tag_1": "0ad750d42ff823ed2fa9111237c6af1f",
+      "wrong_psk_source": "k_bt_link của cặp 2",
+      "wrong_psk": "fcdddc4e4638ed616aba885ef26218e63e14f091f1e0c9ec840366877fea3d7d"
+    },
+    {
+      "name": "cặp 1 / tag noise1 sai",
+      "reason": "tag_mismatch_noise1",
+      "n_s": "2cb3744ccb10882cef6e96d024d80bff5601132eced64c9ab09f7605d7bb2651",
+      "e_pub_c": "3ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960f",
+      "ciphertext_tag_1": "0ad750d42ff823ed2fa9111237c6af1e"
+    },
+    {
+      "name": "cặp 1 / tag noise2 sai",
+      "reason": "tag_mismatch_noise2",
+      "n_s": "2cb3744ccb10882cef6e96d024d80bff5601132eced64c9ab09f7605d7bb2651",
+      "e_pub_s": "27c5f172bf3ac8d482b86c452d5a6b1d02ba7aa31786a4e5ad04e805c272db3a",
+      "ciphertext_tag_2": "491f6def3a79e9abe9ccc8cc6651e16b"
+    },
+    {
+      "name": "cặp 1 / phát lại noise1 trên kênh khác (n_s khác)",
+      "reason": "replayed_channel",
+      "n_s": "80982dfa4fb88f90dc856740bca0043664726aa1d2231f940819449553d808f1",
+      "e_pub_c": "3ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960f",
+      "ciphertext_tag_1": "0ad750d42ff823ed2fa9111237c6af1f"
+    }
+  ]
+}

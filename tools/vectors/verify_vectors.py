@@ -11,11 +11,15 @@ from pathlib import Path
 sys.dont_write_bytecode = True  # không để lại __pycache__ trong kho
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import verify_bt_advertisement_checks  # noqa: E402
+import verify_bt_frame_checks  # noqa: E402
+import verify_bt_link_checks  # noqa: E402
 import verify_bt_pairing_checks  # noqa: E402
 import verify_clipboard_html_checks  # noqa: E402
 import verify_cpace_checks  # noqa: E402
 import verify_discovery_hint_checks  # noqa: E402
 import verify_message_checks  # noqa: E402
+import verify_noise_library_checks  # noqa: E402
 import verify_pair_handshake_checks  # noqa: E402
 import verify_primitive_checks  # noqa: E402
 import verify_push_relay_checks  # noqa: E402
@@ -33,7 +37,9 @@ def main() -> int:
     checks = {**verify_primitive_checks.CHECKS, **verify_session_checks.CHECKS, **verify_message_checks.CHECKS,
               **verify_signature_checks.CHECKS, **verify_pair_handshake_checks.CHECKS,
               **verify_discovery_hint_checks.CHECKS, **verify_push_relay_checks.CHECKS,
-              **verify_revoke_checks.CHECKS, **verify_bt_pairing_checks.CHECKS, **verify_cpace_checks.CHECKS}
+              **verify_revoke_checks.CHECKS, **verify_bt_pairing_checks.CHECKS, **verify_cpace_checks.CHECKS,
+              **verify_bt_link_checks.CHECKS, **verify_bt_frame_checks.CHECKS,
+              **verify_bt_advertisement_checks.CHECKS}
     c = Checker()
     for name in checks:
         c.true(f"{name} tồn tại", name in docs)
@@ -62,6 +68,16 @@ def main() -> int:
             c.failures.append(f"clipboard-html.json: ngoại lệ {type(exc).__name__}: {exc}")
         print(f"{'OK ' if len(c.failures) == before[1] else 'SAI'} {verify_clipboard_html_checks.NAME:26s} "
               f"{len(html_doc['cases']):2d} case, {c.count - before[0]:3d} phép kiểm")
+    link_doc, before = docs.get("bt-link.json"), (c.count, len(c.failures))
+    if link_doc is not None:
+        try:
+            verify_noise_library_checks.check_bt_link_with_noiseprotocol(c, link_doc, docs)
+            status = "OK " if len(c.failures) == before[1] else "SAI"
+        except ImportError as exc:
+            c.failures.append(f"bt-link.json/noiseprotocol: thiếu thư viện độc lập (pip install -r "
+                               f"tools/vectors/requirements.txt, có noiseprotocol==0.3.1) — {exc}")
+            status = "LỖI (thiếu thư viện)"
+        print(f"{status} bt-link.json/noiseprotocol   {c.count - before[0]:3d} phép kiểm")
     for f in c.failures:
         print(f"  LỖI: {f}")
     print(f"Tổng: {c.count} phép kiểm, {len(c.failures)} lỗi")

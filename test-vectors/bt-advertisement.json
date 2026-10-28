@@ -1,0 +1,99 @@
+{
+  "description": "Byte service data app tự kiểm soát trong scan response (0.4.5 \"Advertisement\"): `ver` (1, luôn 0x01) ‖ `psm` (2, uint16 LE, PSM L2CAP hiện tại) ‖ `hints` (4 × n, n = 0…BT_ADV_MAX_HINTS = 2, mỗi hint = 4 byte đầu của HMAC-SHA256(K_bt_disc, \"HLBTDISC1\" ‖ epoch int64 BE)) — K_bt_disc/hint lấy từ bt-link.json. OS thêm 18 byte cấu trúc AD (cờ + UUID 128-bit) để ra tổng scan response (21/25/29 byte cho n=0/1/2) — không thuộc phạm vi vector này, chỉ ghi `scan_response_total` để đối chiếu bảng 0.4.5. `kind` = \"pin_window\": `hints` = chỉ `BT_PIN_HINT` (0x00000000), đánh dấu cửa sổ ghép đôi PIN đang mở, giống nhau cho mọi điện thoại (AC9). invalid_vectors: wrong_version (ver ≠ 0x01 → bỏ qua cả advertisement), hint_outside_window (hint tính ở kỷ nguyên ngoài [e-4, e+4] của client → không khớp).",
+  "source": "docs/detailed-design/00-common-specs.md 0.4.5 \"Advertisement\"; K_bt_disc của bt-link.json",
+  "vectors": [
+    {
+      "name": "0 hint (không cặp nào có session nào, không có cửa sổ QR)",
+      "kind": "scan_response",
+      "ver": "0x01",
+      "psm": 23456,
+      "psm_hex": "a05b",
+      "hints": [],
+      "hint_pairs": [],
+      "service_data_bytes": "01a05b",
+      "service_data_len": 3,
+      "ad_uuid_struct_bytes": 18,
+      "scan_response_total": 21,
+      "note": "service_data_bytes = phần app tự kiểm soát; OS thêm 18 byte UUID/cờ nữa mới ra tổng 21 byte"
+    },
+    {
+      "name": "1 hint (một cặp gần đây nhất)",
+      "kind": "scan_response",
+      "ver": "0x01",
+      "psm": 23456,
+      "psm_hex": "a05b",
+      "hints": [
+        "be52c088"
+      ],
+      "hint_pairs": [
+        "cặp 1"
+      ],
+      "service_data_bytes": "01a05bbe52c088",
+      "service_data_len": 7,
+      "ad_uuid_struct_bytes": 18,
+      "scan_response_total": 25,
+      "note": "service_data_bytes = phần app tự kiểm soát; OS thêm 18 byte UUID/cờ nữa mới ra tổng 25 byte"
+    },
+    {
+      "name": "2 hint (BT_ADV_MAX_HINTS, hai cặp gần đây nhất)",
+      "kind": "scan_response",
+      "ver": "0x01",
+      "psm": 23456,
+      "psm_hex": "a05b",
+      "hints": [
+        "be52c088",
+        "cadcf56f"
+      ],
+      "hint_pairs": [
+        "cặp 1",
+        "cặp 2"
+      ],
+      "service_data_bytes": "01a05bbe52c088cadcf56f",
+      "service_data_len": 11,
+      "ad_uuid_struct_bytes": 18,
+      "scan_response_total": 29,
+      "note": "service_data_bytes = phần app tự kiểm soát; OS thêm 18 byte UUID/cờ nữa mới ra tổng 29 byte"
+    },
+    {
+      "name": "cửa sổ PIN đang mở (BT_PIN_HINT)",
+      "kind": "pin_window",
+      "ver": "0x01",
+      "psm": 23456,
+      "psm_hex": "a05b",
+      "hints": [
+        "00000000"
+      ],
+      "service_data_bytes": "01a05b00000000",
+      "service_data_len": 7,
+      "note": "BT_PIN_HINT giống nhau cho mọi điện thoại, không gắn với cặp hay thiết bị nào (AC9)"
+    }
+  ],
+  "invalid_vectors": [
+    {
+      "name": "ver khác 0x01",
+      "reason": "wrong_version",
+      "service_data_bytes": "02a05bf7e5a436",
+      "expect": "ver = 0x02 ≠ 0x01 → client bỏ qua toàn bộ advertisement, không xét hint"
+    },
+    {
+      "name": "hint ngoài cửa sổ e-4..e+4",
+      "reason": "hint_outside_window",
+      "client_epoch": 1000,
+      "accepted_epochs": [
+        996,
+        997,
+        998,
+        999,
+        1000,
+        1001,
+        1002,
+        1003,
+        1004
+      ],
+      "advertised_epoch": 1005,
+      "advertised_hint": "b5e2508e",
+      "service_data_bytes": "01a05bb5e2508e",
+      "expect": "advertised_epoch = 1005 cách client_epoch 5 kỷ nguyên, ngoài [e-4, e+4] → client không thấy khớp hint nào"
+    }
+  ]
+}

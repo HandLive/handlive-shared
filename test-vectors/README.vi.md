@@ -117,6 +117,47 @@ psk ứng viên của S **không** được mở tag: `wrong_key` (thử `k_bt_p
 đường truyền), `aad_mismatch` (phát lại đúng `message1` dưới `n_s` khác, nên `prologue` khác — "prologue buộc
 `n_s`, nên một `noise1` ghi lại không bao giờ xác thực trên kênh mới").
 
+### `bt-link.json`
+`K_bt_disc`/`K_bt_link` (00-common-specs.md 0.4.5 "Keys"), nối từ `PRK` của `pair-prk.json` — khác
+`K_bt_pdisc`/`K_bt_plink` của `bt-pairing.json` (chỉ sống theo một QR), hai khóa này sống suốt đời cặp và dùng
+cho liên kết Bluetooth bình thường tới một điện thoại đã ghép đôi. `kind` = `key`: `pair_id`, `prk_source`,
+`prk`, `k_bt_disc_info`, `k_bt_disc`, `k_bt_link_info`, `k_bt_link`. `kind` = `hint`: hint quảng bá xoay vòng
+(khác hint lúc ghép đôi) = 4 byte đầu của HMAC-SHA256(`K_bt_disc`, `"HLBTDISC1"` ‖ epoch int64 BE), `epoch` =
+`floor(now_ms / BT_HINT_PERIOD)`, cho vài kỷ nguyên ví dụ. `kind` = `handshake`: bắt tay bảo mật liên kết đầy đủ
+(0.4.5 "Link-security handshake" bước 1–4), `psk` = `k_bt_link`: `challenge_record` (kind `0x01`, `n_s`), rồi
+message 1 (`"psk, e"`, `noise1_record`, kind `0x02`) và message 2 (`"e, ee"`, `noise2_record`, kind `0x03`) của
+`Noise_NNpsk0_25519_ChaChaPoly_SHA256` (Noise Protocol Framework rev. 34), `prologue` = `"HLBT1"` ‖ `n_s`, mọi
+giá trị trung gian của trạng thái đối xứng được ghi lại cho cả hai message, rồi `Split()` ra `c1` (C mã hoá/S
+giải mã) và `c2` (ngược lại) — hai CipherState của bước 4-5. Không phải vector do tài liệu Noise công bố (xem
+ghi chú ở `bt-pairing.json`); message 1 đã được soát ở #3328, message 2/`Split()` là phần mới, cần soát riêng.
+`invalid_vectors`: `wrong_key`, `tag_mismatch_noise1`, `tag_mismatch_noise2` (0.4.5 bước 4: "C verifies its
+payload tag — failure → C closes the channel, CONN-05 E3"), `replayed_channel` (0.4.5 bước 3: "prologue buộc
+`n_s`, nên một `noise1` ghi lại không bao giờ xác thực trên kênh mới").
+
+### `bt-frame.json`
+Đóng khung bản ghi transport sau bước 4 của bắt tay bảo mật liên kết (00-common-specs.md 0.4.5 "Link records",
+"Transport records and channels"), mã hoá bằng `c1` của `bt-link.json` (Noise transport message, nonce = 4 byte
+0 ‖ bộ đếm 64-bit little-endian, AAD rỗng). `kind` = `transport_frame`: bản rõ `chan` (`0x01` control, `0x02`
+bulk) ‖ `flags` (bit0 `more`, bit1 `long`) ‖ `dlen` (uint16 BE) ‖ `data` ‖ đệm 0 tới 256/1.024/4.096 byte, rồi
+`ciphertext_tag` và `record` = `rlen` (uint16 BE, một trong 272/1.040/4.112) ‖ `ciphertext_tag`. Có một mảnh làn
+ngắn, một tin làn dài 2 mảnh, và một mảnh bulk. `kind` = `preauth_frame`: byte wire của `challenge`/`reject`
+(`rlen` ‖ kind ‖ body) làm ví dụ đóng gói. `invalid_vectors` khớp đúng 5 luật nêu trong S7.1a cộng thêm 1 từ
+"Link records": `rlen_out_of_bounds` (không thuộc 272/1.040/4.112 → đóng kênh trước khi cấp phát đọc thêm),
+`preauth_record_over_bound` (vượt `BT_PREAUTH_RECORD_MAX` = 64 byte), `unknown_chan` (khác cả `0x01` và `0x02`),
+`more_without_long` (`more` = 1 trên làn ngắn, `long` = 0), `bulk_fragment_over_max` (`dlen` một mảnh làn
+dài/bulk vượt `BT_BULK_FRAGMENT_MAX` = 1.020), `message_over_max` (tổng byte một tin làn dài vượt
+`BT_MESSAGE_MAX` = 256 KiB trước mảnh cuối).
+
+### `bt-advertisement.json`
+Byte service data app tự kiểm soát trong scan response (00-common-specs.md 0.4.5 "Advertisement"): `ver` (luôn
+`0x01`) ‖ `psm` (uint16 LE) ‖ `hints` (4 byte mỗi hint, 0…`BT_ADV_MAX_HINTS` = 2); hệ điều hành thêm 18 byte còn
+lại của cấu trúc AD (cờ, UUID 128-bit) để ra tổng scan response 21/25/29 byte của bảng 0.4.5 — không thuộc
+phạm vi ở đây, chỉ ghi `scan_response_total` để đối chiếu. `kind` = `scan_response`: 0, 1 và 2 hint (nối từ
+`K_bt_disc` của `bt-link.json`). `kind` = `pin_window`: `hints` = chỉ `BT_PIN_HINT` (`0x00000000`), giống nhau
+cho mọi điện thoại khi cửa sổ ghép đôi PIN đang mở (AC9). `invalid_vectors`: `wrong_version` (`ver` ≠ `0x01` →
+client bỏ qua cả advertisement), `hint_outside_window` (hint tính ở kỷ nguyên ngoài cửa sổ chấp nhận `[e-4, e+4]`
+của client → không khớp).
+
 ### `cpace.json`
 CPACE-X25519-SHA512 (draft-irtf-cfrg-cpace-21, suite G_X25519 + SHA-512), dùng cho ghép đôi bằng PIN qua
 Bluetooth không mạng (00-common-specs.md 0.4.5, PAIR-01 luồng C). `kind` = `official_generator`: vector
