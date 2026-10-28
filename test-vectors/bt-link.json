@@ -73,33 +73,44 @@
       },
       "h_after_psk": "9b0e5a8a31cd403e0b2ef56bdee37911278e8000650ba8f6ec2dfb4efc122a92",
       "ck_after_psk": "c6993109572a2d2e1142dc1bc4ce5e7d93c00ba623cca36b2a5f62308c1254c2",
-      "k_message1": "3493639e64b3e9889eab61e664b7b2db73e4c029e67411df3ef2b6f12769d663",
+      "mix_key_e_c": {
+        "temp_key": "992aa59b6b45ff14691fbab352d1f1b6b6d558d971a1b9a3d6d8aeb6b9996d41",
+        "ck": "a496535f65bdea1ca2aedf11d16f1f8dc7128e23de83876fa11e7528a5d35192",
+        "temp_k": "79429352c7eaa1fb9f7534bf8e3a93c03a447e9c396ec2b2b57790f5129a6997"
+      },
+      "ck_after_e_c": "a496535f65bdea1ca2aedf11d16f1f8dc7128e23de83876fa11e7528a5d35192",
+      "k_message1": "79429352c7eaa1fb9f7534bf8e3a93c03a447e9c396ec2b2b57790f5129a6997",
       "e_priv_c": "6957d0f71dd22be6ea81d25694fd1abd2eed41d4fe5daa62af2bde2b3c8e957a",
       "e_pub_c": "3ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960f",
       "h_after_e_c": "bd7216420d0896066bb98d44504e3c4945af95b92188f1531744db2ada017941",
-      "ciphertext_tag_1": "0ad750d42ff823ed2fa9111237c6af1f",
-      "h_after_message1": "1fdebd6ec8abf0b58b949c296a3a1d8aba2023087e81f96a37a2c319b5bb47ec",
-      "message1": "3ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960f0ad750d42ff823ed2fa9111237c6af1f",
+      "ciphertext_tag_1": "f759c40f6fcf7a7ece21ec8aa86264f8",
+      "h_after_message1": "b9235dc4090d80a0d97d3bcf513e4c8d9d9beffbfb26071c2c77bf451b000371",
+      "message1": "3ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960ff759c40f6fcf7a7ece21ec8aa86264f8",
       "noise1_kind": "0x02",
-      "noise1_record": "0031023ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960f0ad750d42ff823ed2fa9111237c6af1f",
+      "noise1_record": "0031023ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960ff759c40f6fcf7a7ece21ec8aa86264f8",
       "e_priv_s": "e9948f4fd3e704551937595a00d3fe9b3fc018838941dc752e9cb6b9d63aba1b",
       "e_pub_s": "27c5f172bf3ac8d482b86c452d5a6b1d02ba7aa31786a4e5ad04e805c272db3a",
-      "h_after_e_s": "4894fca1d7c42c42d73e730b00c8c51c77b3be058c8bb63467df4a1f69b8af26",
+      "h_after_e_s": "1fcef945c1f79c4b788742d7076d890aeeae6b9005a82e270f3131d4b7db168a",
+      "mix_key_e_s": {
+        "temp_key": "6b365205ebf84636b230df2dc9f8d6dc1cb871c6a083b44b641b0fe456b11047",
+        "ck": "4068d72ab3eb25403fc6058a5fe90e6ff9614ab18bcb29d421eedd92892f5a20",
+        "temp_k": "05a65608bb2cbce4a8b056e093747e6d7cdfbcb83904cf2e1f162e3df582c61a"
+      },
       "dh_ee": "3f592867b0e2821dc88dc14923ddf403ad7447ab4868207a60b812de220d5b14",
       "mix_key_ee": {
-        "temp_key": "805df8f644c22395a76b05d27bbb14755351c617b6f78938e003c546fad418d2",
-        "ck": "c304ad50ba19611d155399f774a1ee642cba48d491a9c34ea98d53e561203206",
-        "temp_k": "9ba3fecf8e71d6fb34777e828a18fe3aad59284a3b3122e0b7c1850dd5041185"
+        "temp_key": "65bff845c1d0e8bb7cf80673bcfed09e0059f0b3e69d2ff944e0d3e4c3b47c08",
+        "ck": "0eb39273fe05c0f078de05abb581f220838d876a1d466d6d2fd7766d1ef9db89",
+        "temp_k": "8a2f696cf4d0e5833d501cca4f23dca6b46dcac0096f8b5973b2c1855da8db9a"
       },
-      "ck_after_ee": "c304ad50ba19611d155399f774a1ee642cba48d491a9c34ea98d53e561203206",
-      "k_message2": "9ba3fecf8e71d6fb34777e828a18fe3aad59284a3b3122e0b7c1850dd5041185",
-      "ciphertext_tag_2": "491f6def3a79e9abe9ccc8cc6651e16a",
-      "h_final": "1cb5548c90a38400772f804bbc734d5b72a4259b58aae26c19c2dae533113066",
-      "message2": "27c5f172bf3ac8d482b86c452d5a6b1d02ba7aa31786a4e5ad04e805c272db3a491f6def3a79e9abe9ccc8cc6651e16a",
+      "ck_after_ee": "0eb39273fe05c0f078de05abb581f220838d876a1d466d6d2fd7766d1ef9db89",
+      "k_message2": "8a2f696cf4d0e5833d501cca4f23dca6b46dcac0096f8b5973b2c1855da8db9a",
+      "ciphertext_tag_2": "ecc9c3f55d5df67b922f8f22177708ce",
+      "h_final": "df619d84c8e466cf942e4b4a561ccacd1a6cb0c18a5fbe71a1cc05eee6822bbb",
+      "message2": "27c5f172bf3ac8d482b86c452d5a6b1d02ba7aa31786a4e5ad04e805c272db3aecc9c3f55d5df67b922f8f22177708ce",
       "noise2_kind": "0x03",
-      "noise2_record": "00310327c5f172bf3ac8d482b86c452d5a6b1d02ba7aa31786a4e5ad04e805c272db3a491f6def3a79e9abe9ccc8cc6651e16a",
-      "c1": "6f28e2cbf21a0db47559d8a1b9632c1039d05c8de44738d92aac02c4db101637",
-      "c2": "8e9590365dcb92771ad591311f68e4246341cfc38daa405c41b624002c63ba3b",
+      "noise2_record": "00310327c5f172bf3ac8d482b86c452d5a6b1d02ba7aa31786a4e5ad04e805c272db3aecc9c3f55d5df67b922f8f22177708ce",
+      "c1": "a6d3dd0fccbbe0013127a75daa27ab07fd52c21cc7f50a3383fe60d3e5e10dbc",
+      "c2": "3288442eb16d11d2882265b638470fd1211854d19f7ff5f266606ed12ee8195e",
       "c1_note": "c1 mã hoá bởi C (khởi tạo), giải mã bởi S",
       "c2_note": "c2 mã hoá bởi S, giải mã bởi C"
     }
@@ -110,7 +121,7 @@
       "reason": "wrong_key",
       "n_s": "2cb3744ccb10882cef6e96d024d80bff5601132eced64c9ab09f7605d7bb2651",
       "e_pub_c": "3ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960f",
-      "ciphertext_tag_1": "0ad750d42ff823ed2fa9111237c6af1f",
+      "ciphertext_tag_1": "f759c40f6fcf7a7ece21ec8aa86264f8",
       "wrong_psk_source": "k_bt_link của cặp 2",
       "wrong_psk": "fcdddc4e4638ed616aba885ef26218e63e14f091f1e0c9ec840366877fea3d7d"
     },
@@ -119,21 +130,21 @@
       "reason": "tag_mismatch_noise1",
       "n_s": "2cb3744ccb10882cef6e96d024d80bff5601132eced64c9ab09f7605d7bb2651",
       "e_pub_c": "3ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960f",
-      "ciphertext_tag_1": "0ad750d42ff823ed2fa9111237c6af1e"
+      "ciphertext_tag_1": "f759c40f6fcf7a7ece21ec8aa86264f9"
     },
     {
       "name": "cặp 1 / tag noise2 sai",
       "reason": "tag_mismatch_noise2",
       "n_s": "2cb3744ccb10882cef6e96d024d80bff5601132eced64c9ab09f7605d7bb2651",
       "e_pub_s": "27c5f172bf3ac8d482b86c452d5a6b1d02ba7aa31786a4e5ad04e805c272db3a",
-      "ciphertext_tag_2": "491f6def3a79e9abe9ccc8cc6651e16b"
+      "ciphertext_tag_2": "ecc9c3f55d5df67b922f8f22177708cf"
     },
     {
       "name": "cặp 1 / phát lại noise1 trên kênh khác (n_s khác)",
       "reason": "replayed_channel",
       "n_s": "80982dfa4fb88f90dc856740bca0043664726aa1d2231f940819449553d808f1",
       "e_pub_c": "3ba31c49f8186b67851aee28dad3688d20e5b38995cd53193d332f03b145960f",
-      "ciphertext_tag_1": "0ad750d42ff823ed2fa9111237c6af1f"
+      "ciphertext_tag_1": "f759c40f6fcf7a7ece21ec8aa86264f8"
     }
   ]
 }

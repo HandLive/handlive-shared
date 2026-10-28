@@ -29,21 +29,31 @@ def _hmac(key: bytes, msg: bytes) -> bytes:
     return hmac.new(key, msg, hashlib.sha256).digest()
 
 
-def _ck_h_k_after_psk(prologue: bytes, psk: bytes) -> tuple[bytes, bytes]:
-    """InitializeSymmetric → MixHash(prologue) → token "psk" (MixKeyAndHash). Trả (h, k) sau bước này."""
+def _ck_h_after_psk(prologue: bytes, psk: bytes) -> tuple[bytes, bytes]:
+    """InitializeSymmetric → MixHash(prologue) → token "psk" (MixKeyAndHash). Trả (ck, h) sau bước này."""
     h0 = _sha256(PROTOCOL_NAME)  # 37 byte > HASHLEN 32
     h1 = _sha256(h0 + prologue)
     temp_key = _hmac(h0, psk)
     out1 = _hmac(temp_key, b"\x01")
     out2 = _hmac(temp_key, out1 + b"\x02")
-    out3 = _hmac(temp_key, out2 + b"\x03")
-    return _sha256(h1 + out2), out3
+    return out1, _sha256(h1 + out2)
+
+
+def _mix_key(ck: bytes, ikm: bytes) -> tuple[bytes, bytes]:
+    """Token "ee"/"e" (chế độ psk, Noise rev. 34 §9.2): MixKey, 2 ngõ ra qua HMAC — KHÔNG MixHash."""
+    temp_key = _hmac(ck, ikm)
+    out1 = _hmac(temp_key, b"\x01")
+    out2 = _hmac(temp_key, out1 + b"\x02")
+    return out1, out2
 
 
 def _open(psk: bytes, prologue: bytes, e_pub: bytes, ciphertext_tag: bytes):
-    """Trả (mở bằng cryptography, mở bằng libsodium, h sau token "e") — None khi tag không khớp."""
-    h, k = _ck_h_k_after_psk(prologue, psk)
+    """Trả (mở bằng cryptography, mở bằng libsodium, h sau token "e") — None khi tag không khớp. Chế độ psk: token
+    "e" làm MixHash(e.pub) RỒI MixKey(e.pub) (#3418) — k dùng để mở tag là k SAU MixKey(e.pub), không phải k của
+    token "psk"."""
+    ck, h = _ck_h_after_psk(prologue, psk)
     h3 = _sha256(h + e_pub)
+    _, k = _mix_key(ck, e_pub)
     try:
         a = ChaCha20Poly1305(k).decrypt(ZERO_NONCE, ciphertext_tag, h3)
     except InvalidTag:

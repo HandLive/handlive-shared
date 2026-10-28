@@ -30,7 +30,7 @@ def _hmac(key: bytes, msg: bytes) -> bytes:
 
 
 def _mix_key_and_hash(h: bytes, ck: bytes, ikm: bytes) -> tuple[bytes, bytes, bytes]:
-    """Token "psk": 3 ngõ ra qua HMAC (khác token "ee", chỉ 2 ngõ ra) — trả (h mới, ck mới, k mới)."""
+    """Token "psk": 3 ngõ ra qua HMAC (khác token "ee"/"e" ở chế độ psk, chỉ 2 ngõ ra) — trả (h mới, ck mới, k mới)."""
     temp_key = _hmac(ck, ikm)
     out1 = _hmac(temp_key, b"\x01")
     out2 = _hmac(temp_key, out1 + b"\x02")
@@ -39,7 +39,7 @@ def _mix_key_and_hash(h: bytes, ck: bytes, ikm: bytes) -> tuple[bytes, bytes, by
 
 
 def _mix_key(ck: bytes, ikm: bytes) -> tuple[bytes, bytes]:
-    """Token "ee": trả (ck mới, k mới), KHÔNG đụng h."""
+    """Token "ee", hoặc token "e" ở chế độ psk (Noise rev. 34 §9.2, #3418): trả (ck mới, k mới), KHÔNG đụng h."""
     temp_key = _hmac(ck, ikm)
     out1 = _hmac(temp_key, b"\x01")
     out2 = _hmac(temp_key, out1 + b"\x02")
@@ -60,20 +60,24 @@ def _open_chacha(k: bytes, aad: bytes, ciphertext_tag: bytes):
 
 
 def _open_message1(psk: bytes, prologue: bytes, e_pub_c: bytes, ciphertext_tag: bytes):
-    """Trả (mở cryptography, mở libsodium, h sau token "e" của C, ck sau token "psk")."""
+    """Trả (mở cryptography, mở libsodium, h sau token "e" của C, ck sau token "e" — #3418: chế độ psk làm
+    MixHash(e.pub) RỒI MixKey(e.pub), nên k để mở tag KHÔNG phải k của token "psk")."""
     h0 = _sha256(PROTOCOL_NAME)
     h1 = _sha256(h0 + prologue)
-    h2, ck1, k1 = _mix_key_and_hash(h1, h0, psk)
+    h2, ck_psk, _ = _mix_key_and_hash(h1, h0, psk)
     h3 = _sha256(h2 + e_pub_c)
+    ck1, k1 = _mix_key(ck_psk, e_pub_c)
     a, b = _open_chacha(k1, h3, ciphertext_tag)
     return a, b, h3, ck1
 
 
 def _open_message2(ck1: bytes, h_after_m1: bytes, e_priv_c: bytes, e_pub_s: bytes, ciphertext_tag: bytes):
-    """Trả (mở cryptography, mở libsodium, h sau token "e" của S, ck sau token "ee")."""
+    """Trả (mở cryptography, mở libsodium, h sau token "e" của S, ck sau token "ee"). `ck1` phải là ck SAU token
+    "e" của message 1 (không phải ck của token "psk" một mình) — #3418."""
     h5 = _sha256(h_after_m1 + e_pub_s)
+    ck_e, _ = _mix_key(ck1, e_pub_s)  # token "e" của S, phần thêm của chế độ psk
     dh = x25519(e_priv_c, e_pub_s)
-    ck2, k2 = _mix_key(ck1, dh)
+    ck2, k2 = _mix_key(ck_e, dh)  # token "ee"
     a, b = _open_chacha(k2, h5, ciphertext_tag)
     return a, b, h5, ck2
 
@@ -112,6 +116,7 @@ def _check_handshake(c, n: str, v: dict) -> None:
 
     a1, b1, h3, ck1 = _open_message1(psk, prologue, H(v["e_pub_c"]), H(v["ciphertext_tag_1"]))
     c.eq(f"{n} h_after_e_c", h3.hex(), v["h_after_e_c"])
+    c.eq(f"{n} ck_after_e_c", ck1.hex(), v["ck_after_e_c"])
     c.eq(f"{n} mở được noise1 (cryptography)", a1, b"")
     c.eq(f"{n} mở được noise1 (libsodium)", b1, b"")
     c.eq(f"{n} message1 = e_pub_c ‖ ciphertext_tag_1", v["message1"], v["e_pub_c"] + v["ciphertext_tag_1"])
@@ -141,7 +146,7 @@ def _check_negative(c, n: str, v: dict, hs: dict, link: dict) -> None:
     reason = v["reason"]
     c.true(f"{n} reason nằm trong tập đã định", reason in REASONS)
     if reason == "tag_mismatch_noise2":
-        ck1 = H(hs["ck_after_psk"])
+        ck1 = H(hs["ck_after_e_c"])
         a, b, _, _ = _open_message2(ck1, H(hs["h_after_message1"]), H(hs["e_priv_c"]), H(v["e_pub_s"]),
                                      H(v["ciphertext_tag_2"]))
         c.eq(f"{n} phải bị từ chối (cả hai đường)", (a, b), (None, None))

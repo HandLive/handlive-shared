@@ -58,12 +58,15 @@ def _handshake_vector(pv: dict, link: bytes) -> dict:
         "challenge_kind": "0x01", "challenge_record": challenge_record.hex(),
         "h0": m1["h0"].hex(), "h_after_prologue": m1["h1"].hex(),
         "mix_key_and_hash_psk": {k: v.hex() for k, v in m1["mix_key_and_hash"].items()},
-        "h_after_psk": m1["h2"].hex(), "ck_after_psk": m1["ck1"].hex(), "k_message1": m1["k"].hex(),
+        "h_after_psk": m1["h2"].hex(), "ck_after_psk": m1["ck_after_psk"].hex(),
+        "mix_key_e_c": {k: v.hex() for k, v in m1["mix_key_e"].items()},
+        "ck_after_e_c": m1["ck1"].hex(), "k_message1": m1["k"].hex(),
         "e_priv_c": m1["e_priv"].hex(), "e_pub_c": m1["e_pub"].hex(), "h_after_e_c": m1["h3"].hex(),
         "ciphertext_tag_1": m1["ciphertext_tag"].hex(), "h_after_message1": m1["h4"].hex(),
         "message1": m1["message1"].hex(), "noise1_kind": "0x02", "noise1_record": noise1_record.hex(),
         "e_priv_s": m2["e_priv"].hex(), "e_pub_s": m2["e_pub"].hex(), "h_after_e_s": m2["h5"].hex(),
-        "dh_ee": m2["dh"].hex(), "mix_key_ee": {k: v.hex() for k, v in m2["mix_key_ee"].items()},
+        "mix_key_e_s": {k: v.hex() for k, v in m2["mix_key_e"].items()}, "dh_ee": m2["dh"].hex(),
+        "mix_key_ee": {k: v.hex() for k, v in m2["mix_key_ee"].items()},
         "ck_after_ee": m2["ck2"].hex(), "k_message2": m2["k"].hex(), "ciphertext_tag_2": m2["ciphertext_tag"].hex(),
         "h_final": m2["h6"].hex(), "message2": m2["message2"].hex(), "noise2_kind": "0x03",
         "noise2_record": noise2_record.hex(), "c1": split_s["c1"].hex(), "c2": split_s["c2"].hex(),
@@ -75,7 +78,7 @@ def _negatives(pv1: dict, pv2: dict, link1: bytes, link2: bytes, hs: dict) -> li
     n_s, prologue = H(hs["n_s"]), H(hs["prologue"])
     e_pub_c, ct1 = H(hs["e_pub_c"]), H(hs["ciphertext_tag_1"])
     e_pub_s, ct2 = H(hs["e_pub_s"]), H(hs["ciphertext_tag_2"])
-    ck1, h4 = H(hs["ck_after_psk"]), H(hs["h_after_message1"])
+    ck1, h4 = H(hs["ck_after_e_c"]), H(hs["h_after_message1"])
     out = []
 
     assert N.try_open_first_message(link2, prologue, e_pub_c, ct1) is None

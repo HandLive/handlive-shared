@@ -51,18 +51,18 @@
         "h": "9ef7ca8694e03435f4cdc5de84c258bbb69179dc685f817c0139739589f08199"
       },
       "h_after_psk": "9ef7ca8694e03435f4cdc5de84c258bbb69179dc685f817c0139739589f08199",
-      "ck_after_psk": "3ba0261b99a6ab88fb8fee3f6204b310b6edbaf59aad56d8e676fe1835bca22e",
-      "k": "de6117d2b12eead9c6b282d772b909920916d8fb1ef43bd1caa24ab037606311",
+      "ck_after_psk": "0fedd0a3f07e1abd54695065fdc83462fc2b2ef89a2532509c6090648aaca51e",
+      "k": "9491cbf574b16d2b036724c0f8566f335935fa899230540ec6beb83db64ae27b",
       "e_priv": "9373bf265905f54866bd4566421bcf20bb7c6bf255e0afbdf6df27a6fd873d7b",
       "e_pub": "676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a550",
       "h_after_e": "92ce9e8eb3761a90c9602e7b0b38dfff8855c89bd3bd6a7cacdbccf7ed669428",
       "nonce": "000000000000000000000000",
-      "ciphertext_tag": "4d394b4515b386429b20d99902aafb7c",
-      "h_final": "6afe72063c65fdf2b9772f1bd4bd72ba13a69c7cf64f7c0508cc76d3d280330b",
-      "message1": "676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a5504d394b4515b386429b20d99902aafb7c",
+      "ciphertext_tag": "01e0ca15311784bfa449d0d7b498db35",
+      "h_final": "ab1cf064715202bb93ab8cf45f43de39ab492e17ee8ccbe79954fe9e17075e25",
+      "message1": "676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a55001e0ca15311784bfa449d0d7b498db35",
       "record_kind": "0x02",
       "rlen": 49,
-      "record": "003102676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a5504d394b4515b386429b20d99902aafb7c"
+      "record": "003102676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a55001e0ca15311784bfa449d0d7b498db35"
     }
   ],
   "invalid_vectors": [
@@ -71,7 +71,7 @@
       "reason": "wrong_key",
       "n_s": "641cacb99fc22372cc2058145a54dda486a41d8c8aaf0d2e14a7153f0300420e",
       "e_pub": "676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a550",
-      "ciphertext_tag": "4d394b4515b386429b20d99902aafb7c",
+      "ciphertext_tag": "01e0ca15311784bfa449d0d7b498db35",
       "wrong_psk_source": "k_bt_plink của cặp 2",
       "wrong_psk": "a705d680b0be1037fc8ac0dd02c2803f7e55795564df81f55b5e9fc5c6364cec"
     },
@@ -80,21 +80,21 @@
       "reason": "tag_mismatch",
       "n_s": "641cacb99fc22372cc2058145a54dda486a41d8c8aaf0d2e14a7153f0300420e",
       "e_pub": "676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a550",
-      "ciphertext_tag": "4d394b4515b386429b20d99902aafb7d"
+      "ciphertext_tag": "01e0ca15311784bfa449d0d7b498db34"
     },
     {
       "name": "cặp 1 / e_pub bị sửa trên đường truyền",
       "reason": "message_tampered",
       "n_s": "641cacb99fc22372cc2058145a54dda486a41d8c8aaf0d2e14a7153f0300420e",
       "e_pub": "666f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a550",
-      "ciphertext_tag": "4d394b4515b386429b20d99902aafb7c"
+      "ciphertext_tag": "01e0ca15311784bfa449d0d7b498db35"
     },
     {
       "name": "cặp 1 / phát lại message 1 trên kênh khác (n_s khác)",
       "reason": "aad_mismatch",
       "n_s": "5300745f6a02d27bb53c2c9852d204fcfbae14f9bfd39fc3165dfebacc2c0c6f",
       "e_pub": "676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a550",
-      "ciphertext_tag": "4d394b4515b386429b20d99902aafb7c"
+      "ciphertext_tag": "01e0ca15311784bfa449d0d7b498db35"
     }
   ]
 }

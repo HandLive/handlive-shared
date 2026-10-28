@@ -1,15 +1,14 @@
 """Kiểm chéo bắt tay Noise_NNpsk0_25519_ChaChaPoly_SHA256 trên vector `handshake` của bt-link.json bằng
 `noiseprotocol` (PyPI, pin ở tools/vectors/requirements.txt) — thư viện Noise ĐỘC LẬP HOÀN TOÀN với
 noise_nnpsk0.py (không chỉ đổi primitive như verify_bt_link_checks.py, mà chạy lại chính thuật toán Noise bằng
-mã người khác viết), theo ghi chú của Trang ở #3328 và yêu cầu của Lead ở #3376/#3380.
+mã người khác viết), theo ghi chú của Trang ở #3328 và yêu cầu của Lead ở #3376/#3380. Đã tự chạy thật (Lead cài
+`noiseprotocol` qua `setup-cpace-refs.sh`, #3412): bắt đúng lỗi thiếu MixKey(e.pub) của chế độ psk (#3418), sau
+khi vá noise_nnpsk0.py thì `message1`, `message2`, `handshake_hash` và cả hai khoá `Split()` (`cipher_state_encrypt.k`/
+`cipher_state_decrypt.k`) đều khớp byte-exact với `noiseprotocol`.
 
 THEO YÊU CẦU CỦA LEAD: thiếu `noiseprotocol` phải báo lỗi rõ, không âm thầm bỏ qua — môi trường chưa chạy
 `pip install -r requirements.txt` (có `noiseprotocol==0.3.1`) sẽ thấy lỗi ImportError ở đây, không phải một dòng
 "bỏ qua" lặng lẽ.
-
-Chưa tự chạy được trong sandbox của Tuan (không có mạng để pip install) — ghi lại trong task #189: cần chạy sau
-khi `tools/setup-cpace-refs.sh` cài xong `noiseprotocol` để xác nhận API dưới đây (từ hiểu biết về thư viện,
-chưa tự kiểm) khớp với phiên bản 0.3.1 thật.
 """
 from verify_common import H
 
@@ -46,3 +45,12 @@ def check_bt_link_with_noiseprotocol(c, doc: dict, all_docs: dict) -> None:
     initiator.read_message(message2)
 
     c.true(f"{n} cả hai phía xong bắt tay", initiator.handshake_finished and responder.handshake_finished)
+    c.eq(f"{n} handshake_hash (h6) cả hai phía", initiator.noise_protocol.handshake_hash,
+         responder.noise_protocol.handshake_hash)
+    c.eq(f"{n} handshake_hash (h6) khớp vector", initiator.noise_protocol.handshake_hash, H(handshake["h_final"]))
+    c.eq(f"{n} Split() c1 (C mã hoá/S giải mã)", initiator.noise_protocol.cipher_state_encrypt.k,
+         H(handshake["c1"]))
+    c.eq(f"{n} Split() c1 khớp phía S", responder.noise_protocol.cipher_state_decrypt.k, H(handshake["c1"]))
+    c.eq(f"{n} Split() c2 (S mã hoá/C giải mã)", responder.noise_protocol.cipher_state_encrypt.k,
+         H(handshake["c2"]))
+    c.eq(f"{n} Split() c2 khớp phía C", initiator.noise_protocol.cipher_state_decrypt.k, H(handshake["c2"]))
