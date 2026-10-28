@@ -11,7 +11,9 @@ from pathlib import Path
 sys.dont_write_bytecode = True  # không để lại __pycache__ trong kho
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import verify_bt_pairing_checks  # noqa: E402
 import verify_clipboard_html_checks  # noqa: E402
+import verify_cpace_checks  # noqa: E402
 import verify_discovery_hint_checks  # noqa: E402
 import verify_message_checks  # noqa: E402
 import verify_pair_handshake_checks  # noqa: E402
@@ -31,7 +33,7 @@ def main() -> int:
     checks = {**verify_primitive_checks.CHECKS, **verify_session_checks.CHECKS, **verify_message_checks.CHECKS,
               **verify_signature_checks.CHECKS, **verify_pair_handshake_checks.CHECKS,
               **verify_discovery_hint_checks.CHECKS, **verify_push_relay_checks.CHECKS,
-              **verify_revoke_checks.CHECKS}
+              **verify_revoke_checks.CHECKS, **verify_bt_pairing_checks.CHECKS, **verify_cpace_checks.CHECKS}
     c = Checker()
     for name in checks:
         c.true(f"{name} tồn tại", name in docs)
