@@ -87,16 +87,65 @@ else
   done <<< "$REQ_FILES"
 fi
 
+step3_ok=1
+
 echo
-if [ "$step1_ok" -eq 1 ] && [ "$step2_ok" -eq 1 ]; then
-  echo "XONG: ca 2 buoc thanh cong."
+echo "== Buoc 3: chay thử verify_vectors.py, check_schemas.py, check_strings.py bang .venv vua dung =="
+VERIFY_SCRIPT="$SHARED_ROOT/tools/vectors/verify_vectors.py"
+CHECK_SCHEMAS="$SHARED_ROOT/tools/schemas/check_schemas.py"
+CHECK_STRINGS="$SHARED_ROOT/tools/strings/check_strings.py"
+
+if [ -f "$VERIFY_SCRIPT" ] && [ -x "$SHARED_ROOT/tools/vectors/.venv/bin/python3" ]; then
+  echo "  Chay verify_vectors.py..."
+  if "$SHARED_ROOT/tools/vectors/.venv/bin/python3" "$VERIFY_SCRIPT"; then
+    echo "  OK: verify_vectors.py xong."
+  else
+    echo "  LOI: verify_vectors.py loi."
+    step3_ok=0
+  fi
+else
+  echo "  SKIP: verify_vectors.py khong tim thay hoac venv khong san sang."
+  step3_ok=0
+fi
+
+if [ -f "$CHECK_SCHEMAS" ] && [ -x "$SHARED_ROOT/tools/schemas/.venv/bin/python3" ]; then
+  echo "  Chay check_schemas.py..."
+  if "$SHARED_ROOT/tools/schemas/.venv/bin/python3" "$CHECK_SCHEMAS"; then
+    echo "  OK: check_schemas.py xong."
+  else
+    echo "  LOI: check_schemas.py loi."
+    step3_ok=0
+  fi
+else
+  echo "  SKIP: check_schemas.py khong tim thay hoac venv khong san sang."
+  step3_ok=0
+fi
+
+if [ -f "$CHECK_STRINGS" ] && [ -x "$SHARED_ROOT/tools/strings/.venv/bin/python3" ]; then
+  echo "  Chay check_strings.py..."
+  if "$SHARED_ROOT/tools/strings/.venv/bin/python3" "$CHECK_STRINGS"; then
+    echo "  OK: check_strings.py xong."
+  else
+    echo "  LOI: check_strings.py loi."
+    step3_ok=0
+  fi
+else
+  echo "  SKIP: check_strings.py khong tim thay hoac venv khong san sang."
+  step3_ok=0
+fi
+
+echo
+if [ "$step1_ok" -eq 1 ] && [ "$step2_ok" -eq 1 ] && [ "$step3_ok" -eq 1 ]; then
+  echo "XONG: ca 3 buoc thanh cong."
   exit 0
 fi
-if [ "$step1_ok" -eq 1 ]; then
-  echo "MOT PHAN XONG: buoc 1 (tai draft) OK, buoc 2 (venv) LOI — xem log phia tren."
-elif [ "$step2_ok" -eq 1 ]; then
-  echo "MOT PHAN XONG: buoc 2 (venv) OK, buoc 1 (tai draft) LOI — xem log phia tren."
-else
-  echo "LOI: ca 2 buoc deu khong xong — xem log phia tren."
+if [ "$step1_ok" -eq 0 ]; then
+  echo "LOI: buoc 1 (tai draft) that bai."
+fi
+if [ "$step2_ok" -eq 0 ]; then
+  echo "LOI: buoc 2 (venv + pip install) that bai."
+fi
+if [ "$step3_ok" -eq 0 ]; then
+  echo "LOI: buoc 3 (thuc hien verify/check) that bai hoac khong tim thay script."
 fi
 exit 1
