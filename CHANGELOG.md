@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-10-30
+
+### Added
+
+- **Phase 7 (offline connectivity):** test vectors for the Bluetooth L2CAP link-security handshake (Noise prologue,
+  challenge, `noise1`, `noise2`, `bt-link.json`), the pre-auth/transport frame codec (channel IDs, record length bounds,
+  `bt-frame.json`), advertisement service data (rotating hint, `bt-advertisement.json`) and CPace-X25519-SHA512
+  password-authenticated key exchange (`cpace.json`, draft vectors plus HandLive-specific cases); Bluetooth pairing
+  envelopes (`bt-pairing.json`) — all consumed by `core/crypto`/`core/protocol`/`core/transport` on Android and
+  `HLCrypto`/`HLProtocol`/`HLTransport` on Apple; `tools/setup-cpace-refs.sh` fetches the CPace draft and verifies the
+  vectors in per-tool venvs. `envelope.schema.json`/`error.schema.json`: new envelope types `direct` and `bulk` (both
+  already in the Android/Apple `MessageType` enum).
+
+- UI strings for the device label "Connected via Bluetooth" (`status.connected_bluetooth(_to)`, CONN-05, shown by the
+  status indicator on Android/Mac/iOS) and the Mac Bluetooth permission prompt text (`infoplist.bluetooth_always`, wired
+  into `macOS/Info.plist`'s `NSBluetoothAlwaysUsageDescription`).
+
+### Specs
+
+- Catalog entries added for 01-setup-settings.md SET-01/SET-03 that no Android/Apple UI calls yet: the Bluetooth
+  permission-primer screen (`permission.bluetooth_title/body/body_mac`), the Mac "Bluetooth off"/"Bluetooth denied"
+  status lines and their settings button (`status.bluetooth_off`, `status.bluetooth_denied`,
+  `common.open_bluetooth_settings`), and the Settings feature-card label (`settings.bluetooth_link`).
+- `error.schema.json`'s new `DIRECT_WIFI_UNAVAILABLE` code (0.4.6): schema only, no code returns or handles it yet —
+  Wi-Fi Direct itself (SSID/passphrase format, per-connection bulk stream keys `K_bulk`) has no code or test vectors on
+  either platform.
+- `bt_seen`/`bt_lost`/`wifi_assoc` bench events (`tools/bench/reconnect_time.py`): the trigger logic is in place, but
+  only `tools/ble-spike` and `Tools/BLESpike` emit these events today — the shipped app does not yet.
+
 ## [0.1.1] — 2026-10-22
 
 ### Changed
