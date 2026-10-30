@@ -1,0 +1,100 @@
+{
+  "description": "K_bt_pdisc = HKDF-SHA256(ikm = pairing_secret, salt rỗng, info \"handlive/v1/bt-pair-disc\", L 32); K_bt_plink = HKDF-SHA256(ikm = pairing_secret, salt rỗng, info \"handlive/v1/bt-pair-link\", L 32); pr_bt = 4 byte đầu của HMAC-SHA256(K_bt_pdisc, \"HLBTPAIR1\"), đổi theo mỗi QR, không suy ra được pk/ps (0.4.5 \"Keys\", \"Pairing mode\"). kind \"first_frame\": message 1 (\"psk, e\") của Noise_NNpsk0_25519_ChaChaPoly_SHA256 (Noise Protocol Framework rev. 34), psk = K_bt_plink, prologue = \"HLBT1\" ‖ n_s — xác thực \"khung đầu\" của một liên kết ghép đôi trước khi slot pre-auth được cấp (0.4.5 \"Pairing mode\", \"Link-security handshake\"). HKDF ở đây là HKDF nội bộ của Noise (3 ngõ ra qua HMAC), khác HKDF-SHA256 RFC 5869 dùng ở các file khác trong kho này. `record` = rlen (uint16 BE) ‖ kind (0x02) ‖ message1 — đúng khuôn \"Link records\" của 0.4.5. KHÔNG phải vector công bố của tài liệu Noise (tài liệu đó không phát hành vector cho psk/prologue riêng của HandLive): đây là cách HandLive dùng đúng thuật toán của tài liệu đó cho bộ psk/prologue của mình, cần Trang rà soát riêng. Chưa có vector mode PIN (psk thay bằng K_bt_pinlink): cpace.json đã có ISK, chỉ là chưa nối vào, để lại cho một task sau.",
+  "source": "docs/detailed-design/00-common-specs.md 0.4.5 \"Keys\", \"Pairing mode\", \"Link-security handshake\"; pairing_secret của pair-prk.json; Noise Protocol Framework rev. 34 (Noise_NNpsk0_25519_ChaChaPoly_SHA256)",
+  "vectors": [
+    {
+      "name": "cặp 1",
+      "kind": "key",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "pairing_secret_source": "pair-prk.json",
+      "pairing_secret": "ded3ceb0d81908fe595a576826471c0cdcbedb8807c46e2e78ca4f1ab1499581",
+      "k_bt_pdisc_info": "handlive/v1/bt-pair-disc",
+      "k_bt_pdisc": "a5c9a25c3908f41632126d88910c7c1591e194e2c3b528c7f9f6021ac5648d00",
+      "k_bt_plink_info": "handlive/v1/bt-pair-link",
+      "k_bt_plink": "8954577d9f55cc77bae94e5ae3b2ca77c1c34a5153c1582e677c8ed1f8a36426",
+      "pr_bt_label": "HLBTPAIR1",
+      "pr_bt_mac": "24be2584931e152c8835dc782aa324353d2f941f3295a73c2e95419749b5af95",
+      "pr_bt": "24be2584"
+    },
+    {
+      "name": "cặp 2",
+      "kind": "key",
+      "pair_id": "9a8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d",
+      "pairing_secret_source": "pair-prk.json",
+      "pairing_secret": "d6d0ab47c7cd93b2fd17308fc91509a0f1f334c50f2703c22228a27fa5d230e9",
+      "k_bt_pdisc_info": "handlive/v1/bt-pair-disc",
+      "k_bt_pdisc": "74801aec60b12c0408517afd9895fa64edba413dd73588c274f7f9fda1ec485c",
+      "k_bt_plink_info": "handlive/v1/bt-pair-link",
+      "k_bt_plink": "a705d680b0be1037fc8ac0dd02c2803f7e55795564df81f55b5e9fc5c6364cec",
+      "pr_bt_label": "HLBTPAIR1",
+      "pr_bt_mac": "38dbf4483c7fa2fb62c87bab65e7ff36dfa6bc9bd0223d653dfda073808d4814",
+      "pr_bt": "38dbf448"
+    },
+    {
+      "name": "cặp 1 / liên kết ghép đôi QR",
+      "kind": "first_frame",
+      "mode": "qr",
+      "pair_id": "3f2b1c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+      "psk_source": "k_bt_plink của cặp 1",
+      "psk": "8954577d9f55cc77bae94e5ae3b2ca77c1c34a5153c1582e677c8ed1f8a36426",
+      "protocol_name": "Noise_NNpsk0_25519_ChaChaPoly_SHA256",
+      "n_s": "641cacb99fc22372cc2058145a54dda486a41d8c8aaf0d2e14a7153f0300420e",
+      "prologue_label": "HLBT1",
+      "prologue": "484c425431641cacb99fc22372cc2058145a54dda486a41d8c8aaf0d2e14a7153f0300420e",
+      "h0": "f0b890826fb8e6584af6948d227169c381c9ed6a4c1c90df4b9ff454fa947f7b",
+      "h_after_prologue": "88d9f0b6de0bce978824376d99b038449919fbb63a9b4cb84de8c826eac9ea57",
+      "mix_key_and_hash": {
+        "temp_key": "d1fe5993d0f49c69dd7535cee9ef6e4ef644e183f5f49f0c55666ac9e059eda4",
+        "ck": "3ba0261b99a6ab88fb8fee3f6204b310b6edbaf59aad56d8e676fe1835bca22e",
+        "temp_h": "b62999756f94b21d0cd7c9518479d3681fe7f8e80219c3e93212449bc7157502",
+        "temp_k": "de6117d2b12eead9c6b282d772b909920916d8fb1ef43bd1caa24ab037606311",
+        "h": "9ef7ca8694e03435f4cdc5de84c258bbb69179dc685f817c0139739589f08199"
+      },
+      "h_after_psk": "9ef7ca8694e03435f4cdc5de84c258bbb69179dc685f817c0139739589f08199",
+      "ck_after_psk": "0fedd0a3f07e1abd54695065fdc83462fc2b2ef89a2532509c6090648aaca51e",
+      "k": "9491cbf574b16d2b036724c0f8566f335935fa899230540ec6beb83db64ae27b",
+      "e_priv": "9373bf265905f54866bd4566421bcf20bb7c6bf255e0afbdf6df27a6fd873d7b",
+      "e_pub": "676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a550",
+      "h_after_e": "92ce9e8eb3761a90c9602e7b0b38dfff8855c89bd3bd6a7cacdbccf7ed669428",
+      "nonce": "000000000000000000000000",
+      "ciphertext_tag": "01e0ca15311784bfa449d0d7b498db35",
+      "h_final": "ab1cf064715202bb93ab8cf45f43de39ab492e17ee8ccbe79954fe9e17075e25",
+      "message1": "676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a55001e0ca15311784bfa449d0d7b498db35",
+      "record_kind": "0x02",
+      "rlen": 49,
+      "record": "003102676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a55001e0ca15311784bfa449d0d7b498db35"
+    }
+  ],
+  "invalid_vectors": [
+    {
+      "name": "cặp 1 / S thử psk của cặp 2",
+      "reason": "wrong_key",
+      "n_s": "641cacb99fc22372cc2058145a54dda486a41d8c8aaf0d2e14a7153f0300420e",
+      "e_pub": "676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a550",
+      "ciphertext_tag": "01e0ca15311784bfa449d0d7b498db35",
+      "wrong_psk_source": "k_bt_plink của cặp 2",
+      "wrong_psk": "a705d680b0be1037fc8ac0dd02c2803f7e55795564df81f55b5e9fc5c6364cec"
+    },
+    {
+      "name": "cặp 1 / tag sai",
+      "reason": "tag_mismatch",
+      "n_s": "641cacb99fc22372cc2058145a54dda486a41d8c8aaf0d2e14a7153f0300420e",
+      "e_pub": "676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a550",
+      "ciphertext_tag": "01e0ca15311784bfa449d0d7b498db34"
+    },
+    {
+      "name": "cặp 1 / e_pub bị sửa trên đường truyền",
+      "reason": "message_tampered",
+      "n_s": "641cacb99fc22372cc2058145a54dda486a41d8c8aaf0d2e14a7153f0300420e",
+      "e_pub": "666f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a550",
+      "ciphertext_tag": "01e0ca15311784bfa449d0d7b498db35"
+    },
+    {
+      "name": "cặp 1 / phát lại message 1 trên kênh khác (n_s khác)",
+      "reason": "aad_mismatch",
+      "n_s": "5300745f6a02d27bb53c2c9852d204fcfbae14f9bfd39fc3165dfebacc2c0c6f",
+      "e_pub": "676f48018c525ed5a76a0021178ba1465cb3b0bef455d5d857abfec88d18a550",
+      "ciphertext_tag": "01e0ca15311784bfa449d0d7b498db35"
+    }
+  ]
+}

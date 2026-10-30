@@ -27,7 +27,7 @@
   },
   "$defs": {
     "type": {
-      "description": "Nhóm tin (0.7.1): tập đã chốt cộng session, camera, web.",
+      "description": "Nhóm tin (0.7.1): tập đã chốt cộng session, camera, web, direct, bulk (Phase 7, 0.4.6/0.4.7).",
       "enum": [
         "clipboard",
         "sms",
@@ -39,7 +39,9 @@
         "capability",
         "session",
         "camera",
-        "web"
+        "web",
+        "direct",
+        "bulk"
       ]
     }
   }

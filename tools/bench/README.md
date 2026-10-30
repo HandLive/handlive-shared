@@ -71,6 +71,14 @@ Values never contain spaces. Anything before the marker `HLBENCH/1 ` (logcat or 
 | `net` | Any | OS network change: Android `ConnectivityManager.NetworkCallback`, Apple `NWPathMonitor` | `change`: `up` (a network is available), `down` (lost), `changed` (default network switched) |
 | `wake` | Mac | `NSWorkspace.didWakeNotification` | — |
 
+### Bluetooth and Wi-Fi Direct events (Phase 7, 0.4.5/0.4.6)
+
+| `ev` | Who | When | Fields |
+|------|-----|------|--------|
+| `bt_seen` | Mac (M-APP, central) | A BLE scan result matches a candidate pair's rotating hint or `BT_PIN_HINT` (0.4.5 "Advertisement") — a reconnect trigger, like `wake`/`net up` | — |
+| `bt_lost` | Either side | An L2CAP channel closes (idle timeout, `reject`, a key-confirmation failure, the OS tearing it down) | `reason` (`idle_timeout`, `reject`, `key_confirmation`, `os`) — informational only, never a `reconnect_time.py` trigger: the loss itself is already in `state` |
+| `wifi_assoc` | Mac | The Mac associates with or leaves the phone's Wi-Fi Direct group (0.4.6) | `change`: `up` (joined), `down` (left) — a reconnect trigger like `net` |
+
 ### SMS events (Phase 2)
 
 Privacy as above: only the provider's `message_key` (`sms:<_id>`), the random `local_id`, states and error codes — never the text, the number or a name.

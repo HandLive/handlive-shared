@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://handlive.app/schemas/v1/error.schema.json",
   "title": "HandLive — đối tượng lỗi trong ack",
-  "description": "00-common-specs 0.5.1 (ack lỗi) và 0.8.1 (mã lỗi ứng dụng). Mã lỗi relay HTTP (0.8.2) không thuộc schema này.",
+  "description": "00-common-specs 0.5.1 (ack lỗi) và 0.8.1 (mã lỗi ứng dụng, đủ cả Phase 7 DIRECT_WIFI_UNAVAILABLE). Mã lỗi relay HTTP (0.8.2) không thuộc schema này.",
   "type": "object",
   "required": ["code", "message"],
   "additionalProperties": false,
@@ -70,7 +70,8 @@
         "USB_ADB_UNAUTHORIZED",
         "USB_ADB_UNAVAILABLE",
         "MAC_EXTENSION_NOT_ACTIVE",
-        "MAC_MIC_DRIVER_MISSING"
+        "MAC_MIC_DRIVER_MISSING",
+        "DIRECT_WIFI_UNAVAILABLE"
       ]
     }
   }

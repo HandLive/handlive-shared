@@ -94,6 +94,90 @@ Toàn bộ trao đổi PAIR-01 (API 1–5 và thân request của API 8) và Mã
 ### `discovery-hint.json`
 Gợi ý TXT `h` (0.4.1, CONN-01 bước 3 và API 1–2) từ `prk` của `pair-prk.json`. `kind` = `key` (mỗi cặp của `pair-prk.json` một vector): `pair_id`, `prk_source`, `prk`, `info`, `length`, `k_disc`; `hours` = `[{hour, message, mac, hint}]` với `message` = `"HLDISC1"` ‖ giờ int64 BE, cho các giờ −1, 0, 1, 2 và 479762–479765; `clock` = `[{now_ms, hour, advertised, accepted}]`: giờ, gợi ý điện thoại quảng bá và các gợi ý client chấp nhận vào lúc đó (`[giờ trước, giờ này, giờ sau]`), tại 0, 3 599 999, 3 600 000, 1 727 150 000 123, 1 727 150 399 999 và 1 727 150 400 000. `kind` = `match`: điện thoại có các cặp `phone_pairs` quảng bá `txt_h` (theo đúng thứ tự đó) lúc `phone_now_ms` (`phone_hour`); client của `client_pair` lúc `client_now_ms` (`client_hour`) chấp nhận `accepted` và phải tìm thấy `matched_hint`; `matched_as` = `previous`, `current` hoặc `next` là giờ của điện thoại so với giờ của client. Kịch bản: cùng giờ; đồng hồ điện thoại chậm hơn và nhanh hơn 1 ms qua mốc giờ; chậm hơn và nhanh hơn đúng một giờ. `invalid_vectors`: `{name, pair, reason, client_now_ms, client_hour, txt_h}` kèm bằng chứng; client **không** được coi `txt_h` là khớp: `hint_outside_window` (`phone_now_ms`, `phone_hour`: giờ của điện thoại cách giờ của client hai giờ — nhanh hơn một giờ và 1 ms vượt hai mốc giờ, hoặc chậm hơn đúng hai giờ; 0.4.1 chỉ chấp nhận giờ trước, giờ hiện tại và giờ sau), `wrong_byte_order` (giờ int64 LE), `wrong_encoding` (giờ int32 BE), `wrong_label` (`"HLDISC1|"`), `wrong_key` (HMAC khóa bằng `PRK` thay vì `K_disc`, `mac_key`); `message` = các byte đã được MAC.
 
+### `bt-pairing.json`
+Khóa ghép đôi qua Bluetooth và "khung đầu" (first frame) của liên kết ghép đôi (00-common-specs.md 0.4.5 "Keys",
+"Pairing mode", "Link-security handshake"), nối từ `pairing_secret` của `pair-prk.json`. `kind` = `key` (mỗi cặp
+một vector): `pair_id`, `pairing_secret_source`, `pairing_secret`, `k_bt_pdisc_info`, `k_bt_pdisc` =
+HKDF-SHA256(ikm = `pairing_secret`, salt rỗng, info `"handlive/v1/bt-pair-disc"`, L 32), `k_bt_plink_info`,
+`k_bt_plink` (tương tự, info `"handlive/v1/bt-pair-link"`), `pr_bt_label` (`"HLBTPAIR1"`), `pr_bt_mac` =
+HMAC-SHA256(`k_bt_pdisc`, `pr_bt_label`), `pr_bt` = 4 byte đầu của nó. `kind` = `first_frame`: message 1 (token
+`"psk, e"`) của `Noise_NNpsk0_25519_ChaChaPoly_SHA256` (Noise Protocol Framework rev. 34), `psk` = `k_bt_plink`
+của cặp 1, `mode` `qr`, `prologue` = `"HLBT1"` ‖ `n_s`. Mọi giá trị trung gian của trạng thái đối xứng Noise đều
+được ghi lại: `h0` (`InitializeSymmetric`), `h_after_prologue` (`MixHash`), `mix_key_and_hash`
+(`{temp_key, ck, temp_h, temp_k, h}` của token `psk`), `h_after_psk`, `ck_after_psk`, `k`, `e_priv`/`e_pub`,
+`h_after_e`, `nonce` (12 byte 0, `n = 0`), `ciphertext_tag` (`EncryptAndHash("")`, 16 byte vì plaintext rỗng),
+`h_final`, `message1` = `e_pub` ‖ `ciphertext_tag`, và `record` = `rlen` (uint16 BE) ‖ `kind` (`0x02`) ‖
+`message1` (0.4.5 "Link records"). Đây **không** phải vector do tài liệu Noise công bố (tài liệu đó không phát
+hành vector cho psk/prologue riêng của HandLive): đây là cách HandLive dùng đúng thuật toán của tài liệu đó, nên
+cần một vòng rà soát riêng trước khi A7.1a/M7.1b khoá theo. Chưa có vector mode PIN (`psk` = `k_bt_pinlink`):
+`cpace.json` đã có `ISK`, chỉ là file này chưa nối vào (để lại cho một task sau). `invalid_vectors`:
+`{name, reason, n_s, e_pub, ciphertext_tag}` —
+psk ứng viên của S **không** được mở tag: `wrong_key` (thử `k_bt_plink` của cặp khác, `wrong_psk_source`,
+`wrong_psk`), `tag_mismatch` (lật bit cuối của `ciphertext_tag`), `message_tampered` (lật 1 bit của `e_pub` trên
+đường truyền), `aad_mismatch` (phát lại đúng `message1` dưới `n_s` khác, nên `prologue` khác — "prologue buộc
+`n_s`, nên một `noise1` ghi lại không bao giờ xác thực trên kênh mới").
+
+### `bt-link.json`
+`K_bt_disc`/`K_bt_link` (00-common-specs.md 0.4.5 "Keys"), nối từ `PRK` của `pair-prk.json` — khác
+`K_bt_pdisc`/`K_bt_plink` của `bt-pairing.json` (chỉ sống theo một QR), hai khóa này sống suốt đời cặp và dùng
+cho liên kết Bluetooth bình thường tới một điện thoại đã ghép đôi. `kind` = `key`: `pair_id`, `prk_source`,
+`prk`, `k_bt_disc_info`, `k_bt_disc`, `k_bt_link_info`, `k_bt_link`. `kind` = `hint`: hint quảng bá xoay vòng
+(khác hint lúc ghép đôi) = 4 byte đầu của HMAC-SHA256(`K_bt_disc`, `"HLBTDISC1"` ‖ epoch int64 BE), `epoch` =
+`floor(now_ms / BT_HINT_PERIOD)`, cho vài kỷ nguyên ví dụ. `kind` = `handshake`: bắt tay bảo mật liên kết đầy đủ
+(0.4.5 "Link-security handshake" bước 1–4), `psk` = `k_bt_link`: `challenge_record` (kind `0x01`, `n_s`), rồi
+message 1 (`"psk, e"`, `noise1_record`, kind `0x02`) và message 2 (`"e, ee"`, `noise2_record`, kind `0x03`) của
+`Noise_NNpsk0_25519_ChaChaPoly_SHA256` (Noise Protocol Framework rev. 34), `prologue` = `"HLBT1"` ‖ `n_s`, mọi
+giá trị trung gian của trạng thái đối xứng được ghi lại cho cả hai message, rồi `Split()` ra `c1` (C mã hoá/S
+giải mã) và `c2` (ngược lại) — hai CipherState của bước 4-5. Không phải vector do tài liệu Noise công bố (xem
+ghi chú ở `bt-pairing.json`); message 1 đã được soát ở #3328, message 2/`Split()` là phần mới, cần soát riêng.
+`invalid_vectors`: `wrong_key`, `tag_mismatch_noise1`, `tag_mismatch_noise2` (0.4.5 bước 4: "C verifies its
+payload tag — failure → C closes the channel, CONN-05 E3"), `replayed_channel` (0.4.5 bước 3: "prologue buộc
+`n_s`, nên một `noise1` ghi lại không bao giờ xác thực trên kênh mới").
+
+### `bt-frame.json`
+Đóng khung bản ghi transport sau bước 4 của bắt tay bảo mật liên kết (00-common-specs.md 0.4.5 "Link records",
+"Transport records and channels"), mã hoá bằng `c1` của `bt-link.json` (Noise transport message, nonce = 4 byte
+0 ‖ bộ đếm 64-bit little-endian, AAD rỗng). `kind` = `transport_frame`: bản rõ `chan` (`0x01` control, `0x02`
+bulk) ‖ `flags` (bit0 `more`, bit1 `long`) ‖ `dlen` (uint16 BE) ‖ `data` ‖ đệm 0 tới 256/1.024/4.096 byte, rồi
+`ciphertext_tag` và `record` = `rlen` (uint16 BE, một trong 272/1.040/4.112) ‖ `ciphertext_tag`. Có một mảnh làn
+ngắn, một tin làn dài 2 mảnh, và một mảnh bulk. `kind` = `preauth_frame`: byte wire của `challenge`/`reject`
+(`rlen` ‖ kind ‖ body) làm ví dụ đóng gói. `invalid_vectors` khớp đúng 5 luật nêu trong S7.1a cộng thêm 1 từ
+"Link records": `rlen_out_of_bounds` (không thuộc 272/1.040/4.112 → đóng kênh trước khi cấp phát đọc thêm),
+`preauth_record_over_bound` (vượt `BT_PREAUTH_RECORD_MAX` = 64 byte), `unknown_chan` (khác cả `0x01` và `0x02`),
+`more_without_long` (`more` = 1 trên làn ngắn, `long` = 0), `bulk_fragment_over_max` (`dlen` một mảnh làn
+dài/bulk vượt `BT_BULK_FRAGMENT_MAX` = 1.020), `message_over_max` (tổng byte một tin làn dài vượt
+`BT_MESSAGE_MAX` = 256 KiB trước mảnh cuối).
+
+### `bt-advertisement.json`
+Byte service data app tự kiểm soát trong scan response (00-common-specs.md 0.4.5 "Advertisement"): `ver` (luôn
+`0x01`) ‖ `psm` (uint16 LE) ‖ `hints` (4 byte mỗi hint, 0…`BT_ADV_MAX_HINTS` = 2); hệ điều hành thêm 18 byte còn
+lại của cấu trúc AD (cờ, UUID 128-bit) để ra tổng scan response 21/25/29 byte của bảng 0.4.5 — không thuộc
+phạm vi ở đây, chỉ ghi `scan_response_total` để đối chiếu. `kind` = `scan_response`: 0, 1 và 2 hint (nối từ
+`K_bt_disc` của `bt-link.json`). `kind` = `pin_window`: `hints` = chỉ `BT_PIN_HINT` (`0x00000000`), giống nhau
+cho mọi điện thoại khi cửa sổ ghép đôi PIN đang mở (AC9). `invalid_vectors`: `wrong_version` (`ver` ≠ `0x01` →
+client bỏ qua cả advertisement), `hint_outside_window` (hint tính ở kỷ nguyên ngoài cửa sổ chấp nhận `[e-4, e+4]`
+của client → không khớp).
+
+### `cpace.json`
+CPACE-X25519-SHA512 (draft-irtf-cfrg-cpace-21, suite G_X25519 + SHA-512), dùng cho ghép đôi bằng PIN qua
+Bluetooth không mạng (00-common-specs.md 0.4.5, PAIR-01 luồng C). `kind` = `official_generator`: vector
+`calculate_generator` do draft công bố (Appendix B.1.1) — `H`, `PRS`, `CI`, `sid`, `generator_string`,
+`hash_generator_string`, `decoded_field_element`, `g`. `kind` = `official_message`: vector message A/B, K và ISK
+do draft công bố (Appendix B.1.2–B.1.7) — `g`, `ya`/`ADa`/`Ya`, `yb`/`ADb`/`Yb`, `K`, `ISK_initiator_responder`
+(biến thể khởi tạo/trả lời mà HandLive dùng, vì C luôn khởi tạo và S luôn trả lời), thêm `ISK_parallel_source`
+để tham khảo (biến thể song hành của draft, HandLive không dùng). `kind` = `handlive_pin`: case riêng của
+HandLive — `pin` (UTF-8 bytes = PRS, một vector giữ số 0 đứng đầu), `ci` = `"HLBTPIN1"` cố định, `n_s` (32 byte,
+cũng là `sid`), `ya`/`yb`, `g`, `Ya`, `Yb`, `K`, `ISK`, `k_bt_pinlink_info`/`k_bt_pinlink` =
+HKDF-SHA256(ikm = `ISK`, salt = `n_s`, info `"handlive/v1/bt-pin-link"`, L 32), `k_bt_pin_info`/`k_bt_pin`
+(tương tự, info `"handlive/v1/bt-pin-pair"`). `invalid_vectors`: `low_order_ya`/`low_order_yb` — phía đối diện
+nhận một điểm bậc thấp từ Appendix B.1.10 của draft (`u0`, nằm trong tập "PHẢI kích hoạt abort" bất kể vô
+hướng) làm `Ya`/`Yb`; `K` phải trả về `None` (`G.I`) và kênh đóng không trả lời (0.4.5: "Một `K` toàn 0 → đóng
+kênh không trả lời"). `sid_mismatch`: C và S dùng `n_s` khác nhau (`n_s_c`/`n_s_s`) cho cùng một PIN — `isk_c`
+và `isk_s` phải khác nhau. `wrong_pin`: một phía gõ sai PIN (`pin_c`/`pin_s`, cùng `n_s`) — generator hai phía
+khác nhau nên `isk_c` và `isk_s` phải khác nhau (hoặc một phía abort). Cả hai trường hợp sau không phải abort
+ngay trong CPace; chúng chỉ lộ ra khi `noise1` (psk = `K_bt_pinlink`) không mở được ở bước tiếp theo —
+`bt-pairing.json` chưa nối vector `first_frame` mode PIN vào `ISK` này, để lại cho một task sau.
+
 ### `session-handshake.json`
 Nối từ `pair-prk.json` theo `pair_id`. `k_auth`; `client_eph_priv/pub`, `client_nonce` (32); `t1`, `hello_mac` = HMAC-SHA256(k_auth, t1); `server_eph_*`, `server_nonce`, `t2`, `welcome_mac`; `eph_shared` = X25519(eph C, eph S); `secret_salt` = SHA-256(t2); `secret` (64) = HKDF(eph_shared ‖ prk, secret_salt, `"handlive/v1/session"`, 64); `k_c2s` = secret[0:32], `k_s2c` = secret[32:64]. `hello_plaintext`/`welcome_plaintext`: JSON `{op, data}` với `eph`/`nonce`/`mac` dạng b64u; `hello_envelope`/`welcome_envelope`: envelope `type = session`, `payload` = b64 của plaintext (chưa mã hóa). `invalid_vectors`: `{key, message, mac}` — HMAC(key, message) so hằng thời gian với `mac` phải **khác**.
 

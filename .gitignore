@@ -3,4 +3,8 @@
 
 # venv Python cục bộ của tools/ (tạo: python3 -m venv tools/.venv && tools/.venv/bin/pip install -r tools/vectors/requirements.txt -r tools/schemas/requirements.txt)
 tools/.venv/
+# venv riêng cho từng thư mục con của tools/ (tools/setup-cpace-refs.sh, một venv cạnh mỗi requirements*.txt)
+tools/**/.venv/
+# Văn bản gốc (.txt) tải từ IETF datatracker để chép vector — không commit (tools/setup-cpace-refs.sh)
+tools/vectors/.refs/
 __pycache__/

@@ -94,6 +94,91 @@ The whole PAIR-01 exchange (API 1–5 and the body of API 8) and the PAIR-02 Sec
 ### `discovery-hint.json`
 TXT `h` hints (0.4.1, CONN-01 step 3 and API 1–2) from the `prk` of `pair-prk.json`. `kind` = `key` (one per pair of `pair-prk.json`): `pair_id`, `prk_source`, `prk`, `info`, `length`, `k_disc`; `hours` = `[{hour, message, mac, hint}]` with `message` = `"HLDISC1"` ‖ hour int64 BE, for hours −1, 0, 1, 2 and 479762–479765; `clock` = `[{now_ms, hour, advertised, accepted}]`: the hour, the hint the phone advertises and the hints a client at that time accepts (`[previous, current, next]`), at 0, 3 599 999, 3 600 000, 1 727 150 000 123, 1 727 150 399 999 and 1 727 150 400 000. `kind` = `match`: a phone with the pairs `phone_pairs` advertises `txt_h` (in that order) at `phone_now_ms` (`phone_hour`); a client of `client_pair` at `client_now_ms` (`client_hour`) accepts `accepted` and must find `matched_hint`; `matched_as` = `previous`, `current` or `next` is the phone's hour relative to the client's. Scenarios: the same hour; the phone's clock behind and ahead by 1 ms across the hour boundary; behind and ahead by exactly one hour. `invalid_vectors`: `{name, pair, reason, client_now_ms, client_hour, txt_h}` plus evidence; the client must **not** treat `txt_h` as a match: `hint_outside_window` (`phone_now_ms`, `phone_hour`: the phone's hour is two away from the client's — ahead by one hour and 1 ms across two boundaries, or behind by exactly two hours; 0.4.1 accepts only the previous, current and next hour), `wrong_byte_order` (hour as int64 LE), `wrong_encoding` (hour as int32 BE), `wrong_label` (`"HLDISC1|"`), `wrong_key` (HMAC keyed with `PRK` instead of `K_disc`, `mac_key`); `message` = the bytes that were MACed.
 
+### `bt-pairing.json`
+Bluetooth pairing keys and the pairing-link "first frame" (00-common-specs.md 0.4.5 "Keys", "Pairing mode",
+"Link-security handshake"), chained from the `pairing_secret` of `pair-prk.json`. `kind` = `key` (one per pair):
+`pair_id`, `pairing_secret_source`, `pairing_secret`, `k_bt_pdisc_info`, `k_bt_pdisc` = HKDF-SHA256(ikm =
+`pairing_secret`, empty salt, info `"handlive/v1/bt-pair-disc"`, L 32), `k_bt_plink_info`, `k_bt_plink` (same with
+info `"handlive/v1/bt-pair-link"`), `pr_bt_label` (`"HLBTPAIR1"`), `pr_bt_mac` = HMAC-SHA256(`k_bt_pdisc`,
+`pr_bt_label`), `pr_bt` = its first 4 bytes. `kind` = `first_frame`: message 1 (tokens `"psk, e"`) of
+`Noise_NNpsk0_25519_ChaChaPoly_SHA256` (Noise Protocol Framework rev. 34), `psk` = `k_bt_plink` of pair 1, `mode`
+`qr`, `prologue` = `"HLBT1"` ‖ `n_s`. Every intermediate value of the Noise symmetric state is recorded: `h0`
+(`=InitializeSymmetric`), `h_after_prologue` (`MixHash`), `mix_key_and_hash` (`{temp_key, ck, temp_h, temp_k, h}`
+of the `psk` token), `h_after_psk`, `ck_after_psk`, `k`, `e_priv`/`e_pub`, `h_after_e`, `nonce` (12 zero bytes,
+`n = 0`), `ciphertext_tag` (`EncryptAndHash("")`, 16 bytes since the plaintext is empty), `h_final`, `message1` =
+`e_pub` ‖ `ciphertext_tag`, and `record` = `rlen` (uint16 BE) ‖ `kind` (`0x02`) ‖ `message1` (0.4.5 "Link
+records"). This is **not** a vector published by the Noise specification (it publishes none for HandLive's own
+psk/prologue): it is HandLive's own use of that document's algorithm, so it needs its own review before A7.1a/M7.1b
+rely on it. No PIN-mode vector yet (`psk` = `k_bt_pinlink`): `cpace.json` now has the `ISK`, this file just has not
+been wired to it yet (left for a follow-up task).
+`invalid_vectors`: `{name, reason, n_s, e_pub, ciphertext_tag}` — the responder's candidate psk must **not** open
+the tag: `wrong_key` (tries `k_bt_plink` of the other pair, `wrong_psk_source`, `wrong_psk`), `tag_mismatch` (last
+bit of `ciphertext_tag` flipped), `message_tampered` (a bit of `e_pub` flipped in transit), `aad_mismatch` (the
+same `message1` replayed under a different `n_s`, so a different `prologue` — "the prologue binds `n_s`, so a
+recorded `noise1` never verifies on a new channel").
+
+### `bt-link.json`
+`K_bt_disc`/`K_bt_link` (00-common-specs.md 0.4.5 "Keys"), chained from the `PRK` of `pair-prk.json` — unlike
+`K_bt_pdisc`/`K_bt_plink` of `bt-pairing.json` (live only for one QR), these live for the life of the pair and
+are used for an ordinary Bluetooth link to an already-paired phone. `kind` = `key`: `pair_id`, `prk_source`,
+`prk`, `k_bt_disc_info`, `k_bt_disc`, `k_bt_link_info`, `k_bt_link`. `kind` = `hint`: the rotating advertising
+hint (not the pairing one) = the first 4 bytes of HMAC-SHA256(`K_bt_disc`, `"HLBTDISC1"` ‖ epoch int64 BE),
+`epoch` = `floor(now_ms / BT_HINT_PERIOD)`, shown at a few epochs. `kind` = `handshake`: the full link-security
+handshake (0.4.5 "Link-security handshake" steps 1–4), `psk` = `k_bt_link`: `challenge_record` (kind `0x01`,
+`n_s`), then message 1 (`"psk, e"`, `noise1_record`, kind `0x02`) and message 2 (`"e, ee"`, `noise2_record`, kind
+`0x03`) of `Noise_NNpsk0_25519_ChaChaPoly_SHA256` (Noise Protocol Framework rev. 34), `prologue` = `"HLBT1"` ‖
+`n_s`, every intermediate symmetric-state value recorded for both messages, then `Split()` into `c1` (C encrypts,
+S decrypts) and `c2` (the other way) — the two CipherStates of steps 4–5. Not a vector published by the Noise
+specification (see the note under `bt-pairing.json`); message 1 was reviewed in #3328, message 2/`Split()` are
+new and need their own review. `invalid_vectors`: `wrong_key`, `tag_mismatch_noise1`, `tag_mismatch_noise2` (0.4.5
+step 4: "C verifies its payload tag — failure → C closes the channel, CONN-05 E3"), `replayed_channel` (0.4.5
+step 3: "The prologue binds `n_s`, so a recorded `noise1` never verifies on a new channel").
+
+### `bt-frame.json`
+Transport record framing after link-security step 4 (00-common-specs.md 0.4.5 "Link records", "Transport records
+and channels"), encrypted with `c1` of `bt-link.json` (Noise transport message, nonce = 4 zero bytes ‖ a 64-bit
+little-endian counter, empty AAD). `kind` = `transport_frame`: plaintext `chan` (`0x01` control, `0x02` bulk) ‖
+`flags` (bit0 `more`, bit1 `long`) ‖ `dlen` (uint16 BE) ‖ `data` ‖ zero padding up to 256/1,024/4,096 bytes, then
+`ciphertext_tag` and `record` = `rlen` (uint16 BE, one of 272/1,040/4,112) ‖ `ciphertext_tag`. Covers a short
+control fragment, a 2-fragment long-control message, and a bulk fragment. `kind` = `preauth_frame`: the
+`challenge`/`reject` wire bytes (`rlen` ‖ kind ‖ body) as a packaging example. `invalid_vectors` match the five
+named in S7.1a plus one more from "Link records": `rlen_out_of_bounds` (not 272/1,040/4,112 → close before
+allocating more), `preauth_record_over_bound` (over `BT_PREAUTH_RECORD_MAX` = 64 bytes), `unknown_chan` (neither
+`0x01` nor `0x02`), `more_without_long` (`more` = 1 on the short lane, `long` = 0), `bulk_fragment_over_max` (a
+long-lane or bulk fragment's `dlen` over `BT_BULK_FRAGMENT_MAX` = 1,020), `message_over_max` (a long-lane
+message's running total over `BT_MESSAGE_MAX` = 256 KiB before its last fragment).
+
+### `bt-advertisement.json`
+The service-data bytes the app itself controls inside the scan response (00-common-specs.md 0.4.5
+"Advertisement"): `ver` (always `0x01`) ‖ `psm` (uint16 LE) ‖ `hints` (4 bytes each, 0…`BT_ADV_MAX_HINTS` = 2);
+the OS adds the other 18 bytes of the AD structure (flags, 128-bit UUID) to reach the 21/25/29-byte scan response
+total of the 0.4.5 table — out of scope here, only recorded as `scan_response_total` for cross-checking. `kind` =
+`scan_response`: 0, 1 and 2 hints (chained from `bt-link.json`'s `K_bt_disc`). `kind` = `pin_window`: `hints` =
+only `BT_PIN_HINT` (`0x00000000`), the same for every phone while a PIN pairing window is open (AC9).
+`invalid_vectors`: `wrong_version` (`ver` ≠ `0x01` → the client ignores the whole advertisement),
+`hint_outside_window` (a hint computed at an epoch outside the client's accepted `[e-4, e+4]` window → no match).
+
+### `cpace.json`
+CPACE-X25519-SHA512 (draft-irtf-cfrg-cpace-21, suite G_X25519 + SHA-512), used for PIN pairing over Bluetooth with
+no network (00-common-specs.md 0.4.5, PAIR-01 flow C). `kind` = `official_generator`: the draft's own
+`calculate_generator` vector (Appendix B.1.1) — `H`, `PRS`, `CI`, `sid`, `generator_string`,
+`hash_generator_string`, `decoded_field_element`, `g`. `kind` = `official_message`: the draft's own message
+A/B, K and ISK vector (Appendix B.1.2–B.1.7) — `g`, `ya`/`ADa`/`Ya`, `yb`/`ADb`/`Yb`, `K`,
+`ISK_initiator_responder` (the initiator/responder transcript HandLive uses, since C always initiates and S
+always responds), plus `ISK_parallel_source` for reference (the draft's parallel/symmetric variant, not used by
+HandLive). `kind` = `handlive_pin`: HandLive's own case — `pin` (UTF-8 bytes = PRS, one vector keeps a leading
+zero), `ci` = `"HLBTPIN1"` fixed, `n_s` (32 bytes, doubles as `sid`), `ya`/`yb`, `g`, `Ya`, `Yb`, `K`, `ISK`,
+`k_bt_pinlink_info`/`k_bt_pinlink` = HKDF-SHA256(ikm = `ISK`, salt = `n_s`, info `"handlive/v1/bt-pin-link"`, L
+32), `k_bt_pin_info`/`k_bt_pin` (same, info `"handlive/v1/bt-pin-pair"`). `invalid_vectors`:
+`low_order_ya`/`low_order_yb` — the other side receives a low-order point from the draft's Appendix B.1.10 (`u0`,
+in the "MUST trigger abort" set regardless of scalar) as `Ya`/`Yb`; `K` must come back `None` (`G.I`) and the
+channel closes without an answer (0.4.5: "An all-zero `K` → close without answer"). `sid_mismatch`: C and S use
+different `n_s` (`n_s_c`/`n_s_s`) for the same PIN — `isk_c` and `isk_s` must differ. `wrong_pin`: one side
+mistypes the PIN (`pin_c`/`pin_s`, same `n_s`) — the generators differ, so `isk_c` and `isk_s` must differ (or
+either side aborts). Neither of the last two is an abort inside CPace itself; they only surface once `noise1`
+(psk = `K_bt_pinlink`) fails to open in the next step — `bt-pairing.json` does not yet have a PIN-mode
+`first_frame` vector wired to this `ISK`, left for a follow-up task.
+
 ### `session-handshake.json`
 Chained from `pair-prk.json` by `pair_id`. `k_auth`; `client_eph_priv/pub`, `client_nonce` (32); `t1`, `hello_mac` = HMAC-SHA256(k_auth, t1); `server_eph_*`, `server_nonce`, `t2`, `welcome_mac`; `eph_shared` = X25519(eph C, eph S); `secret_salt` = SHA-256(t2); `secret` (64) = HKDF(eph_shared ‖ prk, secret_salt, `"handlive/v1/session"`, 64); `k_c2s` = secret[0:32], `k_s2c` = secret[32:64]. `hello_plaintext`/`welcome_plaintext`: JSON `{op, data}` with `eph`/`nonce`/`mac` as b64u; `hello_envelope`/`welcome_envelope`: envelope `type = session`, `payload` = b64 of the plaintext (not encrypted). `invalid_vectors`: `{key, message, mac}` — HMAC(key, message) compared in constant time with `mac` must **differ**.
 

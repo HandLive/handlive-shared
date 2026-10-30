@@ -3,10 +3,13 @@
     python3 tools/bench/reconnect_time.py mac.log android.log [--offset A:B=MS] [--json] [--check]
 
 An episode runs on a client (Mac, iPhone, iPad) from a `state` event that leaves Connected to the next one that
-enters Connected (00-common-specs 0.11). Its trigger is the last `net` event with change=up or changed, or the
-last `wake` event, on any device inside the episode — times of other devices are put on the client's clock
-(clock_sync.py). Reconnect time = Connected minus trigger; without a trigger (the phone's service restarted,
-the pong timed out) only the time since the loss is shown. Target: under 3000 ms on the 95th percentile.
+enters Connected (00-common-specs 0.11). Its trigger is the last `net` or `wifi_assoc` event with change=up or
+changed, or the last `wake` or `bt_seen` event, on any device inside the episode — times of other devices are put
+on the client's clock (clock_sync.py). `bt_seen` (a Bluetooth scan match, 0.4.5) and `wifi_assoc` (the Mac joining
+a Wi-Fi Direct group, 0.4.6) are triggers like `wake`/`net up`; `bt_lost` is informational only (the loss itself
+is already in `state`) and never a trigger. Reconnect time = Connected minus trigger; without a trigger (the
+phone's service restarted, the pong timed out) only the time since the loss is shown. Target: under 3000 ms on
+the 95th percentile.
 """
 
 from __future__ import annotations
@@ -41,7 +44,9 @@ class Episode:
 def episodes(log: Log, clocks: ClockModel) -> list[Episode]:
     out = []
     clients = sorted({e.dev for e in log.events if e.ev == "state" and e.role in CLIENT_ROLES})
-    triggers = [e for e in log.events if (e.ev == "net" and e.get("change") in ("up", "changed")) or e.ev == "wake"]
+    triggers = [e for e in log.events
+                if (e.ev in ("net", "wifi_assoc") and e.get("change") in ("up", "changed"))
+                or e.ev in ("wake", "bt_seen")]
     for client in clients:
         states = [e for e in log.events if e.dev == client and e.ev == "state"]
         lost: Event | None = None
@@ -68,7 +73,7 @@ def _episode(client: str, up_since: Event, lost: Event, connected: Event, trigge
     if best is None:
         trigger, reconnect = "loss", None
     else:
-        what = "wake" if best.ev == "wake" else f"net {best.get('change')}"
+        what = best.ev if best.ev in ("wake", "bt_seen") else f"{best.ev} {best.get('change')}"
         trigger = f"{what} on {best.dev}"
         reconnect = (local_interval_ms(best, connected) if best.dev == client
                      else connected.wall_ms - best_on_client)

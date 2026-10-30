@@ -27,6 +27,11 @@ EVENTS: dict[str, set[str]] = {
     "state": {"to"},
     "net": {"change"},
     "wake": set(),
+    # Bluetooth link (P7, S7.1a): a scan match (reconnect trigger, like wake/net), a closed link (informational,
+    # not a trigger — the loss is already in `state`), and the Mac joining/leaving a Wi-Fi Direct group (trigger).
+    "bt_seen": set(),
+    "bt_lost": {"reason"},
+    "wifi_assoc": {"change"},
     # SMS (Phase 2): new SMS notification (SMS-02) and reply confirmed as Sent (SMS-04); see README.md.
     "sms_detected": {"msg", "box", "onchange"},
     "sms_new_sent": {"msg", "peer", "via"},

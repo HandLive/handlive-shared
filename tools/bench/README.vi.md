@@ -71,6 +71,14 @@ Giá trị không chứa khoảng trắng. Mọi thứ trước dấu `HLBENCH/1
 | `net` | Mọi thiết bị | Hệ điều hành báo mạng đổi: Android `ConnectivityManager.NetworkCallback`, Apple `NWPathMonitor` | `change`: `up` (có mạng), `down` (mất mạng), `changed` (đổi mạng mặc định) |
 | `wake` | Mac | `NSWorkspace.didWakeNotification` | — |
 
+### Sự kiện Bluetooth và Wi-Fi Direct (Phase 7, 0.4.5/0.4.6)
+
+| `ev` | Ai | Khi nào | Trường |
+|------|----|---------|--------|
+| `bt_seen` | Mac (M-APP, vai trung tâm) | Kết quả quét BLE khớp hint xoay vòng của một cặp ứng viên hoặc `BT_PIN_HINT` (0.4.5 "Advertisement") — một trigger kết nối lại, như `wake`/`net up` | — |
+| `bt_lost` | Bên nào cũng được | Một kênh L2CAP đóng (hết giờ idle, `reject`, xác thực khóa thất bại, hệ điều hành tự đóng) | `reason` (`idle_timeout`, `reject`, `key_confirmation`, `os`) — chỉ để biết, không bao giờ là trigger của `reconnect_time.py`: việc mất kết nối đã có trong `state` rồi |
+| `wifi_assoc` | Mac | Mac vào hoặc ra khỏi group Wi-Fi Direct của điện thoại (0.4.6) | `change`: `up` (đã vào), `down` (đã ra) — một trigger kết nối lại như `net` |
+
 ### Sự kiện SMS (Phase 2)
 
 Quyền riêng tư như trên: chỉ `message_key` của provider (`sms:<_id>`), `local_id` ngẫu nhiên, trạng thái và mã lỗi — không bao giờ có nội dung tin, số điện thoại hay tên.
