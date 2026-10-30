@@ -3342,6 +3342,23 @@
       "specs": ["PAIR-02"]
     },
     {
+      "key": "status.connected_bluetooth",
+      "en": "Connected via Bluetooth",
+      "vi": "Đã kết nối qua Bluetooth",
+      "comment": "State Connected while the session goes over Bluetooth; new catalog key (S7.1)",
+      "platforms": ["android", "macos", "ios"],
+      "specs": ["0.11"]
+    },
+    {
+      "key": "status.connected_bluetooth_to",
+      "en": "Connected via Bluetooth to {device_name}",
+      "vi": "Đã kết nối qua Bluetooth với {device_name}",
+      "comment": "Status line with the device's name (Mac menu bar menu); also the VoiceOver/TalkBack text of the indicator; new catalog key (S7.1)",
+      "platforms": ["android", "macos", "ios"],
+      "args": [{"name": "device_name", "type": "string"}],
+      "specs": ["0.11"]
+    },
+    {
       "key": "status.connected_internet",
       "en": "Connected over the internet",
       "vi": "Đã kết nối qua Internet",
