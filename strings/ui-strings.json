@@ -578,6 +578,22 @@
       "specs": ["CLIP-01"]
     },
     {
+      "key": "clipboard.bulk_bluetooth_receiving",
+      "en": "Receiving over Bluetooth. This can take a few minutes.",
+      "vi": "Đang nhận qua Bluetooth. Có thể mất vài phút.",
+      "comment": "Note under the receiving progress of an image coming over the Bluetooth link with no LAN (Android notification, Mac menu bar menu; CLIP-03 field 10)",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-03"]
+    },
+    {
+      "key": "clipboard.bulk_bluetooth_sending",
+      "en": "Sending over Bluetooth. This can take a few minutes.",
+      "vi": "Đang gửi qua Bluetooth. Có thể mất vài phút.",
+      "comment": "Note under the sending progress of an image going over the Bluetooth link with no LAN (Android notification, Mac menu bar menu; CLIP-03 field 10)",
+      "platforms": ["android", "macos"],
+      "specs": ["CLIP-03"]
+    },
+    {
       "key": "clipboard.conflict_body",
       "en": "That device just copied something new.",
       "vi": "Thiết bị này vừa có nội dung sao chép mới.",
